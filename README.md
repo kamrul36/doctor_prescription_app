@@ -1,58 +1,71 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Doctor Prescription & Patient Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A single-doctor / small-clinic practice management system built on **Laravel 12**. It lets a physician register patients, record visit/case history, prescribe medications, order tests, and generate printable prescriptions (PDF/DOCX).
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Framework:** Laravel 12 (monolith — server-rendered UI + JSON API in one project)
+- **Auth:** JWT via `php-open-source-saver/jwt-auth` (the `api` guard), session guard (`web`) reserved for the Blade UI
+- **Database:** MySQL
+- **Planned (not yet wired up):** Elasticsearch (search), Redis (cache/queue/sessions), DomPDF/PhpWord (document export) — see the doc's build order below
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Requirements
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.2+ with the `sodium` extension enabled (required by the JWT library)
+- Composer
+- MySQL
+- Node.js (for the Vite asset pipeline)
 
-## Learning Laravel
+## Setup
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan jwt:secret
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# configure DB credentials in .env, then:
+php artisan migrate
 
-## Laravel Sponsors
+npm install
+npm run dev   # or: composer run dev
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Auth API
 
-### Premium Partners
+All endpoints are JSON, under `/api/auth`. The `login` endpoint is public; the rest require a `Bearer` JWT from a prior login.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/api/auth/login` | Log in with `email` + `password`, returns `access_token` |
+| GET | `/api/auth/me` | Current authenticated user |
+| POST | `/api/auth/refresh` | Exchange a valid token for a new one |
+| POST | `/api/auth/logout` | Invalidate the current token |
 
-## Contributing
+Users have a `role` of `doctor` or `assistant` (default `doctor`), checked via a `doctor-only` Gate (`app/Providers/AppServiceProvider.php`) rather than a full permissions package.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Tests
 
-## Code of Conduct
+```bash
+php artisan test
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Auth coverage lives in `tests/Feature/Auth/AuthTest.php` (login, invalid credentials, `me`, `refresh`, `logout`).
 
-## Security Vulnerabilities
+## Build Status
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Following the doc's suggested build order (§12):
+
+- [x] **1. Auth (JWT) + role scaffolding** — done
+- [ ] 2. Patient CRUD + UI
+- [ ] 3. Case History (visit) CRUD, linked to patient
+- [ ] 4. Medication catalog + Prescription items
+- [ ] 5. Test catalog + results
+- [ ] 6. PDF export → DOCX export
+- [ ] 7. Search (DB-based)
+- [ ] 8. Elasticsearch integration
+- [ ] 9. Load balancer + stateless app server setup, security hardening
+- [ ] 10. Polish: printable prescription styling, dashboard, pagination
 
 ## License
 
