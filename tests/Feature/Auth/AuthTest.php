@@ -16,7 +16,7 @@ class AuthTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
-        $response = $this->postJson('/api/auth/login', [
+        $response = $this->postJson('/api/v1/auth/login', [
             'email' => $user->email,
             'password' => 'password',
         ]);
@@ -30,7 +30,7 @@ class AuthTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
-        $response = $this->postJson('/api/auth/login', [
+        $response = $this->postJson('/api/v1/auth/login', [
             'email' => $user->email,
             'password' => 'wrong-password',
         ]);
@@ -40,7 +40,7 @@ class AuthTest extends TestCase
 
     public function test_me_requires_a_token(): void
     {
-        $response = $this->getJson('/api/auth/me');
+        $response = $this->getJson('/api/v1/auth/me');
 
         $response->assertStatus(401);
     }
@@ -51,12 +51,12 @@ class AuthTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
-        $token = $this->postJson('/api/auth/login', [
+        $token = $this->postJson('/api/v1/auth/login', [
             'email' => $user->email,
             'password' => 'password',
         ])->json('access_token');
 
-        $response = $this->getJson('/api/auth/me', [
+        $response = $this->getJson('/api/v1/auth/me', [
             'Authorization' => "Bearer {$token}",
         ]);
 
@@ -69,12 +69,12 @@ class AuthTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
-        $token = $this->postJson('/api/auth/login', [
+        $token = $this->postJson('/api/v1/auth/login', [
             'email' => $user->email,
             'password' => 'password',
         ])->json('access_token');
 
-        $response = $this->postJson('/api/auth/refresh', [], [
+        $response = $this->postJson('/api/v1/auth/refresh', [], [
             'Authorization' => "Bearer {$token}",
         ]);
 
@@ -87,16 +87,16 @@ class AuthTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
-        $token = $this->postJson('/api/auth/login', [
+        $token = $this->postJson('/api/v1/auth/login', [
             'email' => $user->email,
             'password' => 'password',
         ])->json('access_token');
 
-        $this->postJson('/api/auth/logout', [], [
+        $this->postJson('/api/v1/auth/logout', [], [
             'Authorization' => "Bearer {$token}",
         ])->assertOk();
 
-        $this->getJson('/api/auth/me', [
+        $this->getJson('/api/v1/auth/me', [
             'Authorization' => "Bearer {$token}",
         ])->assertStatus(401);
     }

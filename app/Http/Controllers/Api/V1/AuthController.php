@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use PHPOpenSourceSaver\JWTAuth\JWTGuard;
 
 class AuthController extends Controller
 {
@@ -13,7 +14,9 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
-        if (! $token = Auth::guard('api')->attempt($credentials)) {
+        $token = $this->guard()->attempt($credentials);
+
+        if (! is_string($token)) {
             return response()->json(['message' => 'Invalid credentials.'], 401);
         }
 
@@ -22,19 +25,19 @@ class AuthController extends Controller
 
     public function me(): JsonResponse
     {
-        return response()->json(Auth::guard('api')->user());
+        return response()->json($this->guard()->user());
     }
 
     public function logout(): JsonResponse
     {
-        Auth::guard('api')->logout();
+        $this->guard()->logout();
 
         return response()->json(['message' => 'Successfully logged out.']);
     }
 
     public function refresh(): JsonResponse
     {
-        return $this->respondWithToken(Auth::guard('api')->refresh());
+        return $this->respondWithToken($this->guard()->refresh());
     }
 
     private function respondWithToken(string $token): JsonResponse
@@ -42,7 +45,13 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => Auth::guard('api')->factory()->getTTL() * 60,
+            'expires_in' => $this->guard()->factory()->getTTL() * 60,
         ]);
+    }
+
+    private function guard(): JWTGuard
+    {
+        /** @var JWTGuard */
+        return Auth::guard('api');
     }
 }
