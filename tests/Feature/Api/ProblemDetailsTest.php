@@ -32,6 +32,6 @@ class ProblemDetailsTest extends TestCase
 
     public function test_web_routes_still_render_html(): void
     {
-        $this->get('/')->assertOk()->assertSee(config('app.name'));
+        $this->get('/login')->assertOk()->assertSee(config('app.name'));
     }
 }

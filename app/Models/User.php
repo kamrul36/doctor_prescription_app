@@ -2,17 +2,31 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Domain\Access\Role;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string|null $phone
+ * @property bool $is_active
+ */
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
+
+    /**
+     * Roles and permissions live on the `web` guard; requests authenticated
+     * by the JWT (`api`) guard are checked against the same set.
+     */
+    protected string $guard_name = Role::GUARD;
 
     /**
      * The attributes that are mass assignable.
@@ -22,8 +36,9 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
-        'role',
+        'is_active',
     ];
 
     /**
@@ -46,7 +61,13 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole(Role::SUPER_ADMIN);
     }
 
     /**
@@ -60,12 +81,15 @@ class User extends Authenticatable implements JWTSubject
     /**
      * Return a key value array, containing any custom claims to be added to the JWT.
      *
+     * Informational only: authorization always re-reads permissions from the
+     * database, so role changes apply before the token expires.
+     *
      * @return array<string, mixed>
      */
     public function getJWTCustomClaims(): array
     {
         return [
-            'role' => $this->role,
+            'roles' => $this->getRoleNames()->values()->all(),
         ];
     }
 }

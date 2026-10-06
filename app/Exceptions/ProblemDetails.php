@@ -42,6 +42,9 @@ class ProblemDetails
         if ($e instanceof HttpExceptionInterface) {
             $headers = array_merge($e->getHeaders(), $headers);
         }
+        if ($e instanceof LoginLockedOut) {
+            $headers['Retry-After'] = (string) $e->retryAfter;
+        }
 
         return new JsonResponse($body, $status, $headers);
     }
@@ -50,7 +53,10 @@ class ProblemDetails
     private static function classify(Throwable $e): array
     {
         return match (true) {
-            $e instanceof ValidationException => [422, 'Validation failed'],
+            $e instanceof ValidationException => [
+                $e->status,
+                $e->status === 422 ? 'Validation failed' : (Response::$statusTexts[$e->status] ?? 'Error'),
+            ],
             $e instanceof AuthenticationException => [401, 'Unauthenticated'],
             $e instanceof AuthorizationException => [403, 'Forbidden'],
             $e instanceof ModelNotFoundException,
@@ -72,7 +78,7 @@ class ProblemDetails
 
         return match (true) {
             $e instanceof ModelNotFoundException => 'The requested resource was not found.',
-            $e instanceof ValidationException => 'One or more fields are invalid.',
+            $e instanceof ValidationException => $e->status === 422 ? 'One or more fields are invalid.' : $e->getMessage(),
             default => $e->getMessage() !== '' ? $e->getMessage() : 'Request could not be completed.',
         };
     }

@@ -34,3 +34,17 @@ jobs:
 
       - name: Tests
         run: php artisan test
+
+      - name: Export OpenAPI spec
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ${{ github.workspace }}/database/openapi.sqlite
+        run: |
+          touch database/openapi.sqlite
+          php artisan migrate --force
+          php artisan scramble:export --path=build/openapi.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openapi
+          path: build/openapi.json

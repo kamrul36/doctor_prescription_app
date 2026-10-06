@@ -2,34 +2,44 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Domain\Access\Actions\AuthenticateAction;
+use App\Domain\Audit\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use App\Http\Resources\UserResource;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use PHPOpenSourceSaver\JWTAuth\JWTGuard;
 
 class AuthController extends Controller
 {
-    public function login(LoginRequest $request): JsonResponse
+    /**
+     * Log in and receive a JWT.
+     *
+     * Five failed attempts per email + IP lock the login for a minute (429).
+     *
+     * @unauthenticated
+     */
+    public function login(LoginRequest $request, AuthenticateAction $authenticate): JsonResponse
     {
-        $credentials = $request->validated();
+        $user = $authenticate->handle($request, 'api');
 
-        $token = $this->guard()->attempt($credentials);
-
-        if (! is_string($token)) {
-            return response()->json(['message' => 'Invalid credentials.'], 401);
-        }
-
-        return $this->respondWithToken($token);
+        return $this->respondWithToken($this->guard()->login($user));
     }
 
-    public function me(): JsonResponse
+    /** The current user with roles and effective permissions. */
+    public function me(): UserResource
     {
-        return response()->json($this->guard()->user());
+        /** @var User $user */
+        $user = $this->guard()->user();
+
+        return (new UserResource($user))->withPermissions();
     }
 
-    public function logout(): JsonResponse
+    public function logout(AuditLogger $audit): JsonResponse
     {
+        $audit->log('auth.logout', null, ['guard' => 'api']);
         $this->guard()->logout();
 
         return response()->json(['message' => 'Successfully logged out.']);
