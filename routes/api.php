@@ -4,6 +4,9 @@ use App\Http\Controllers\Api\V1\Admin\PermissionController;
 use App\Http\Controllers\Api\V1\Admin\RoleController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\Practice\ChamberController;
+use App\Http\Controllers\Api\V1\Practice\DoctorProfileController;
+use App\Http\Controllers\Api\V1\Practice\TemplateController;
 use Illuminate\Support\Facades\Route;
 
 // Served under /api (framework prefix) + /v1.
@@ -21,6 +24,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::middleware(['auth:api', 'active'])->group(function () {
         Route::apiResource('users', UserController::class)->except(['destroy']);
         Route::apiResource('roles', RoleController::class);
+        Route::get('chamber', [ChamberController::class, 'show'])->name('chamber.show');
+        Route::put('chamber', [ChamberController::class, 'update'])->name('chamber.update');
+        Route::get('doctors/me', [DoctorProfileController::class, 'show'])->name('doctors.me.show');
+        Route::put('doctors/me', [DoctorProfileController::class, 'update'])->name('doctors.me.update');
+        Route::apiResource('prescription-templates', TemplateController::class)
+            ->parameters(['prescription-templates' => 'template'])
+            ->except(['destroy']);
         Route::get('permissions', [PermissionController::class, 'index'])->name('permissions.index');
     });
 });

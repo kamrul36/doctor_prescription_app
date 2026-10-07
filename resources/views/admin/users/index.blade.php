@@ -9,12 +9,12 @@
             <input type="search" name="search" value="{{ $search }}" placeholder="Name or email"
                    class="rounded px-3 py-1.5 ring-1 ring-gray-300">
         </form>
-        <a href="{{ route('admin.users.create') }}" class="rounded bg-gray-900 px-3 py-1.5 text-sm text-white">New user</a>
+        <a href="{{ route('admin.users.create') }}" class="rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-3 py-1.5 text-sm text-white">New user</a>
     </div>
 
     @include('admin._errors')
 
-    <div class="overflow-x-auto rounded border bg-white">
+    <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table class="w-full text-left text-sm">
             <thead class="border-b bg-gray-50">
                 <tr>

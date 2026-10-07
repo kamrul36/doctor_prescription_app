@@ -37,18 +37,29 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Rejects the attempt with 429 once the email + IP pair has used up its
-     * failed attempts.
+     * Rejects the attempt with 429 once the email + IP pair, or the IP on
+     * its own, has used up its failed attempts. The IP-only limit is looser
+     * and stops one address spraying a common password across many emails.
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), (int) config('access.login_max_attempts'))) {
+        $limits = [
+            $this->throttleKey() => (int) config('access.login_max_attempts'),
+            $this->ipThrottleKey() => (int) config('access.login_ip_max_attempts'),
+        ];
+
+        $seconds = 0;
+        foreach ($limits as $key => $maxAttempts) {
+            if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+                $seconds = max($seconds, RateLimiter::availableIn($key));
+            }
+        }
+
+        if ($seconds === 0) {
             return;
         }
 
         event(new Lockout($this));
-
-        $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw LoginLockedOut::after(
             $seconds,
@@ -59,8 +70,13 @@ class LoginRequest extends FormRequest
     public function hitRateLimiter(): void
     {
         RateLimiter::hit($this->throttleKey(), (int) config('access.login_decay_seconds'));
+        RateLimiter::hit($this->ipThrottleKey(), (int) config('access.login_ip_decay_seconds'));
     }
 
+    /**
+     * Clears only the email + IP count. The IP count is left to expire, or
+     * an attacker could reset it by logging into an account of their own.
+     */
     public function clearRateLimiter(): void
     {
         RateLimiter::clear($this->throttleKey());
@@ -69,5 +85,10 @@ class LoginRequest extends FormRequest
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower((string) $this->string('email')).'|'.$this->ip());
+    }
+
+    public function ipThrottleKey(): string
+    {
+        return 'login-ip|'.$this->ip();
     }
 }

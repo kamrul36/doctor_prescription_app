@@ -6,6 +6,7 @@ use App\Domain\Access\Actions\AuthenticateAction;
 use App\Domain\Audit\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +25,7 @@ class LoginController extends Controller
 
         Auth::guard('web')->login($user, $request->boolean('remember'));
         $request->session()->regenerate();
+        $request->session()->put(User::TOKEN_VERSION_SESSION_KEY, $user->token_version);
 
         return redirect()->intended(route('home'));
     }

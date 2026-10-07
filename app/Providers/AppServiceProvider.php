@@ -5,6 +5,10 @@ namespace App\Providers;
 use App\Domain\Access\Policies\RolePolicy;
 use App\Domain\Access\Policies\UserPolicy;
 use App\Domain\Access\Role;
+use App\Domain\Practice\Models\Chamber;
+use App\Domain\Practice\Models\Doctor;
+use App\Domain\Practice\Models\PrescriptionTemplate;
+use App\Domain\Practice\Policies\PracticeSetupPolicy;
 use App\Models\User;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -34,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(RoleModel::class, RolePolicy::class);
+        foreach ([Chamber::class, Doctor::class, PrescriptionTemplate::class] as $model) {
+            Gate::policy($model, PracticeSetupPolicy::class);
+        }
 
         // OpenAPI docs at /docs/api: Scramble opens them in `local`; elsewhere
         // only for a super admin (session login).

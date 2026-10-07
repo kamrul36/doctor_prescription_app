@@ -85,4 +85,28 @@ class WebLoginTest extends TestCase
         $this->get('/')->assertRedirect(route('login'));
         $this->assertGuest('web');
     }
+
+    public function test_session_from_before_deactivation_stays_revoked_after_reactivation(): void
+    {
+        $user = User::factory()->doctor()->create();
+        $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertRedirect();
+        $this->get('/')->assertOk();
+
+        // Deactivated and reactivated without the session making a request in between.
+        $user->update(['is_active' => false]);
+        $user->update(['is_active' => true]);
+        $this->app['auth']->forgetGuards(); // the guard cached the user during login
+
+        $this->get('/')->assertRedirect(route('login'));
+        $this->assertGuest('web');
+    }
+
+    public function test_deactivation_rotates_the_remember_token(): void
+    {
+        $user = User::factory()->doctor()->create(['remember_token' => 'old-token']);
+
+        $user->update(['is_active' => false]);
+
+        $this->assertNotSame('old-token', $user->fresh()->getRememberToken());
+    }
 }
