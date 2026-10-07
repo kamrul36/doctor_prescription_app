@@ -34,6 +34,6 @@
 </div>
 
 <div class="mt-6 flex gap-3">
-    <button type="submit" class="rounded bg-gray-900 px-4 py-2 text-white">Save</button>
+    <button type="submit" class="rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-4 py-2 text-white">Save</button>
     <a href="{{ route('admin.roles.index') }}" class="px-4 py-2 text-gray-700">Cancel</a>
 </div>
