@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -16,6 +17,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $email
  * @property string|null $phone
  * @property bool $is_active
+ * @property int $token_version
  */
 class User extends Authenticatable implements JWTSubject
 {
@@ -27,6 +29,16 @@ class User extends Authenticatable implements JWTSubject
      * by the JWT (`api`) guard are checked against the same set.
      */
     protected string $guard_name = Role::GUARD;
+
+    /** JWT claim and session key holding the token version. */
+    public const TOKEN_VERSION_CLAIM = 'tv';
+
+    public const TOKEN_VERSION_SESSION_KEY = 'auth.token_version';
+
+    /** @var array<string, mixed> */
+    protected $attributes = [
+        'token_version' => 0,
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -62,7 +74,23 @@ class User extends Authenticatable implements JWTSubject
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'token_version' => 'integer',
         ];
+    }
+
+    /**
+     * Deactivation revokes every JWT and session issued so far: the token
+     * version moves on and the remember-me token is rotated, so neither
+     * works again if the account is reactivated.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            if ($user->exists && $user->isDirty('is_active') && ! $user->is_active) {
+                $user->token_version = $user->token_version + 1;
+                $user->setRememberToken(Str::random(60));
+            }
+        });
     }
 
     public function isSuperAdmin(): bool
@@ -90,6 +118,8 @@ class User extends Authenticatable implements JWTSubject
     {
         return [
             'roles' => $this->getRoleNames()->values()->all(),
+            // Checked by EnsureUserIsActive against the current value.
+            self::TOKEN_VERSION_CLAIM => $this->token_version,
         ];
     }
 }

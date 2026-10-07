@@ -17,7 +17,8 @@ class AuthController extends Controller
     /**
      * Log in and receive a JWT.
      *
-     * Five failed attempts per email + IP lock the login for a minute (429).
+     * Five failed attempts per email + IP lock the login for a minute (429);
+     * 30 failed attempts from one IP across any emails lock it for 15 minutes.
      *
      * @unauthenticated
      */

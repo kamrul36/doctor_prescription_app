@@ -92,6 +92,42 @@ class AuthTest extends TestCase
         $this->postJson('/api/v1/auth/login', ['email' => $user->email, 'password' => 'password'])->assertOk();
     }
 
+    public function test_one_ip_spraying_many_emails_is_locked_out(): void
+    {
+        config(['access.login_ip_max_attempts' => 3]);
+        $user = User::factory()->create();
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->postJson('/api/v1/auth/login', ['email' => "victim{$i}@example.com", 'password' => 'password'])
+                ->assertStatus(401);
+        }
+
+        // A fresh email from the same IP is refused, even with the right password.
+        $this->postJson('/api/v1/auth/login', ['email' => $user->email, 'password' => 'password'])
+            ->assertStatus(429)
+            ->assertHeader('Retry-After');
+
+        // Another IP is not affected.
+        $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.2'])
+            ->postJson('/api/v1/auth/login', ['email' => $user->email, 'password' => 'password'])
+            ->assertOk();
+    }
+
+    public function test_successful_login_does_not_reset_the_ip_failure_count(): void
+    {
+        config(['access.login_ip_max_attempts' => 3]);
+        $attacker = User::factory()->create();
+
+        for ($i = 0; $i < 2; $i++) {
+            $this->postJson('/api/v1/auth/login', ['email' => "victim{$i}@example.com", 'password' => 'password']);
+        }
+        $this->postJson('/api/v1/auth/login', ['email' => $attacker->email, 'password' => 'password'])->assertOk();
+        $this->postJson('/api/v1/auth/login', ['email' => 'victim2@example.com', 'password' => 'password'])->assertStatus(401);
+
+        $this->postJson('/api/v1/auth/login', ['email' => 'victim3@example.com', 'password' => 'password'])
+            ->assertStatus(429);
+    }
+
     public function test_me_requires_a_token(): void
     {
         $response = $this->getJson('/api/v1/auth/me');
@@ -123,6 +159,36 @@ class AuthTest extends TestCase
         $this->app['auth']->forgetGuards(); // the guard cached the user during login
 
         $this->getJson('/api/v1/auth/me', $headers)->assertStatus(401);
+    }
+
+    public function test_token_issued_before_deactivation_stays_revoked_after_reactivation(): void
+    {
+        $user = User::factory()->doctor()->create();
+        $oldHeaders = $this->bearer($user);
+
+        $user->update(['is_active' => false]);
+        $user->update(['is_active' => true]);
+        $this->app['auth']->forgetGuards();
+
+        $this->getJson('/api/v1/auth/me', $oldHeaders)->assertStatus(401);
+        $this->postJson('/api/v1/auth/refresh', [], $oldHeaders)->assertStatus(401);
+
+        // A token from a fresh login works.
+        $this->app['auth']->forgetGuards();
+        $newHeaders = $this->bearer($user);
+        $this->app['auth']->forgetGuards();
+        $this->getJson('/api/v1/auth/me', $newHeaders)->assertOk();
+    }
+
+    public function test_other_user_updates_do_not_revoke_tokens(): void
+    {
+        $user = User::factory()->doctor()->create();
+        $headers = $this->bearer($user);
+
+        $user->update(['name' => 'Renamed']);
+        $this->app['auth']->forgetGuards();
+
+        $this->getJson('/api/v1/auth/me', $headers)->assertOk();
     }
 
     public function test_refresh_returns_a_new_token(): void

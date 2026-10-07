@@ -42,7 +42,7 @@ In `local`, the seeder also creates `doctor@example.com` and `assistant@example.
 | Blade UI | `web` (session cookie) | `GET/POST /login`, `POST /logout` |
 | API (future Angular / mobile) | `api` (JWT) | `POST /api/v1/auth/login`, `refresh`, `logout`, `GET auth/me` |
 
-Both logins share `LoginRequest` + `AuthenticateAction`: 5 failed attempts per email + IP lock the login for 60 s (API: `429` + `Retry-After`), inactive users cannot log in, and deactivated users lose access on their next request (`active` middleware).
+Both logins share `LoginRequest` + `AuthenticateAction`: 5 failed attempts per email + IP lock the login for 60 s, and 30 failed attempts from one IP across any emails lock it for 15 min (API: `429` + `Retry-After`). Inactive users cannot log in, and deactivated users lose access on their next request (`active` middleware). Deactivation also bumps `users.token_version` and rotates the remember-me token, so JWTs and sessions issued before it stay revoked if the account is reactivated.
 
 ## Roles & permissions
 
