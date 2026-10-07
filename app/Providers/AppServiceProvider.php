@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Domain\Access\Policies\RolePolicy;
 use App\Domain\Access\Policies\UserPolicy;
 use App\Domain\Access\Role;
+use App\Domain\Patient\Models\Patient;
+use App\Domain\Patient\Policies\PatientPolicy;
 use App\Domain\Practice\Models\Chamber;
 use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\Models\PrescriptionTemplate;
@@ -38,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(RoleModel::class, RolePolicy::class);
+        Gate::policy(Patient::class, PatientPolicy::class);
         foreach ([Chamber::class, Doctor::class, PrescriptionTemplate::class] as $model) {
             Gate::policy($model, PracticeSetupPolicy::class);
         }

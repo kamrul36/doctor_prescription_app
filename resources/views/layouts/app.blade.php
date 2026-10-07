@@ -12,6 +12,7 @@
     @auth
         @php
             $links = [
+                ['patients.index', 'patients.*', 'Patients', 'patients.read'],
                 ['settings.chamber.edit', 'settings.chamber.*', 'Chamber', 'templates.manage'],
                 ['settings.doctor.edit', 'settings.doctor.*', 'My profile', 'templates.manage'],
                 ['settings.templates.index', 'settings.templates.*', 'Templates', 'cases.read'],

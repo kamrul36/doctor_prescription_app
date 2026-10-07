@@ -6,6 +6,7 @@
     @php
         $user = auth()->user();
         $cards = [
+            ['patients.index', 'Patients', 'Register patients and find them by name, phone or code.', 'patients.read'],
             ['settings.chamber.edit', 'Chamber', 'Name, address and branches printed on prescriptions.', 'templates.manage'],
             ['settings.doctor.edit', 'My profile', 'Credentials, registration no., visiting hours and fees.', 'templates.manage'],
             ['settings.templates.index', 'Prescription templates', 'Layouts for each specialty and pad, in A4.', 'cases.read'],
@@ -19,6 +20,13 @@
         <h1 class="mt-1 text-3xl font-semibold text-white!">Welcome, {{ $user->name }}</h1>
         <p class="mt-2 max-w-xl text-teal-50">Your chamber, prescriptions and patient history in one place.</p>
     </section>
+
+    @can('patients.read')
+        <form method="GET" action="{{ route('patients.index') }}" class="mt-6">
+            <input type="search" name="q" placeholder="Find a patient: name, phone or code" aria-label="Find a patient"
+                   class="w-full rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-300 focus:ring-2 focus:ring-teal-600 focus:outline-none">
+        </form>
+    @endcan
 
     <h2 class="mt-8 mb-3 text-sm font-semibold tracking-wide text-gray-500 uppercase">Quick links</h2>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

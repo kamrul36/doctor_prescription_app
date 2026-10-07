@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Admin\PermissionController;
 use App\Http\Controllers\Api\V1\Admin\RoleController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\Patient\PatientController;
 use App\Http\Controllers\Api\V1\Practice\ChamberController;
 use App\Http\Controllers\Api\V1\Practice\DoctorProfileController;
 use App\Http\Controllers\Api\V1\Practice\TemplateController;
@@ -31,6 +32,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::apiResource('prescription-templates', TemplateController::class)
             ->parameters(['prescription-templates' => 'template'])
             ->except(['destroy']);
+        Route::middleware('throttle:120,1')->group(function () {
+            Route::apiResource('patients', PatientController::class);
+            Route::get('patients/{patient}/summary', [PatientController::class, 'summary'])->name('patients.summary');
+        });
         Route::get('permissions', [PermissionController::class, 'index'])->name('permissions.index');
     });
 });

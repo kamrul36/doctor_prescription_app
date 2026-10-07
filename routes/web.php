@@ -3,6 +3,7 @@
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Auth\LoginController;
+use App\Http\Controllers\Web\Patient\PatientController;
 use App\Http\Controllers\Web\Settings\ChamberController;
 use App\Http\Controllers\Web\Settings\DoctorProfileController;
 use App\Http\Controllers\Web\Settings\TemplateController;
@@ -20,6 +21,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::view('/', 'home')->name('home');
+
+    Route::middleware('throttle:120,1')->group(function () {
+        Route::resource('patients', PatientController::class);
+    });
 
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('chamber', [ChamberController::class, 'edit'])->name('chamber.edit');
