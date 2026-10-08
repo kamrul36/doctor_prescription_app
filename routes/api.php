@@ -4,6 +4,9 @@ use App\Http\Controllers\Api\V1\Admin\PermissionController;
 use App\Http\Controllers\Api\V1\Admin\RoleController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\Catalog\AdviceTemplateController;
+use App\Http\Controllers\Api\V1\Catalog\LabTestController;
+use App\Http\Controllers\Api\V1\Catalog\ProcedureController;
 use App\Http\Controllers\Api\V1\Patient\PatientController;
 use App\Http\Controllers\Api\V1\Practice\ChamberController;
 use App\Http\Controllers\Api\V1\Practice\DoctorProfileController;
@@ -35,6 +38,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::middleware('throttle:120,1')->group(function () {
             Route::apiResource('patients', PatientController::class);
             Route::get('patients/{patient}/summary', [PatientController::class, 'summary'])->name('patients.summary');
+        });
+        Route::middleware('throttle:120,1')->group(function () {
+            Route::apiResource('lab-tests', LabTestController::class);
+            Route::apiResource('procedures', ProcedureController::class);
+            Route::apiResource('advice-templates', AdviceTemplateController::class);
         });
         Route::get('permissions', [PermissionController::class, 'index'])->name('permissions.index');
     });

@@ -16,6 +16,7 @@
                 ['settings.chamber.edit', 'settings.chamber.*', 'Chamber', 'templates.manage'],
                 ['settings.doctor.edit', 'settings.doctor.*', 'My profile', 'templates.manage'],
                 ['settings.templates.index', 'settings.templates.*', 'Templates', 'cases.read'],
+                ['catalog.lab-tests.index', 'catalog.*', 'Catalogs', 'cases.read'],
                 ['admin.users.index', 'admin.users.*', 'Users', 'users.manage'],
                 ['admin.roles.index', 'admin.roles.*', 'Roles', 'roles.manage'],
             ];
@@ -28,7 +29,7 @@
                 </a>
 
                 @foreach ($links as [$route, $pattern, $label, $permission])
-                    @if (auth()->user()->can($permission) || ($route === 'settings.templates.index' && auth()->user()->can('templates.manage')))
+                    @if (auth()->user()->can($permission) || ($route === 'settings.templates.index' && auth()->user()->can('templates.manage')) || ($route === 'catalog.lab-tests.index' && auth()->user()->can('catalog.manage')))
                         <a href="{{ route($route) }}"
                                @class([
                                    'rounded-md px-3 py-1.5 text-sm font-medium transition',

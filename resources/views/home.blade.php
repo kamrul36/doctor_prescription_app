@@ -10,6 +10,7 @@
             ['settings.chamber.edit', 'Chamber', 'Name, address and branches printed on prescriptions.', 'templates.manage'],
             ['settings.doctor.edit', 'My profile', 'Credentials, registration no., visiting hours and fees.', 'templates.manage'],
             ['settings.templates.index', 'Prescription templates', 'Layouts for each specialty and pad, in A4.', 'cases.read'],
+            ['catalog.lab-tests.index', 'Catalogs', 'Lab tests, procedures and advice texts to pick from at a visit.', 'cases.read'],
             ['admin.users.index', 'Users', 'Create staff accounts and assign roles.', 'users.manage'],
             ['admin.roles.index', 'Roles', 'Decide what each role is allowed to do.', 'roles.manage'],
         ];

@@ -80,7 +80,7 @@ Phase 1 milestones (`docs/phase1_prescription_finance_spec.md` §12):
 - [x] **P1.1** Auth & roles — session + JWT login, spatie roles/permissions, user/role admin, audit base, login rate limit
 - [x] **P1.2** Practice & templates
 - [x] **P1.3** Patients — CRUD, YYNNNNNN code, DOB or age, allergies/conditions, typo-tolerant search
-- [ ] P1.4 Catalogs
+- [x] P1.4 Catalogs — lab tests, procedures, advice templates, cached typeahead (medicine catalog deferred)
 - [ ] P1.5 Visit & prescription
 - [ ] P1.6 Bilingual PDF
 - [ ] P1.7 Finance

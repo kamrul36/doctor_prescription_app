@@ -3,6 +3,9 @@
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Auth\LoginController;
+use App\Http\Controllers\Web\Catalog\AdviceTemplateController;
+use App\Http\Controllers\Web\Catalog\LabTestController;
+use App\Http\Controllers\Web\Catalog\ProcedureController;
 use App\Http\Controllers\Web\Patient\PatientController;
 use App\Http\Controllers\Web\Settings\ChamberController;
 use App\Http\Controllers\Web\Settings\DoctorProfileController;
@@ -24,6 +27,12 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::middleware('throttle:120,1')->group(function () {
         Route::resource('patients', PatientController::class);
+    });
+
+    Route::prefix('catalog')->name('catalog.')->middleware('throttle:120,1')->group(function () {
+        Route::resource('lab-tests', LabTestController::class)->except(['show']);
+        Route::resource('procedures', ProcedureController::class)->except(['show']);
+        Route::resource('advice-templates', AdviceTemplateController::class)->except(['show']);
     });
 
     Route::prefix('settings')->name('settings.')->group(function () {
