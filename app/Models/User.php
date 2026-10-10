@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Domain\Access\Role;
+use App\Domain\Practice\Models\Doctor;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -96,6 +98,16 @@ class User extends Authenticatable implements JWTSubject
     public function isSuperAdmin(): bool
     {
         return $this->hasRole(Role::SUPER_ADMIN);
+    }
+
+    /**
+     * The doctor profile, if this user has one.
+     *
+     * @return HasOne<Doctor, $this>
+     */
+    public function doctor(): HasOne
+    {
+        return $this->hasOne(Doctor::class);
     }
 
     /**

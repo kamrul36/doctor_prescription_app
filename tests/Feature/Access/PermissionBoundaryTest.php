@@ -107,6 +107,8 @@ class PermissionBoundaryTest extends TestCase
             [Permission::ReportsBasic, true, true],
             [Permission::TemplatesManage, true, false],
             [Permission::CatalogManage, true, false],
+            // Chambers, the specialty list and chamber assignment: admin only by default.
+            [Permission::PracticeManage, false, false],
             [Permission::UsersManage, false, false],
             [Permission::RolesManage, false, false],
             [Permission::AuditRead, false, false],

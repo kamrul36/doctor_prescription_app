@@ -8,6 +8,7 @@ use App\Domain\Catalog\Models\LabTest;
 use App\Domain\Catalog\Models\Procedure;
 use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\Models\PrescriptionTemplate;
+use App\Domain\Practice\Models\Specialty;
 use App\Models\User;
 use Database\Seeders\AccessSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -41,12 +42,27 @@ class CatalogApiTest extends TestCase
         return ['Authorization' => 'Bearer '.JWTAuth::fromUser($user)];
     }
 
-    private function doctorWithProfile(): User
+    /** @param  list<string>  $specialties  add-on specialties; none = general physician */
+    private function doctorWithProfile(array $specialties = []): User
     {
         $user = User::factory()->doctor()->create();
-        Doctor::create(['user_id' => $user->id, 'name_en' => 'Dr. '.$user->name, 'specialty_code' => 'general']);
+        $doctor = Doctor::create(['user_id' => $user->id, 'name_en' => 'Dr. '.$user->name]);
+        foreach ($specialties as $code) {
+            $doctor->specialties()->attach($this->sp($code));
+        }
 
         return $user;
+    }
+
+    /** Id of a seeded specialty (the specialties migration seeds gynae and dental). */
+    private function sp(string $code): int
+    {
+        return (int) Specialty::where('code', $code)->value('id');
+    }
+
+    private function inactiveSpecialty(): int
+    {
+        return Specialty::create(['code' => 'retired', 'name' => 'Retired', 'is_active' => false])->id;
     }
 
     /** @return list<string> */
@@ -95,7 +111,7 @@ class CatalogApiTest extends TestCase
         $assistant = $this->bearer(User::factory()->assistant()->create());
         $test = LabTest::create(['name' => 'CBC']);
         $procedure = Procedure::create(['code' => 'SCALING', 'name_en' => 'Scaling']);
-        $advice = AdviceTemplate::create(['specialty_code' => 'general', 'title' => 'General', 'text_en' => 'Rest']);
+        $advice = AdviceTemplate::create(['title' => 'General', 'text_en' => 'Rest']);
 
         foreach (['lab-tests' => $test, 'procedures' => $procedure, 'advice-templates' => $advice] as $path => $item) {
             $this->getJson("/api/v1/{$path}", $assistant)->assertOk()->assertJsonCount(1, 'data');
@@ -282,23 +298,23 @@ class CatalogApiTest extends TestCase
         $hb = fn () => $this->bearer($bob);
 
         $id = $this->postJson('/api/v1/advice-templates', [
-            'specialty_code' => 'general', 'title' => 'Alice private', 'text_en' => 'Secret', 'doctor_id' => $bobProfile->id,
+            'title' => 'Alice private', 'text_en' => 'Secret', 'doctor_id' => $bobProfile->id,
         ], $ha())->assertCreated()->json('data.id');
 
         $aliceProfile = Doctor::where('user_id', $alice->id)->firstOrFail();
         $this->assertSame($aliceProfile->id, AdviceTemplate::find($id)->doctor_id);
 
-        $shared = AdviceTemplate::create(['specialty_code' => 'general', 'title' => 'Shared', 'text_en' => 'Rest']);
+        $shared = AdviceTemplate::create(['title' => 'Shared', 'text_en' => 'Rest']);
         $titles = fn (array $r) => array_column($r['data'], 'title');
         $this->assertEqualsCanonicalizing(['Alice private', 'Shared'], $titles($this->getJson('/api/v1/advice-templates', $ha())->json()));
         $this->assertSame(['Shared'], $titles($this->getJson('/api/v1/advice-templates', $hb())->json()));
         $this->assertSame(['Shared'], $titles($this->getJson('/api/v1/advice-templates?page=1', $hb())->json()));
         $this->getJson("/api/v1/advice-templates/{$id}", $hb())->assertForbidden();
-        $this->putJson("/api/v1/advice-templates/{$id}", ['specialty_code' => 'general', 'title' => 'Hijack', 'text_en' => 'x'], $hb())->assertForbidden();
+        $this->putJson("/api/v1/advice-templates/{$id}", ['title' => 'Hijack', 'text_en' => 'x'], $hb())->assertForbidden();
         $this->deleteJson("/api/v1/advice-templates/{$id}", [], $hb())->assertForbidden();
 
         // Shared ones can be maintained by any catalog manager.
-        $this->putJson("/api/v1/advice-templates/{$shared->id}", ['specialty_code' => 'general', 'title' => 'Shared 2', 'text_en' => 'Rest'], $hb())->assertOk();
+        $this->putJson("/api/v1/advice-templates/{$shared->id}", ['title' => 'Shared 2', 'text_en' => 'Rest'], $hb())->assertOk();
         // And a super admin can reach everything.
         $admin = User::factory()->create()->assignRole(Role::SUPER_ADMIN);
         $this->getJson("/api/v1/advice-templates/{$id}", $this->bearer($admin))->assertOk();
@@ -309,7 +325,7 @@ class CatalogApiTest extends TestCase
         $alice = $this->doctorWithProfile();
         $bob = $this->doctorWithProfile();
         $ha = fn () => $this->bearer($alice);
-        $this->postJson('/api/v1/advice-templates', ['specialty_code' => 'dental', 'title' => 'Mine', 'text_en' => 'x'], $ha())->assertCreated();
+        $this->postJson('/api/v1/advice-templates', ['specialty_id' => $this->sp('dental'), 'title' => 'Mine', 'text_en' => 'x'], $ha())->assertCreated();
 
         $this->assertCount(1, $this->getJson('/api/v1/advice-templates?search=mine', $ha())->json('data'));
         $this->assertCount(0, $this->getJson('/api/v1/advice-templates?search=mine', $this->bearer($bob))->json('data'));
@@ -319,13 +335,20 @@ class CatalogApiTest extends TestCase
     public function test_advice_specialty_filter_and_validation(): void
     {
         $h = $this->bearer($this->doctorWithProfile());
-        $this->postJson('/api/v1/advice-templates', ['specialty_code' => 'dental', 'title' => 'D', 'text_en' => 'x'], $h)->assertCreated();
-        $this->postJson('/api/v1/advice-templates', ['specialty_code' => 'gynae', 'title' => 'G', 'text_en' => 'x'], $h)->assertCreated();
+        $this->postJson('/api/v1/advice-templates', ['specialty_id' => $this->sp('dental'), 'title' => 'D', 'text_en' => 'x'], $h)->assertCreated();
+        $this->postJson('/api/v1/advice-templates', ['specialty_id' => $this->sp('gynae'), 'title' => 'G', 'text_en' => 'x'], $h)->assertCreated();
 
-        $this->assertSame(['D'], array_column($this->getJson('/api/v1/advice-templates?specialty=dental', $h)->json('data'), 'title'));
-        $this->postJson('/api/v1/advice-templates', ['specialty_code' => 'astro', 'title' => 'x', 'text_en' => 'x'], $h)
-            ->assertUnprocessable()->assertJsonValidationErrors('specialty_code');
-        $this->postJson('/api/v1/advice-templates', ['specialty_code' => 'dental', 'title' => 'x'], $h)
+        // No specialty = general advice for every doctor.
+        $this->postJson('/api/v1/advice-templates', ['title' => 'All', 'text_en' => 'x'], $h)
+            ->assertCreated()->assertJsonPath('data.specialty_id', null);
+
+        $this->assertSame(['D'], array_column($this->getJson('/api/v1/advice-templates?specialty='.$this->sp('dental'), $h)->json('data'), 'title'));
+        $this->assertSame(['All'], array_column($this->getJson('/api/v1/advice-templates?specialty=general', $h)->json('data'), 'title'));
+        foreach ([999, 'general', $this->inactiveSpecialty()] as $bad) {
+            $this->postJson('/api/v1/advice-templates', ['specialty_id' => $bad, 'title' => 'x', 'text_en' => 'x'], $h)
+                ->assertUnprocessable()->assertJsonValidationErrors('specialty_id');
+        }
+        $this->postJson('/api/v1/advice-templates', ['specialty_id' => $this->sp('dental'), 'title' => 'x'], $h)
             ->assertUnprocessable()->assertJsonValidationErrors('text_en');
     }
 
@@ -334,10 +357,10 @@ class CatalogApiTest extends TestCase
         $user = $this->doctorWithProfile();
         $doctor = Doctor::where('user_id', $user->id)->firstOrFail();
         $h = $this->bearer($user);
-        $pad = PrescriptionTemplate::create($this->template(['code' => 'pad', 'specialty_code' => 'dental']));
-        $other = PrescriptionTemplate::create($this->template(['code' => 'other', 'specialty_code' => 'dental', 'doctor_id' => Doctor::where('user_id', $this->doctorWithProfile()->id)->value('id')]));
-        $inactive = PrescriptionTemplate::create($this->template(['code' => 'off', 'specialty_code' => 'dental', 'is_active' => false]));
-        $payload = fn (array $extra = []) => ['specialty_code' => 'dental', 'title' => 'T'.random_int(1, 99999), 'text_en' => 'x', ...$extra];
+        $pad = PrescriptionTemplate::create($this->template(['code' => 'pad']));
+        $other = PrescriptionTemplate::create($this->template(['code' => 'other', 'doctor_id' => Doctor::where('user_id', $this->doctorWithProfile()->id)->value('id')]));
+        $inactive = PrescriptionTemplate::create($this->template(['code' => 'off', 'is_active' => false]));
+        $payload = fn (array $extra = []) => ['specialty_id' => $this->sp('dental'), 'title' => 'T'.random_int(1, 99999), 'text_en' => 'x', ...$extra];
 
         $first = $this->postJson('/api/v1/advice-templates', $payload(['is_default_for_template_id' => $pad->id]), $h)
             ->assertCreated()->json('data.id');
@@ -347,8 +370,10 @@ class CatalogApiTest extends TestCase
         $this->assertNull(AdviceTemplate::find($first)->is_default_for_template_id, 'a template has one default per owner');
         $this->assertSame($pad->id, AdviceTemplate::find($second)->is_default_for_template_id);
 
-        $this->postJson('/api/v1/advice-templates', $payload(['specialty_code' => 'gynae', 'is_default_for_template_id' => $pad->id]), $h)
-            ->assertUnprocessable()->assertJsonValidationErrors('is_default_for_template_id');
+        // Templates have no specialty, so advice of any specialty (or none) can be a default.
+        $general = PrescriptionTemplate::create($this->template(['code' => 'general']));
+        $this->postJson('/api/v1/advice-templates', $payload(['specialty_id' => $this->sp('gynae'), 'is_default_for_template_id' => $general->id]), $h)
+            ->assertCreated()->assertJsonPath('data.is_default_for_template_id', $general->id);
         $this->postJson('/api/v1/advice-templates', $payload(['is_default_for_template_id' => $other->id]), $h)->assertUnprocessable();
         $this->postJson('/api/v1/advice-templates', $payload(['is_default_for_template_id' => $inactive->id]), $h)->assertUnprocessable();
         $this->postJson('/api/v1/advice-templates', $payload(['is_default_for_template_id' => 99999]), $h)->assertUnprocessable();
@@ -357,6 +382,73 @@ class CatalogApiTest extends TestCase
         // Deactivating the default clears it.
         $this->putJson("/api/v1/advice-templates/{$second}", $payload(['is_active' => false]), $h)->assertOk();
         $this->assertNull(AdviceTemplate::find($second)->is_default_for_template_id);
+    }
+
+    // ---- specialties -----------------------------------------------------
+
+    public function test_typeahead_ranks_general_and_own_specialty_first_and_hides_nothing(): void
+    {
+        LabTest::create(['name' => 'Facial X-ray', 'specialty_id' => $this->sp('dental')]);
+        LabTest::create(['name' => 'Ferritin']);
+        LabTest::create(['name' => 'Follicle test', 'specialty_id' => $this->sp('gynae')]);
+        LabTest::create(['name' => 'Test dental', 'specialty_id' => $this->sp('dental')]);
+        $search = fn (User $user, string $term) => $this->names($this->getJson("/api/v1/lab-tests?search={$term}", $this->bearer($user))->json());
+
+        $gynae = $this->doctorWithProfile(['gynae']);
+        $dental = $this->doctorWithProfile(['dental']);
+        $both = $this->doctorWithProfile(['dental', 'gynae']);
+        $general = $this->doctorWithProfile();
+
+        // Same search, same cache window: each doctor gets their own order.
+        $this->assertSame(['Ferritin', 'Follicle test', 'Facial X-ray'], $search($gynae, 'f'));
+        $this->assertSame(['Facial X-ray', 'Ferritin', 'Follicle test'], $search($dental, 'f'));
+        $this->assertSame(['Facial X-ray', 'Ferritin', 'Follicle test'], $search($both, 'f'));
+        $this->assertSame(['Ferritin', 'Facial X-ray', 'Follicle test'], $search($general, 'f'));
+        // An assistant has no profile and ranks like a general physician.
+        $this->assertSame(['Ferritin', 'Facial X-ray', 'Follicle test'], $search(User::factory()->assistant()->create(), 'f'));
+
+        // A relevant contains match comes before another specialty's prefix match.
+        $this->assertSame(['Follicle test', 'Test dental'], $search($gynae, 'test'));
+        $this->assertSame(['Test dental', 'Follicle test'], $search($dental, 'test'));
+    }
+
+    public function test_procedure_and_advice_suggestions_follow_the_doctors_specialties(): void
+    {
+        Procedure::create(['code' => 'SCALING', 'name_en' => 'Scaling', 'specialty_id' => $this->sp('dental')]);
+        Procedure::create(['code' => 'IUCD', 'name_en' => 'IUCD insertion', 'specialty_id' => $this->sp('gynae')]);
+        Procedure::create(['code' => 'DRESSING', 'name_en' => 'Dressing']);
+        AdviceTemplate::create(['title' => 'After scaling', 'text_en' => 'x', 'specialty_id' => $this->sp('dental')]);
+        AdviceTemplate::create(['title' => 'Antenatal advice', 'text_en' => 'x', 'specialty_id' => $this->sp('gynae')]);
+        AdviceTemplate::create(['title' => 'General advice', 'text_en' => 'x']);
+        $h = $this->bearer($this->doctorWithProfile(['gynae']));
+
+        $this->assertSame(['Dressing', 'IUCD insertion', 'Scaling'],
+            array_column($this->getJson('/api/v1/procedures', $h)->json('data'), 'name_en'));
+        $this->assertSame(['Antenatal advice', 'General advice', 'After scaling'],
+            array_column($this->getJson('/api/v1/advice-templates', $h)->json('data'), 'title'));
+    }
+
+    public function test_lab_test_and_procedure_specialty_is_saved_filtered_and_validated(): void
+    {
+        $h = $this->bearer(User::factory()->doctor()->create());
+
+        $this->postJson('/api/v1/lab-tests', ['name' => 'FSH', 'specialty_id' => $this->sp('gynae')], $h)
+            ->assertCreated()->assertJsonPath('data.specialty_id', $this->sp('gynae'))->assertJsonPath('data.specialty', 'Gynaecology & Obstetrics');
+        $this->postJson('/api/v1/lab-tests', ['name' => 'CBC'], $h)
+            ->assertCreated()->assertJsonPath('data.specialty_id', null);
+        $this->postJson('/api/v1/procedures', ['code' => 'rct', 'name_en' => 'Root canal', 'specialty_id' => $this->sp('dental')], $h)
+            ->assertCreated()->assertJsonPath('data.specialty_id', $this->sp('dental'));
+        foreach ([999, 'general', $this->inactiveSpecialty()] as $bad) {
+            $this->postJson('/api/v1/lab-tests', ['name' => 'X '.$bad, 'specialty_id' => $bad], $h)
+                ->assertUnprocessable()->assertJsonValidationErrors('specialty_id');
+            $this->postJson('/api/v1/procedures', ['code' => 'X'.$bad, 'name_en' => 'X', 'specialty_id' => $bad], $h)
+                ->assertUnprocessable()->assertJsonValidationErrors('specialty_id');
+        }
+
+        $this->assertSame(['FSH'], $this->names($this->getJson('/api/v1/lab-tests?specialty='.$this->sp('gynae'), $h)->json()));
+        $this->assertSame(['CBC'], $this->names($this->getJson('/api/v1/lab-tests?specialty=general', $h)->json()));
+        $this->assertSame(['FSH'], $this->names($this->getJson('/api/v1/lab-tests?page=1&specialty='.$this->sp('gynae'), $h)->json()));
+        $this->assertSame([], $this->names($this->getJson('/api/v1/lab-tests?specialty='.$this->sp('dental'), $h)->json()));
     }
 
     public function test_validation_errors_use_problem_details(): void

@@ -9,7 +9,7 @@ class SaveChamberRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return (bool) $this->user()?->can('update', Chamber::class);
+        return (bool) $this->user()?->can('create', Chamber::class);
     }
 
     /** The Blade form always sends spare rows; rows left empty are dropped. */
@@ -35,7 +35,8 @@ class SaveChamberRequest extends FormRequest
             'address_bn' => ['nullable', 'string', 'max:1000'],
             'phone' => ['nullable', 'string', 'max:64'],
             'email' => ['nullable', 'email', 'max:255'],
-            'branches' => ['sometimes', 'array', 'max:20'],
+            'is_active' => ['sometimes', 'boolean'],
+            'branches' => ['sometimes', 'nullable', 'array', 'max:20'],
             'branches.*.name_en' => ['required', 'string', 'max:255'],
             'branches.*.name_bn' => ['nullable', 'string', 'max:255'],
             // A list from the API, or one comma-separated string from the Blade form.

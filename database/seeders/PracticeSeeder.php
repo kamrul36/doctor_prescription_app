@@ -3,23 +3,37 @@
 namespace Database\Seeders;
 
 use App\Domain\Practice\Models\PrescriptionTemplate;
+use App\Domain\Practice\Models\Specialty;
 use App\Domain\Practice\PrintMode;
 use App\Domain\Practice\SectionKey as K;
 use App\Domain\Practice\SectionZone as Z;
+use App\Domain\Practice\SpecialtyBlock;
 use App\Domain\Practice\TemplateLayout;
 use Illuminate\Database\Seeder;
 
 /**
- * Seeds the shared (doctor-less) templates that reproduce the two sample
- * prescriptions plus a general one, all A4. A template that already exists is
- * left alone, so edits made in Settings survive a re-seed.
+ * Seeds the shared (doctor-less) general prescription template, A4. Every
+ * doctor is a general physician; specialties on the doctor's profile fill the
+ * `specialty` section instead of needing their own template. Sections with no
+ * data (e.g. `specialty` for a general physician) print nothing.
  *
- * The pad_only margins are starting values: calibrate them on the real pad.
+ * A template that already exists is left alone, so edits made in Settings
+ * survive a re-seed. This seeder never deletes: the older `dental_pad` and
+ * `gynae_letterhead` templates were retired (deactivated) by a migration.
  */
 class PracticeSeeder extends Seeder
 {
     public function run(): void
     {
+        // The two specialties with built-in pad blocks. Created only when missing; an admin's
+        // renaming or deactivation is kept.
+        foreach ([
+            ['code' => 'gynae', 'name' => 'Gynaecology & Obstetrics', 'block' => SpecialtyBlock::Gynae],
+            ['code' => 'dental', 'name' => 'Dental', 'block' => SpecialtyBlock::Dental],
+        ] as $specialty) {
+            Specialty::query()->firstOrCreate(['code' => $specialty['code']], $specialty);
+        }
+
         foreach ($this->templates() as $definition) {
             $sections = $definition['sections'];
             unset($definition['sections']);
@@ -50,33 +64,8 @@ class PracticeSeeder extends Seeder
     {
         return [
             [
-                // Sample 1: pre-printed dental pad, examination and plan on the left, Rx on the right.
-                'code' => 'dental_pad',
-                'name' => 'Dental pad',
-                'specialty_code' => 'dental',
-                'layout' => TemplateLayout::SidebarLeft,
-                'default_print_mode' => PrintMode::PadOnly,
-                'margins' => ['top' => 55, 'right' => 12, 'bottom' => 30, 'left' => 12],
-                'show_barcode' => true,
-                'barcode_source' => 'prescription_no',
-                'show_branch_footer' => true,
-                'show_visiting_hours' => false,
-                'show_signature' => true,
-                'is_default' => true,
-                'sections' => [
-                    [K::PatientBlock, Z::Header],
-                    [K::Examination, Z::Left],
-                    [K::TreatmentPlan, Z::Left],
-                    [K::Medicines, Z::Right],
-                    [K::Advice, Z::Right],
-                    [K::FollowUp, Z::Right],
-                ],
-            ],
-            [
-                // Sample 2: letterhead gynae prescription, history left, results and Rx right.
-                'code' => 'gynae_letterhead',
-                'name' => 'Gynae letterhead',
-                'specialty_code' => 'gynae',
+                'code' => 'general',
+                'name' => 'General',
                 'layout' => TemplateLayout::TwoColumn,
                 'default_print_mode' => PrintMode::WithLetterhead,
                 'margins' => ['top' => 10, 'right' => 10, 'bottom' => 10, 'left' => 10],
@@ -90,32 +79,11 @@ class PracticeSeeder extends Seeder
                     [K::PatientBlock, Z::Header],
                     [K::Complaints, Z::Left],
                     [K::Specialty, Z::Left],
-                    [K::Vitals, Z::Left],
-                    [K::InvestigationsReviewed, Z::Right],
-                    [K::InvestigationsAdvised, Z::Right],
-                    [K::Medicines, Z::Right],
-                    [K::Advice, Z::Right],
-                ],
-            ],
-            [
-                'code' => 'general',
-                'name' => 'General',
-                'specialty_code' => 'general',
-                'layout' => TemplateLayout::TwoColumn,
-                'default_print_mode' => PrintMode::WithLetterhead,
-                'margins' => ['top' => 10, 'right' => 10, 'bottom' => 10, 'left' => 10],
-                'show_barcode' => false,
-                'barcode_source' => 'prescription_no',
-                'show_branch_footer' => false,
-                'show_visiting_hours' => true,
-                'show_signature' => true,
-                'is_default' => true,
-                'sections' => [
-                    [K::PatientBlock, Z::Header],
-                    [K::Complaints, Z::Left],
                     [K::Examination, Z::Left],
                     [K::Vitals, Z::Left],
                     [K::Diagnosis, Z::Right],
+                    [K::TreatmentPlan, Z::Right],
+                    [K::InvestigationsReviewed, Z::Right],
                     [K::InvestigationsAdvised, Z::Right],
                     [K::Medicines, Z::Right],
                     [K::Advice, Z::Right],

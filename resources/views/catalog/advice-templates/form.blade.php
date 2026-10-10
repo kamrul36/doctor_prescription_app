@@ -20,20 +20,13 @@
                 <label for="title" class="block text-sm font-medium">Title</label>
                 <input id="title" name="title" value="{{ old('title', $item->title) }}" required maxlength="255" class="{{ $input }}">
             </div>
-            <div>
-                <label for="specialty_code" class="block text-sm font-medium">Specialty</label>
-                <select id="specialty_code" name="specialty_code" class="{{ $input }}">
-                    @foreach ($specialties as $code => $label)
-                        <option value="{{ $code }}" @selected(old('specialty_code', $item->specialty_code ?? 'general') === $code)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
+            @include('catalog._specialty_field')
             <div>
                 <label for="is_default_for_template_id" class="block text-sm font-medium">Default advice for template</label>
                 <select id="is_default_for_template_id" name="is_default_for_template_id" class="{{ $input }}">
                     <option value="">None</option>
                     @foreach ($templates as $template)
-                        <option value="{{ $template->id }}" @selected((int) old('is_default_for_template_id', $item->is_default_for_template_id) === $template->id)>{{ $template->name }} ({{ $specialties[$template->specialty_code] ?? $template->specialty_code }})</option>
+                        <option value="{{ $template->id }}" @selected((int) old('is_default_for_template_id', $item->is_default_for_template_id) === $template->id)>{{ $template->name }}</option>
                     @endforeach
                 </select>
             </div>

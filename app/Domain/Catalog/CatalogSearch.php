@@ -4,7 +4,6 @@ namespace App\Domain\Catalog;
 
 use App\Domain\Access\Permission;
 use App\Domain\Catalog\Models\AdviceTemplate;
-use App\Domain\Practice\Models\Doctor;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,16 +16,21 @@ use Illuminate\Support\Facades\DB;
  * Typeahead and listing for the three catalogs.
  *
  * Typeahead returns prefix matches first (index friendly), and contains
- * matches only when the prefix matches do not fill `take`. User input is
- * escaped so `%` and `_` match themselves. Inactive and deleted rows are
- * hidden unless a catalog manager asks for them. Advice templates show only
- * shared ones and the actor's own.
+ * matches only when the prefix matches do not fill `take`. Within the result,
+ * general items (no specialty) and items of the doctor's specialties come
+ * first; items of other specialties follow, so nothing is unreachable. User
+ * input is escaped so `%` and `_` match themselves. Inactive and deleted rows
+ * are hidden unless a catalog manager asks for them. Advice templates show
+ * only shared ones and the actor's own.
  */
 class CatalogSearch
 {
     public const DEFAULT_TAKE = 10;
 
     public const MAX_TAKE = 50;
+
+    /** `specialty=general` filters on items without a specialty. */
+    public const GENERAL = 'general';
 
     private const MAX_TERM_LENGTH = 100;
 
@@ -51,13 +55,15 @@ class CatalogSearch
         $term = $this->cleanTerm($term);
         $take = min(max($take, 1), self::MAX_TAKE);
         $includeInactive = $this->mayIncludeInactive($actor, $includeInactive);
-        $doctorId = $this->doctorId($actor, $model);
+        [$doctorId, $specialties] = $this->viewer($actor);
+        $doctorId = $model === AdviceTemplate::class ? $doctorId : null;
 
+        // Doctors with the same specialties share lab test and procedure results; advice is per doctor.
         return $this->cache->remember($model, [
             'term' => $term, 'take' => $take, 'inactive' => $includeInactive,
-            'specialty' => $specialty, 'doctor' => $doctorId,
-        ], function () use ($model, $resource, $doctorId, $term, $take, $includeInactive, $specialty) {
-            $models = $this->match($model, $doctorId, $term, $take, $includeInactive, $specialty);
+            'specialty' => $specialty, 'doctor' => $doctorId, 'ranked_for' => implode(',', $specialties),
+        ], function () use ($model, $resource, $doctorId, $specialties, $term, $take, $includeInactive, $specialty) {
+            $models = $this->match($model, $doctorId, $specialties, $term, $take, $includeInactive, $specialty);
 
             /** @var list<array<string, mixed>> */
             return $resource::collection($models)->resolve(request());
@@ -74,7 +80,8 @@ class CatalogSearch
         bool $includeInactive = false,
         ?string $specialty = null,
     ): LengthAwarePaginator {
-        $query = $this->visible($model, $this->doctorId($actor, $model), $this->mayIncludeInactive($actor, $includeInactive), $specialty);
+        $doctorId = $model === AdviceTemplate::class ? $this->viewer($actor)[0] : null;
+        $query = $this->visible($model, $doctorId, $this->mayIncludeInactive($actor, $includeInactive), $specialty);
         $term = $this->cleanTerm($term);
 
         if ($term !== '') {
@@ -89,11 +96,12 @@ class CatalogSearch
      * @template TModel of Model&CatalogEntry
      *
      * @param  class-string<TModel>  $model
+     * @param  list<int>  $specialties
      * @return Collection<int, TModel>
      */
-    private function match(string $model, ?int $doctorId, string $term, int $take, bool $includeInactive, ?string $specialty)
+    private function match(string $model, ?int $doctorId, array $specialties, string $term, int $take, bool $includeInactive, ?string $specialty)
     {
-        $base = fn () => $this->visible($model, $doctorId, $includeInactive, $specialty)
+        $base = fn () => $this->rankBySpecialty($this->visible($model, $doctorId, $includeInactive, $specialty), $specialties)
             ->orderBy($model::sortColumn())->orderBy('id');
 
         if ($term === '') {
@@ -112,7 +120,10 @@ class CatalogSearch
             ->limit($take - $prefix->count())
             ->get();
 
-        return $prefix->concat($contains);
+        // Stable sort: relevant items lead, and within each group prefix matches stay before contains matches.
+        return $prefix->concat($contains)
+            ->sortBy(fn (Model $m) => $this->isRelevant($m->getAttribute('specialty_id'), $specialties) ? 0 : 1)
+            ->values();
     }
 
     /**
@@ -132,13 +143,42 @@ class CatalogSearch
         if ($model === AdviceTemplate::class) {
             $query->where(fn (Builder $q) => $q->whereNull('doctor_id')
                 ->when($doctorId !== null, fn (Builder $q) => $q->orWhere('doctor_id', $doctorId)));
-
-            if ($specialty !== null && $specialty !== '') {
-                $query->where('specialty_code', $specialty);
-            }
         }
 
-        return $query;
+        if ($specialty === self::GENERAL) {
+            $query->whereNull('specialty_id');
+        } elseif ($specialty !== null && $specialty !== '') {
+            // A specialty id; anything else matches nothing rather than everything.
+            $query->where('specialty_id', ctype_digit($specialty) ? (int) $specialty : 0);
+        }
+
+        return $query->with('specialty');
+    }
+
+    /**
+     * Orders general items and those of the given specialties first.
+     *
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     * @param  list<int>  $specialties
+     * @return Builder<TModel>
+     */
+    private function rankBySpecialty(Builder $query, array $specialties): Builder
+    {
+        if ($specialties === []) {
+            return $query->orderByRaw('CASE WHEN specialty_id IS NULL THEN 0 ELSE 1 END');
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($specialties), '?'));
+
+        return $query->orderByRaw("CASE WHEN specialty_id IS NULL OR specialty_id IN ({$placeholders}) THEN 0 ELSE 1 END", $specialties);
+    }
+
+    /** @param  list<int>  $specialties */
+    private function isRelevant(mixed $specialtyId, array $specialties): bool
+    {
+        return $specialtyId === null || in_array((int) $specialtyId, $specialties, true);
     }
 
     /**
@@ -175,15 +215,26 @@ class CatalogSearch
         return $requested && $actor->can(Permission::CatalogManage->value);
     }
 
-    /** Only advice templates are owned by a doctor; the other catalogs skip the lookup. */
-    private function doctorId(User $actor, string $model): ?int
+    /**
+     * The actor's doctor profile id and specialty ids (sorted), in one query.
+     * A user without a profile ranks like a general physician.
+     *
+     * @return array{int|null, list<int>}
+     */
+    private function viewer(User $actor): array
     {
-        if ($model !== AdviceTemplate::class) {
-            return null;
+        $rows = DB::table('doctors')
+            ->leftJoin('doctor_specialties', 'doctor_specialties.doctor_id', '=', 'doctors.id')
+            ->where('doctors.user_id', $actor->id)
+            ->orderBy('doctor_specialties.specialty_id')
+            ->get(['doctors.id', 'doctor_specialties.specialty_id']);
+
+        if ($rows->isEmpty()) {
+            return [null, []];
         }
 
-        $id = Doctor::query()->where('user_id', $actor->id)->value('id');
+        $specialties = $rows->pluck('specialty_id')->filter()->map(fn ($id) => (int) $id)->values()->all();
 
-        return $id === null ? null : (int) $id;
+        return [(int) $rows->first()->id, $specialties];
     }
 }

@@ -15,7 +15,9 @@ class AdviceTemplateResource extends JsonResource
         return [
             'id' => $this->id,
             'doctor_id' => $this->doctor_id,
-            'specialty_code' => $this->specialty_code,
+            'specialty_id' => $this->specialty_id,
+            // Lists eager-load the specialty; a single item loads it on demand.
+            'specialty' => $this->specialty_id === null ? null : $this->specialty?->name,
             'title' => $this->title,
             'text_en' => $this->text_en,
             'text_bn' => $this->text_bn,

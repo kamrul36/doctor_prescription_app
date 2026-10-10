@@ -3,8 +3,10 @@
 namespace App\Domain\Catalog\Models;
 
 use App\Domain\Catalog\CatalogEntry;
+use App\Domain\Catalog\Concerns\HasSpecialty;
 use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\Models\PrescriptionTemplate;
+use App\Domain\Practice\Models\Specialty;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,7 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * @property int $id
  * @property int|null $doctor_id
- * @property string $specialty_code
+ * @property int|null $specialty_id null = general (every doctor)
+ * @property-read Specialty|null $specialty
  * @property string $title
  * @property string $text_en
  * @property string|null $text_bn
@@ -23,11 +26,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class AdviceTemplate extends Model implements CatalogEntry
 {
+    use HasSpecialty;
     use SoftDeletes;
 
     // `doctor_id` is deliberately not fillable: the owner is set by the Action, never by the client.
     /** @var list<string> */
-    protected $fillable = ['specialty_code', 'title', 'text_en', 'text_bn', 'is_default_for_template_id', 'is_active'];
+    protected $fillable = ['specialty_id', 'title', 'text_en', 'text_bn', 'is_default_for_template_id', 'is_active'];
 
     /** @var array<string, mixed> */
     protected $attributes = ['is_active' => true];

@@ -17,7 +17,6 @@ class TemplateResource extends JsonResource
             'doctor_id' => $this->doctor_id,
             'code' => $this->code,
             'name' => $this->name,
-            'specialty_code' => $this->specialty_code,
             'paper_size' => $this->paper_size,
             'default_print_mode' => $this->default_print_mode->value,
             'layout' => $this->layout->value,

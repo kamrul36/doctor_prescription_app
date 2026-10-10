@@ -24,10 +24,11 @@ class AdviceTemplateController extends Controller
         /** @var User $actor */
         $actor = $request->user();
         $q = $request->string('q')->trim()->value();
-        $items = $search->paginate($actor, AdviceTemplate::class, $q, $request->integer('page', 1), 25, $request->boolean('all'))
+        $specialty = $request->string('specialty')->trim()->value() ?: null;
+        $items = $search->paginate($actor, AdviceTemplate::class, $q, $request->integer('page', 1), 25, $request->boolean('all'), $specialty)
             ->withQueryString();
 
-        return view('catalog.advice-templates.index', ['items' => $items, 'q' => $q, 'all' => $request->boolean('all')]);
+        return view('catalog.advice-templates.index', ['items' => $items, 'q' => $q, 'all' => $request->boolean('all'), 'specialty' => $specialty]);
     }
 
     public function create(): View
@@ -76,8 +77,7 @@ class AdviceTemplateController extends Controller
     {
         return [
             'item' => $item,
-            'specialties' => config('practice.specialties'),
-            'templates' => PrescriptionTemplate::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'specialty_code', 'doctor_id']),
+            'templates' => PrescriptionTemplate::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'doctor_id']),
         ];
     }
 }

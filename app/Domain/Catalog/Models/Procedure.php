@@ -3,13 +3,17 @@
 namespace App\Domain\Catalog\Models;
 
 use App\Domain\Catalog\CatalogEntry;
+use App\Domain\Catalog\Concerns\HasSpecialty;
 use App\Domain\Finance\Casts\MoneyCast;
 use App\Domain\Finance\Money;
+use App\Domain\Practice\Models\Specialty;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
+ * @property int|null $specialty_id null = general (every doctor)
+ * @property-read Specialty|null $specialty
  * @property string $code
  * @property string $name_en
  * @property string|null $name_bn
@@ -19,10 +23,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Procedure extends Model implements CatalogEntry
 {
+    use HasSpecialty;
     use SoftDeletes;
 
     /** @var list<string> */
-    protected $fillable = ['code', 'name_en', 'name_bn', 'default_fee', 'is_billable', 'is_active'];
+    protected $fillable = ['specialty_id', 'code', 'name_en', 'name_bn', 'default_fee', 'is_billable', 'is_active'];
 
     /** @var array<string, mixed> */
     protected $attributes = ['is_billable' => true, 'is_active' => true];

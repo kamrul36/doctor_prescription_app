@@ -22,7 +22,7 @@ final class Role
     /** @return array<string, list<Permission>> */
     public static function defaultPermissions(): array
     {
-        $adminOnly = [Permission::UsersManage, Permission::RolesManage, Permission::AuditRead];
+        $adminOnly = [Permission::UsersManage, Permission::RolesManage, Permission::AuditRead, Permission::PracticeManage];
 
         $doctor = [];
         foreach (Permission::cases() as $permission) {

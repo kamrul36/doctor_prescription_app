@@ -23,10 +23,11 @@ class LabTestController extends Controller
         /** @var User $actor */
         $actor = $request->user();
         $q = $request->string('q')->trim()->value();
-        $items = $search->paginate($actor, LabTest::class, $q, $request->integer('page', 1), 25, $request->boolean('all'))
+        $specialty = $request->string('specialty')->trim()->value() ?: null;
+        $items = $search->paginate($actor, LabTest::class, $q, $request->integer('page', 1), 25, $request->boolean('all'), $specialty)
             ->withQueryString();
 
-        return view('catalog.lab-tests.index', ['items' => $items, 'q' => $q, 'all' => $request->boolean('all')]);
+        return view('catalog.lab-tests.index', ['items' => $items, 'q' => $q, 'all' => $request->boolean('all'), 'specialty' => $specialty]);
     }
 
     public function create(): View

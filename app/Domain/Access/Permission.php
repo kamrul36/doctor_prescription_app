@@ -29,6 +29,7 @@ enum Permission: string
 
     case TemplatesManage = 'templates.manage';
     case CatalogManage = 'catalog.manage';
+    case PracticeManage = 'practice.manage';
 
     case UsersManage = 'users.manage';
     case RolesManage = 'roles.manage';
@@ -54,6 +55,7 @@ enum Permission: string
             self::ReportsBasic => 'View daily collection and dues reports',
             self::TemplatesManage => 'Manage prescription templates',
             self::CatalogManage => 'Manage catalogs',
+            self::PracticeManage => 'Manage chambers, specialties and doctor chamber assignments',
             self::UsersManage => 'Manage users',
             self::RolesManage => 'Manage roles and permissions',
             self::AuditRead => 'View audit log',
@@ -68,7 +70,7 @@ enum Permission: string
             self::CasesFinalize, self::CasesAmend, self::PrescriptionsPrint => 'Clinical',
             self::PaymentsRecord, self::FinanceRead, self::FinanceDiscount, self::FinanceVoid,
             self::ExpensesWrite, self::ReportsRead, self::ReportsBasic => 'Finance',
-            self::TemplatesManage, self::CatalogManage => 'Setup',
+            self::TemplatesManage, self::CatalogManage, self::PracticeManage => 'Setup',
             self::UsersManage, self::RolesManage, self::AuditRead => 'Administration',
         };
     }

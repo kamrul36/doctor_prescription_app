@@ -5,6 +5,7 @@ namespace Tests\Feature\Catalog;
 use App\Domain\Catalog\Models\AdviceTemplate;
 use App\Domain\Catalog\Models\LabTest;
 use App\Domain\Catalog\Models\Procedure;
+use App\Domain\Practice\Models\Specialty;
 use App\Models\User;
 use Database\Seeders\AccessSeeder;
 use Database\Seeders\CatalogSeeder;
@@ -106,9 +107,40 @@ class CatalogWebTest extends TestCase
 
         $this->actingAs($doctor)->get('/catalog/advice-templates/create')->assertOk();
         $this->actingAs($doctor)->post('/catalog/advice-templates', [
-            'specialty_code' => 'general', 'title' => 'Rest', 'text_en' => 'Take rest', 'is_default_for_template_id' => '', 'is_active' => '1',
+            // The form's "General (all doctors)" option is an empty value.
+            'specialty_id' => '', 'title' => 'Rest', 'text_en' => 'Take rest', 'is_default_for_template_id' => '', 'is_active' => '1',
         ])->assertRedirect('/catalog/advice-templates');
         $advice = AdviceTemplate::where('title', 'Rest')->firstOrFail();
+        $this->assertNull($advice->specialty_id);
         $this->actingAs($doctor)->get("/catalog/advice-templates/{$advice->id}/edit")->assertOk()->assertSee('Take rest');
+    }
+
+    public function test_catalog_forms_save_a_specialty_and_lists_filter_by_it(): void
+    {
+        $doctor = User::factory()->doctor()->create();
+        $this->actingAs($doctor);
+
+        $this->get('/catalog/lab-tests/create')->assertOk()->assertSee('General (all doctors)')->assertSee('Gynaecology &amp; Obstetrics', false);
+        $this->post('/catalog/lab-tests', ['name' => 'FSH', 'specialty_id' => $this->sp('gynae'), 'is_active' => '1'])->assertRedirect('/catalog/lab-tests');
+        $this->post('/catalog/lab-tests', ['name' => 'CBC', 'specialty_id' => '', 'is_active' => '1'])->assertRedirect('/catalog/lab-tests');
+        $this->post('/catalog/procedures', ['code' => 'scal', 'name_en' => 'Scaling', 'specialty_id' => $this->sp('dental'), 'is_active' => '1'])
+            ->assertRedirect('/catalog/procedures');
+        $this->from('/catalog/lab-tests/create')->post('/catalog/lab-tests', ['name' => 'X', 'specialty_id' => 999])
+            ->assertRedirect('/catalog/lab-tests/create')->assertSessionHasErrors('specialty_id');
+
+        $this->assertSame($this->sp('gynae'), (int) LabTest::where('name', 'FSH')->value('specialty_id'));
+        $this->assertNull(LabTest::where('name', 'CBC')->value('specialty_id'));
+        $this->assertSame($this->sp('dental'), (int) Procedure::where('code', 'SCAL')->value('specialty_id'));
+
+        $this->get('/catalog/lab-tests')->assertOk()->assertSee('FSH')->assertSee('CBC')->assertSee('Gynaecology &amp; Obstetrics', false);
+        $this->get('/catalog/lab-tests?specialty='.$this->sp('gynae'))->assertOk()->assertSee('FSH')->assertDontSee('CBC');
+        $this->get('/catalog/lab-tests?specialty=general')->assertOk()->assertSee('CBC')->assertDontSee('FSH');
+        $this->get('/catalog/procedures?specialty='.$this->sp('dental'))->assertOk()->assertSee('Scaling');
+        $this->get('/catalog/advice-templates?specialty=general')->assertOk();
+    }
+
+    private function sp(string $code): int
+    {
+        return (int) Specialty::where('code', $code)->value('id');
     }
 }

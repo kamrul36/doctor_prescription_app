@@ -20,7 +20,7 @@ class DoctorProfileController extends Controller
 
         $doctor = Doctor::query()
             ->where('user_id', $request->user()?->id)
-            ->with(['credentials', 'chambers', 'fees'])
+            ->with(['credentials', 'chambers', 'fees', 'specialties'])
             ->firstOrFail();
 
         return new DoctorResource($doctor);

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Catalog;
 
 use App\Domain\Catalog\Models\Procedure;
+use App\Domain\Practice\Rules\UsableSpecialty;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -37,6 +38,7 @@ class SaveProcedureRequest extends FormRequest
             // Unique over deleted rows too, exactly like the database constraint.
             'code' => ['required', 'string', 'regex:/^[A-Z0-9_-]{2,32}$/',
                 Rule::unique('procedures', 'code')->ignore($item?->id)],
+            'specialty_id' => ['nullable', new UsableSpecialty($item?->specialty_id)],
             'name_en' => ['required', 'string', 'max:255'],
             'name_bn' => ['nullable', 'string', 'max:255'],
             'default_fee' => ['nullable', 'regex:/^\d{1,7}(\.\d{1,2})?$/'],

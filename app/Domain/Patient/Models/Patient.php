@@ -2,11 +2,13 @@
 
 namespace App\Domain\Patient\Models;
 
+use App\Domain\Clinical\Models\CaseHistory;
 use App\Domain\Patient\Gender;
 use App\Domain\Patient\PatientType;
 use Database\Factories\PatientFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -57,6 +59,16 @@ class Patient extends Model
             'gender' => Gender::class,
             'patient_type' => PatientType::class,
         ];
+    }
+
+    /**
+     * Visits (prescriptions), newest first.
+     *
+     * @return HasMany<CaseHistory, $this>
+     */
+    public function visits(): HasMany
+    {
+        return $this->hasMany(CaseHistory::class)->orderByDesc('visit_date')->orderByDesc('id');
     }
 
     protected static function newFactory(): PatientFactory

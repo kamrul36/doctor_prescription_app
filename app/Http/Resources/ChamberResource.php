@@ -20,6 +20,8 @@ class ChamberResource extends JsonResource
             'address_bn' => $this->address_bn,
             'phone' => $this->phone,
             'email' => $this->email,
+            'is_active' => $this->is_active,
+            'doctors_count' => $this->whenCounted('doctors'),
             'branches' => $this->whenLoaded('branches', fn () => $this->branches->map(fn ($b) => [
                 'id' => $b->id,
                 'name_en' => $b->name_en,

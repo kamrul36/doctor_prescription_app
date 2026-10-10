@@ -37,7 +37,6 @@ class SaveTemplateRequest extends FormRequest
         return [
             'code' => ['required', 'string', 'max:64', 'regex:/^[a-z][a-z0-9_]*$/'],
             'name' => ['required', 'string', 'max:255'],
-            'specialty_code' => ['required', Rule::in(array_keys(config('practice.specialties')))],
             'paper_size' => ['required', Rule::in(['A4', 'A5'])],
             'default_print_mode' => ['required', Rule::in(PrintMode::values())],
             'layout' => ['required', Rule::in(TemplateLayout::values())],

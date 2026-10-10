@@ -9,8 +9,12 @@
             <input type="search" name="q" value="{{ $q }}" placeholder="Name, phone or code" aria-label="Search patients"
                    class="rounded px-3 py-1.5 ring-1 ring-gray-300">
         </form>
+        @can('create', \App\Domain\Clinical\Models\CaseHistory::class)
+            {{-- No need to register first: the pad registers a new patient on save. --}}
+            <a href="{{ route('prescriptions.create') }}" class="rounded bg-teal-700 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none">+ New prescription</a>
+        @endcan
         @can('create', \App\Domain\Patient\Models\Patient::class)
-            <a href="{{ route('patients.create') }}" class="rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-3 py-1.5 text-sm text-white">New patient</a>
+            <a href="{{ route('patients.create') }}" class="rounded px-3 py-1.5 text-sm text-teal-800 ring-1 ring-teal-700 transition hover:bg-teal-50">Register patient</a>
         @endcan
     </div>
 
@@ -34,7 +38,10 @@
                         <td class="px-4 py-2">{{ $patient->age_text }}</td>
                         <td class="px-4 py-2">{{ $patient->gender->label() }}</td>
                         <td class="px-4 py-2">{{ $patient->phone }}</td>
-                        <td class="px-4 py-2 text-right">
+                        <td class="px-4 py-2 text-right whitespace-nowrap">
+                            @can('create', \App\Domain\Clinical\Models\CaseHistory::class)
+                                <a href="{{ route('prescriptions.create', ['patient' => $patient->id]) }}" class="mr-3 rounded bg-teal-700 px-3 py-1 text-xs font-medium text-white shadow-sm transition hover:bg-teal-800">Prescribe</a>
+                            @endcan
                             <a href="{{ route('patients.show', $patient) }}" class="hover:underline">Open</a>
                         </td>
                     </tr>

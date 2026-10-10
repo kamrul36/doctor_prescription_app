@@ -15,6 +15,11 @@
         @apply antialiased;
     }
 
+    /* Alpine: hide `x-cloak` elements until Alpine has initialised them. */
+    [x-cloak] {
+        display: none !important;
+    }
+
     /* One focus style for every form control; the views only set size and ring colour. */
     input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
     select,

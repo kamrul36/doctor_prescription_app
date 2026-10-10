@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class PrescriptionTemplate extends Model
 {
     protected $fillable = [
-        'doctor_id', 'code', 'name', 'specialty_code', 'paper_size', 'default_print_mode', 'margins',
+        'doctor_id', 'code', 'name', 'paper_size', 'default_print_mode', 'margins',
         'layout', 'show_barcode', 'barcode_source', 'show_branch_footer', 'show_visiting_hours',
         'show_signature', 'is_default', 'is_active',
     ];

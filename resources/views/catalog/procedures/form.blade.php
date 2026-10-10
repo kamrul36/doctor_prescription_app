@@ -33,6 +33,7 @@
                 <label for="name_bn" class="block text-sm font-medium">Name (Bangla)</label>
                 <input id="name_bn" name="name_bn" value="{{ old('name_bn', $item->name_bn) }}" maxlength="255" class="{{ $input }}">
             </div>
+            @include('catalog._specialty_field')
         </div>
         <label class="mt-4 flex items-center gap-2 text-sm">
             <input type="hidden" name="is_billable" value="0">

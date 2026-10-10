@@ -10,6 +10,7 @@ enum SectionKey: string
 {
     case PatientBlock = 'patient_block';
     case Complaints = 'complaints';
+    // One block per specialty on the doctor's profile (e.g. the gynae menstrual history); empty for a general physician.
     case Specialty = 'specialty';
     case Vitals = 'vitals';
     case Examination = 'examination';

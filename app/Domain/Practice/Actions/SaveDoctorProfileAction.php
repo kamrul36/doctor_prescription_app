@@ -6,6 +6,7 @@ use App\Domain\Audit\AuditLogger;
 use App\Domain\Finance\Money;
 use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\Models\PrescriptionTemplate;
+use App\Domain\Practice\Models\Specialty;
 use App\Domain\Practice\VisitType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -13,10 +14,16 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Creates or updates the signed-in user's doctor profile: header details,
- * ordered credentials, and per chamber the visiting hours and fees.
+ * specialties, ordered credentials, and visiting hours and fees for the
+ * chambers the admin assigned.
  *
- * Chambers and fees are replaced by what is submitted: a chamber left out is
- * detached (with its fees); a blank fee removes that fee.
+ * Specialties: the ticked list entries plus any typed names, which join the
+ * shared list (or match an existing entry). Specialties the admin has
+ * deactivated are not shown to the doctor, so they are kept as they are.
+ *
+ * Chambers: assigning and unassigning is the admin's job
+ * (AssignDoctorChambersAction). Here only the hours and fees of assigned
+ * chambers change; a chamber that is not assigned is rejected.
  */
 class SaveDoctorProfileAction
 {
@@ -34,7 +41,11 @@ class SaveDoctorProfileAction
             $creating = $doctor === null;
             $doctor ??= new Doctor(['user_id' => $user->id]);
 
-            $doctor->fill(collect($data)->except(['credentials', 'chambers'])->all())->save();
+            $doctor->fill(collect($data)->except(['credentials', 'chambers', 'specialty_ids', 'new_specialties'])->all())->save();
+
+            if (array_key_exists('specialty_ids', $data) || ! empty($data['new_specialties'])) {
+                $this->syncSpecialties($doctor, $data);
+            }
 
             if (array_key_exists('credentials', $data)) {
                 $doctor->credentials()->delete();
@@ -49,40 +60,78 @@ class SaveDoctorProfileAction
             }
 
             if (array_key_exists('chambers', $data)) {
-                $this->syncChambers($doctor, $data['chambers'] ?? []);
+                $this->updateChambers($doctor, $data['chambers'] ?? []);
             }
 
             $this->audit->log($creating ? 'doctor.created' : 'doctor.updated', $doctor, [
-                'fields' => array_keys(collect($data)->except(['credentials', 'chambers'])->all()),
+                'fields' => array_keys(collect($data)->except(['credentials', 'chambers', 'new_specialties'])->all()),
             ]);
 
-            return $doctor->load(['credentials', 'chambers', 'fees']);
+            return $doctor->load(['credentials', 'chambers', 'fees', 'specialties']);
         });
     }
 
-    /** @param  list<array<string, mixed>>  $chambers */
-    private function syncChambers(Doctor $doctor, array $chambers): void
+    /**
+     * With `specialty_ids` the list is replaced (keeping deactivated ones the
+     * doctor already has); without it typed names are only added.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function syncSpecialties(Doctor $doctor, array $data): void
     {
-        $sync = [];
+        $current = $doctor->specialties()->get(['specialties.id', 'specialties.is_active']);
+        $hiddenInactive = $current->where('is_active', false)->pluck('id')->all();
+
+        $ids = array_key_exists('specialty_ids', $data)
+            ? array_map('intval', $data['specialty_ids'] ?? [])
+            : $current->pluck('id')->all();
+
+        foreach ($data['new_specialties'] ?? [] as $name) {
+            [$specialty, $created] = Specialty::findOrCreateByName($name);
+            if ($created) {
+                $this->audit->log('specialty.created', $specialty, ['source' => 'doctor_profile']);
+            }
+            $ids[] = $specialty->id;
+        }
+
+        $doctor->specialties()->sync(array_values(array_unique([...$ids, ...$hiddenInactive])));
+    }
+
+    /**
+     * Hours and fees for assigned chambers only. Fees of a submitted chamber
+     * are replaced (a blank fee removes it); other chambers are untouched.
+     *
+     * @param  list<array<string, mixed>>  $chambers
+     */
+    private function updateChambers(Doctor $doctor, array $chambers): void
+    {
+        $assigned = $doctor->exists ? $doctor->chambers()->pluck('chambers.id')->map(fn ($id) => (int) $id)->all() : [];
+
+        foreach ($chambers as $i => $row) {
+            if (! in_array((int) $row['chamber_id'], $assigned, true)) {
+                throw ValidationException::withMessages([
+                    "chambers.{$i}.chamber_id" => 'This chamber is not assigned to you. Ask the admin to assign it.',
+                ]);
+            }
+        }
+
         foreach ($chambers as $row) {
-            $sync[(int) $row['chamber_id']] = [
+            $chamberId = (int) $row['chamber_id'];
+
+            $doctor->chambers()->updateExistingPivot($chamberId, [
                 'visiting_hours_en' => $row['visiting_hours_en'] ?? null,
                 'visiting_hours_bn' => $row['visiting_hours_bn'] ?? null,
-            ];
-        }
-        $doctor->chambers()->sync($sync);
+            ]);
 
-        // Rebuilt from scratch: fees of detached chambers go too.
-        $doctor->fees()->delete();
+            $doctor->fees()->where('chamber_id', $chamberId)->delete();
 
-        foreach ($chambers as $row) {
             foreach ($row['fees'] ?? [] as $visitType => $amount) {
                 if ($amount === null || $amount === '' || VisitType::tryFrom((string) $visitType) === null) {
                     continue;
                 }
 
                 $doctor->fees()->create([
-                    'chamber_id' => (int) $row['chamber_id'],
+                    'chamber_id' => $chamberId,
                     'visit_type' => $visitType,
                     'amount' => Money::fromDecimal((string) $amount),
                 ]);

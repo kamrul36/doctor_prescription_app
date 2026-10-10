@@ -16,7 +16,6 @@
                 <tr>
                     <th class="px-4 py-2">Name</th>
                     <th class="px-4 py-2">Code</th>
-                    <th class="px-4 py-2">Specialty</th>
                     <th class="px-4 py-2">Layout</th>
                     <th class="px-4 py-2">Print mode</th>
                     <th class="px-4 py-2">Owner</th>
@@ -29,7 +28,6 @@
                     <tr class="border-b last:border-0">
                         <td class="px-4 py-2 font-medium">{{ $template->name }}</td>
                         <td class="px-4 py-2"><code>{{ $template->code }}</code></td>
-                        <td class="px-4 py-2">{{ config('practice.specialties')[$template->specialty_code] ?? $template->specialty_code }}</td>
                         <td class="px-4 py-2">{{ $template->layout->label() }} · {{ $template->paper_size }}</td>
                         <td class="px-4 py-2">{{ $template->default_print_mode->label() }}</td>
                         <td class="px-4 py-2">{{ $template->doctor?->name_en ?? 'Shared' }}</td>

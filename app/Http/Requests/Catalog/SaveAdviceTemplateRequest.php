@@ -5,9 +5,9 @@ namespace App\Http\Requests\Catalog;
 use App\Domain\Catalog\Models\AdviceTemplate;
 use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\Models\PrescriptionTemplate;
+use App\Domain\Practice\Rules\UsableSpecialty;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /** Create or update an advice template (the route has no {advice_template} when creating). */
 class SaveAdviceTemplateRequest extends FormRequest
@@ -25,8 +25,12 @@ class SaveAdviceTemplateRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        /** @var AdviceTemplate|null $item */
+        $item = $this->route('advice_template');
+
         return [
-            'specialty_code' => ['required', Rule::in(array_keys(config('practice.specialties')))],
+            // Null = general advice for every doctor.
+            'specialty_id' => ['nullable', new UsableSpecialty($item?->specialty_id)],
             'title' => ['required', 'string', 'max:255'],
             'text_en' => ['required', 'string', 'max:5000'],
             'text_bn' => ['nullable', 'string', 'max:5000'],
@@ -36,9 +40,9 @@ class SaveAdviceTemplateRequest extends FormRequest
     }
 
     /**
-     * The prescription template must exist, be active, match the specialty and be
-     * shared or belong to the same doctor who owns this advice; and an inactive
-     * advice cannot be a default.
+     * The prescription template must exist, be active and be shared or belong to
+     * the same doctor who owns this advice; and an inactive advice cannot be a
+     * default. Templates have no specialty, so any advice can be a default.
      */
     private function defaultTemplateRule(): Closure
     {
@@ -49,10 +53,6 @@ class SaveAdviceTemplateRequest extends FormRequest
                 $fail('Choose an active prescription template.');
 
                 return;
-            }
-
-            if ($template->specialty_code !== $this->input('specialty_code')) {
-                $fail('The prescription template belongs to a different specialty.');
             }
 
             if ($template->doctor_id !== null && $template->doctor_id !== $this->ownerDoctorId()) {

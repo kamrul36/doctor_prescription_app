@@ -23,7 +23,10 @@ class DoctorResource extends JsonResource
             'designation_bn' => $this->designation_bn,
             'reg_label' => $this->reg_label,
             'reg_no' => $this->reg_no,
-            'specialty_code' => $this->specialty_code,
+            /** @var list<array{id: int, code: string, name: string}> add-on specialties; empty = general physician only */
+            'specialties' => $this->whenLoaded('specialties', fn () => $this->specialties->map(fn ($s) => [
+                'id' => $s->id, 'code' => $s->code, 'name' => $s->name, 'is_active' => $s->is_active,
+            ])->values()->all()),
             'default_template_id' => $this->default_template_id,
             'credentials' => $this->whenLoaded('credentials', fn () => $this->credentials->map(fn ($c) => [
                 'text_en' => $c->text_en,
@@ -36,6 +39,8 @@ class DoctorResource extends JsonResource
 
                 return [
                     'chamber_id' => $chamber->id,
+                    'name_en' => $chamber->name_en,
+                    'is_active' => $chamber->is_active,
                     'visiting_hours_en' => $pivot->visiting_hours_en,
                     'visiting_hours_bn' => $pivot->visiting_hours_bn,
                     /** @var array<string, string> visit type => amount (BDT) */

@@ -11,12 +11,16 @@
 <body class="flex min-h-screen flex-col bg-slate-50 text-gray-900">
     @auth
         @php
+            // Doctor work first (prescriptions, patients), then setup; admin links only for practice.manage / users.manage.
             $links = [
+                ['prescriptions.index', 'prescriptions.*', 'Prescriptions', 'cases.read'],
                 ['patients.index', 'patients.*', 'Patients', 'patients.read'],
-                ['settings.chamber.edit', 'settings.chamber.*', 'Chamber', 'templates.manage'],
-                ['settings.doctor.edit', 'settings.doctor.*', 'My profile', 'templates.manage'],
-                ['settings.templates.index', 'settings.templates.*', 'Templates', 'cases.read'],
                 ['catalog.lab-tests.index', 'catalog.*', 'Catalogs', 'cases.read'],
+                ['settings.templates.index', 'settings.templates.*', 'Templates', 'cases.read'],
+                ['settings.doctor.edit', 'settings.doctor.*', 'My profile', 'templates.manage'],
+                ['admin.chambers.index', 'admin.chambers.*', 'Chambers', 'practice.manage'],
+                ['admin.doctors.index', 'admin.doctors.*', 'Doctors', 'practice.manage'],
+                ['admin.specialties.index', 'admin.specialties.*', 'Specialties', 'practice.manage'],
                 ['admin.users.index', 'admin.users.*', 'Users', 'users.manage'],
                 ['admin.roles.index', 'admin.roles.*', 'Roles', 'roles.manage'],
             ];

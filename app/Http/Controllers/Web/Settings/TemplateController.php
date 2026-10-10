@@ -31,7 +31,7 @@ class TemplateController extends Controller
         Gate::authorize('create', PrescriptionTemplate::class);
 
         $template = new PrescriptionTemplate([
-            'paper_size' => 'A4', 'specialty_code' => 'general', 'layout' => TemplateLayout::SingleColumn,
+            'paper_size' => 'A4', 'layout' => TemplateLayout::SingleColumn,
             'default_print_mode' => PrintMode::WithLetterhead, 'barcode_source' => 'prescription_no',
             'show_signature' => true, 'is_active' => true,
         ]);
@@ -83,7 +83,6 @@ class TemplateController extends Controller
         return [
             'template' => $template,
             'sections' => $sections,
-            'specialties' => config('practice.specialties'),
         ];
     }
 

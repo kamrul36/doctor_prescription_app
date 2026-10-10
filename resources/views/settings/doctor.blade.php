@@ -42,14 +42,37 @@
                 <label for="reg_no" class="block text-sm font-medium">Registration no.</label>
                 <input id="reg_no" name="reg_no" value="{{ old('reg_no', $doctor->reg_no) }}" class="{{ $input }}">
             </div>
-            <div>
-                <label for="specialty_code" class="block text-sm font-medium">Specialty</label>
-                <select id="specialty_code" name="specialty_code" class="{{ $input }}">
-                    @foreach (config('practice.specialties') as $code => $label)
-                        <option value="{{ $code }}" @selected(old('specialty_code', $doctor->specialty_code) === $code)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <fieldset class="sm:col-span-2">
+                <legend class="block text-sm font-medium">Specialties</legend>
+                <p class="text-xs text-gray-500">General practice is always included. Tick your specialties from the list, or type one that is missing (it is added to the list for everyone).</p>
+                @php
+                    // Old input is the validated list (the request turns the checkbox map into ids).
+                    $oldIds = old('specialty_ids');
+                    $tickedIds = is_array($oldIds)
+                        ? (array_is_list($oldIds) ? array_map('intval', $oldIds) : array_map('intval', array_keys(array_filter($oldIds, fn ($v) => $v === '1'))))
+                        : ($doctor->exists ? $doctor->specialtyIds() : []);
+                    $oldNew = old('new_specialties');
+                    $newText = is_array($oldNew) ? implode(', ', $oldNew) : (string) $oldNew;
+                @endphp
+                <div class="mt-2 flex flex-wrap gap-x-6 gap-y-2">
+                    @forelse ($specialties as $specialty)
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="hidden" name="specialty_ids[{{ $specialty->id }}]" value="0">
+                            <input type="checkbox" name="specialty_ids[{{ $specialty->id }}]" value="1" @checked(in_array($specialty->id, $tickedIds, true))>
+                            {{ $specialty->name }}
+                        </label>
+                    @empty
+                        <span class="text-sm text-gray-500">The list is empty; type your specialty below.</span>
+                    @endforelse
+                </div>
+                <div class="mt-3" x-data="{ text: @js($newText) }">
+                    <label for="new_specialties" class="block text-sm">Not in the list? Type it</label>
+                    <input id="new_specialties" name="new_specialties" x-model="text" maxlength="500" placeholder="e.g. Cardiology, Diabetology" class="{{ $input }}">
+                    <p class="mt-1 text-xs text-gray-500" x-show="text.trim() !== ''">
+                        Will be added: <span class="font-medium" x-text="text.split(',').map(s => s.trim()).filter(Boolean).join(' · ')"></span>
+                    </p>
+                </div>
+            </fieldset>
             <div>
                 <label for="default_template_id" class="block text-sm font-medium">Default template</label>
                 <select id="default_template_id" name="default_template_id" class="{{ $input }}">
@@ -72,26 +95,25 @@
             @endforeach
         </div>
 
-        <h2 class="mt-8 text-lg font-semibold">Chambers: visiting hours and fees</h2>
+        <h2 class="mt-8 text-lg font-semibold">My chambers: visiting hours and fees</h2>
+        <p class="text-xs text-gray-500">The admin assigns the chambers you work at; you set your hours and fees for each.</p>
         @if ($chambers->isEmpty())
-            <p class="mt-2 text-sm text-gray-600">Create the <a href="{{ route('settings.chamber.edit') }}" class="underline">chamber</a> first.</p>
+            <p class="mt-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">No chamber assigned yet. Ask the admin to assign your chambers; you need one to write prescriptions.</p>
         @endif
         @foreach ($chambers as $i => $chamber)
             @php
-                $attached = $doctor->exists ? $doctor->chambers->firstWhere('id', $chamber->id) : null;
-                $fees = $doctor->exists ? $doctor->fees->where('chamber_id', $chamber->id)->mapWithKeys(fn ($f) => [$f->visit_type->value => $f->amount->toDecimal()]) : collect();
-                $enabled = old('chambers') !== null
-                    ? old("chambers.$i.enabled") === '1'
-                    : ($attached !== null || ($chambers->count() === 1 && ! $doctor->exists));
+                $fees = $doctor->fees->where('chamber_id', $chamber->id)->mapWithKeys(fn ($f) => [$f->visit_type->value => $f->amount->toDecimal()]);
+                $attached = $chamber;
             @endphp
             <fieldset class="mt-3 rounded border p-4">
-                <label class="flex items-center gap-2 text-sm font-medium">
-                    <input type="hidden" name="chambers[{{ $i }}][chamber_id]" value="{{ $chamber->id }}">
-                    <input type="hidden" name="chambers[{{ $i }}][enabled]" value="0">
-                    <input type="checkbox" name="chambers[{{ $i }}][enabled]" value="1" @checked($enabled)>
+                <legend class="px-1 text-sm font-medium">
                     {{ $chamber->name_en }}
-                </label>
-                <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                    @unless ($chamber->is_active)
+                        <span class="text-xs text-gray-500">(closed by the admin)</span>
+                    @endunless
+                </legend>
+                <input type="hidden" name="chambers[{{ $i }}][chamber_id]" value="{{ $chamber->id }}">
+                <div class="grid gap-3 sm:grid-cols-2">
                     <div>
                         <label class="block text-sm">Visiting hours (English)</label>
                         <textarea name="chambers[{{ $i }}][visiting_hours_en]" rows="2" class="{{ $input }}">{{ old("chambers.$i.visiting_hours_en", $attached?->pivot->visiting_hours_en) }}</textarea>

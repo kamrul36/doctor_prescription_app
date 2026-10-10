@@ -15,15 +15,7 @@
     <div>
         <label for="code" class="block text-sm font-medium">Code</label>
         <input id="code" name="code" value="{{ old('code', $template->code) }}" required pattern="[a-z][a-z0-9_]*" class="{{ $input }}">
-        <p class="mt-1 text-xs text-gray-500">Lowercase letters, digits and underscores, e.g. <code>dental_pad</code>.</p>
-    </div>
-    <div>
-        <label for="specialty_code" class="block text-sm font-medium">Specialty</label>
-        <select id="specialty_code" name="specialty_code" class="{{ $input }}">
-            @foreach ($specialties as $code => $label)
-                <option value="{{ $code }}" @selected(old('specialty_code', $template->specialty_code) === $code)>{{ $label }}</option>
-            @endforeach
-        </select>
+        <p class="mt-1 text-xs text-gray-500">Lowercase letters, digits and underscores, e.g. <code>general_a5</code>.</p>
     </div>
     <div>
         <label for="paper_size" class="block text-sm font-medium">Paper size</label>
@@ -67,7 +59,7 @@
     @foreach ([
         'show_barcode' => 'Show barcode', 'show_branch_footer' => 'Show branches in footer',
         'show_visiting_hours' => 'Show visiting hours', 'show_signature' => 'Show signature',
-        'is_default' => 'Default for its specialty', 'is_active' => 'Active',
+        'is_default' => 'Default template', 'is_active' => 'Active',
     ] as $field => $label)
         <label class="flex items-center gap-2 text-sm">
             <input type="hidden" name="{{ $field }}" value="0">
@@ -85,7 +77,7 @@
 </div>
 
 <h2 class="mt-8 text-lg font-semibold">Sections</h2>
-<p class="text-xs text-gray-500">Choose which blocks print, in which zone, and under which label. Lower order prints first within a zone.</p>
+<p class="text-xs text-gray-500">Choose which blocks print, in which zone, and under which label. Lower order prints first within a zone. The <code>specialty</code> section prints the blocks of the doctor's specialties and stays empty for a general physician.</p>
 <div class="mt-2 overflow-x-auto">
     <table class="w-full text-left text-sm">
         <thead class="border-b">

@@ -13,8 +13,9 @@ use Illuminate\Validation\ValidationException;
  * Creates or updates a prescription template together with its sections.
  *
  * A new template belongs to the actor's doctor profile (global if they have
- * none); an existing one keeps its owner. Only one template per owner and
- * specialty can be the default. Templates are deactivated, never deleted,
+ * none); an existing one keeps its owner. Only one template per owner can be
+ * the default (specialties are not templates: they add a block to the
+ * `specialty` section). Templates are deactivated, never deleted,
  * because finalized visits will point at them.
  */
 class SaveTemplateAction
@@ -44,7 +45,6 @@ class SaveTemplateAction
                     ->where(fn ($q) => $template->doctor_id === null
                         ? $q->whereNull('doctor_id')
                         : $q->where('doctor_id', $template->doctor_id))
-                    ->where('specialty_code', $template->specialty_code)
                     ->whereKeyNot($template->id)
                     ->update(['is_default' => false]);
             }

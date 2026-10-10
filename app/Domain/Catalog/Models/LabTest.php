@@ -3,11 +3,15 @@
 namespace App\Domain\Catalog\Models;
 
 use App\Domain\Catalog\CatalogEntry;
+use App\Domain\Catalog\Concerns\HasSpecialty;
+use App\Domain\Practice\Models\Specialty;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
+ * @property int|null $specialty_id null = general (every doctor)
+ * @property-read Specialty|null $specialty
  * @property string $name
  * @property string|null $category
  * @property string|null $default_timing_note
@@ -15,10 +19,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class LabTest extends Model implements CatalogEntry
 {
+    use HasSpecialty;
     use SoftDeletes;
 
     /** @var list<string> */
-    protected $fillable = ['name', 'category', 'default_timing_note', 'is_active'];
+    protected $fillable = ['specialty_id', 'name', 'category', 'default_timing_note', 'is_active'];
 
     /** @var array<string, mixed> */
     protected $attributes = ['is_active' => true];

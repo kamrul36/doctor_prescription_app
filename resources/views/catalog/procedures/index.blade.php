@@ -10,9 +10,10 @@
         <form method="GET" class="ml-auto flex items-center gap-3">
             <input type="search" name="q" value="{{ $q }}" placeholder="Search" aria-label="Search Procedures"
                    class="rounded px-3 py-1.5 ring-1 ring-gray-300">
+            @include('catalog._specialty_filter')
             @can('catalog.manage')
                 <label class="flex items-center gap-1 text-sm text-gray-600">
-                    <input type="checkbox" name="all" value="1" @checked($all) onchange="this.form.submit()"> Show inactive
+                    <input type="checkbox" name="all" value="1" @checked($all) x-data @change="$el.form.submit()"> Show inactive
                 </label>
             @endcan
         </form>
@@ -28,6 +29,7 @@
                     <th class="px-4 py-2">Code</th>
                     <th class="px-4 py-2">Name</th>
                     <th class="px-4 py-2">Name (Bangla)</th>
+                    <th class="px-4 py-2">Specialty</th>
                     <th class="px-4 py-2">Default fee</th>
                     <th class="px-4 py-2">Billable</th>
                     <th class="px-4 py-2">Status</th>
@@ -40,6 +42,7 @@
                         <td class="px-4 py-2 font-mono">{{ $item->code }}</td>
                         <td class="px-4 py-2 font-medium">{{ $item->name_en }}</td>
                         <td class="px-4 py-2">{{ $item->name_bn }}</td>
+                        <td class="px-4 py-2">{{ \App\Domain\Practice\Models\Specialty::labelFor($item->specialty) }}</td>
                         <td class="px-4 py-2">{{ $item->default_fee?->format() ?? "—" }}</td>
                         <td class="px-4 py-2">{{ $item->is_billable ? "Yes" : "No" }}</td>
                         <td class="px-4 py-2">{{ $item->is_active ? 'Active' : 'Inactive' }}</td>

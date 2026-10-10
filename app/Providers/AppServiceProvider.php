@@ -9,11 +9,15 @@ use App\Domain\Catalog\Models\AdviceTemplate;
 use App\Domain\Catalog\Models\LabTest;
 use App\Domain\Catalog\Models\Procedure;
 use App\Domain\Catalog\Policies\CatalogPolicy;
+use App\Domain\Clinical\Models\CaseHistory;
+use App\Domain\Clinical\Policies\CaseHistoryPolicy;
 use App\Domain\Patient\Models\Patient;
 use App\Domain\Patient\Policies\PatientPolicy;
 use App\Domain\Practice\Models\Chamber;
 use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\Models\PrescriptionTemplate;
+use App\Domain\Practice\Models\Specialty;
+use App\Domain\Practice\Policies\PracticeAdminPolicy;
 use App\Domain\Practice\Policies\PracticeSetupPolicy;
 use App\Models\User;
 use Dedoc\Scramble\Scramble;
@@ -48,9 +52,13 @@ class AppServiceProvider extends ServiceProvider
         foreach ([LabTest::class, Procedure::class, AdviceTemplate::class] as $model) {
             Gate::policy($model, CatalogPolicy::class);
         }
-        foreach ([Chamber::class, Doctor::class, PrescriptionTemplate::class] as $model) {
+        foreach ([Doctor::class, PrescriptionTemplate::class] as $model) {
             Gate::policy($model, PracticeSetupPolicy::class);
         }
+        foreach ([Chamber::class, Specialty::class] as $model) {
+            Gate::policy($model, PracticeAdminPolicy::class);
+        }
+        Gate::policy(CaseHistory::class, CaseHistoryPolicy::class);
 
         // OpenAPI docs at /docs/api: Scramble opens them in `local`; elsewhere
         // only for a super admin (session login).

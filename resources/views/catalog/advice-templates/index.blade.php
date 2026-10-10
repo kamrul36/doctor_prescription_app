@@ -10,9 +10,10 @@
         <form method="GET" class="ml-auto flex items-center gap-3">
             <input type="search" name="q" value="{{ $q }}" placeholder="Search" aria-label="Search Advice templates"
                    class="rounded px-3 py-1.5 ring-1 ring-gray-300">
+            @include('catalog._specialty_filter')
             @can('catalog.manage')
                 <label class="flex items-center gap-1 text-sm text-gray-600">
-                    <input type="checkbox" name="all" value="1" @checked($all) onchange="this.form.submit()"> Show inactive
+                    <input type="checkbox" name="all" value="1" @checked($all) x-data @change="$el.form.submit()"> Show inactive
                 </label>
             @endcan
         </form>
@@ -37,7 +38,7 @@
                 @forelse ($items as $item)
                     <tr class="border-b last:border-0">
                         <td class="px-4 py-2 font-medium">{{ $item->title }}</td>
-                        <td class="px-4 py-2">{{ config("practice.specialties")[$item->specialty_code] ?? $item->specialty_code }}</td>
+                        <td class="px-4 py-2">{{ \App\Domain\Practice\Models\Specialty::labelFor($item->specialty) }}</td>
                         <td class="px-4 py-2">{{ $item->doctor_id === null ? "Shared" : "Private" }}</td>
                         <td class="px-4 py-2">{{ $item->defaultForTemplate?->name ?? "—" }}</td>
                         <td class="px-4 py-2">{{ $item->is_active ? 'Active' : 'Inactive' }}</td>

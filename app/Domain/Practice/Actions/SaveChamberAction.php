@@ -7,8 +7,8 @@ use App\Domain\Practice\Models\Chamber;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Updates the chamber (one per installation for now; the schema allows more)
- * and replaces its branch list with the submitted one, in order.
+ * Creates or updates a chamber (admin only; there can be several) and replaces
+ * its branch list with the submitted one, in order.
  */
 class SaveChamberAction
 {

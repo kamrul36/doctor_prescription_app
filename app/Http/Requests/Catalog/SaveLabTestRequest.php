@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Catalog;
 
 use App\Domain\Catalog\Models\LabTest;
+use App\Domain\Practice\Rules\UsableSpecialty;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,6 +29,7 @@ class SaveLabTestRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255',
                 Rule::unique('lab_tests', 'name')->whereNull('deleted_at')->ignore($item?->id)],
+            'specialty_id' => ['nullable', new UsableSpecialty($item?->specialty_id)],
             'category' => ['nullable', 'string', 'max:100'],
             'default_timing_note' => ['nullable', 'string', 'max:100'],
             'is_active' => ['sometimes', 'boolean'],

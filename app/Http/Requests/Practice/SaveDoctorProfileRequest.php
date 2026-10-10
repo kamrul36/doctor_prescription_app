@@ -17,11 +17,22 @@ class SaveDoctorProfileRequest extends FormRequest
     /** The Blade form always sends spare rows; rows left empty are dropped. */
     protected function prepareForValidation(): void
     {
-        // The Blade form lists every chamber with an `enabled` checkbox; unticked ones are dropped.
-        if (is_array($this->input('chambers'))) {
-            $this->merge(['chambers' => array_values(array_filter(
-                $this->input('chambers'),
-                fn ($row) => ! is_array($row) || ! array_key_exists('enabled', $row) || filter_var($row['enabled'], FILTER_VALIDATE_BOOLEAN),
+        // The Blade form sends `specialty_ids[<id>]=0|1` (hidden 0 + checkbox 1) so un-ticking all
+        // still clears them; the API sends a plain list `[1, 2]`. Ids start at 1, so a map is never a list.
+        $ids = $this->input('specialty_ids');
+        if (is_array($ids) && ! array_is_list($ids)) {
+            $this->merge(['specialty_ids' => array_map('intval', array_keys(array_filter(
+                $ids,
+                fn ($ticked) => filter_var($ticked, FILTER_VALIDATE_BOOLEAN),
+            )))]);
+        }
+
+        // Typed specialties: one comma-separated box on the form, a list from the API.
+        $new = $this->input('new_specialties');
+        if ($this->has('new_specialties') && (is_string($new) || $new === null)) {
+            $this->merge(['new_specialties' => array_values(array_filter(
+                array_map(fn ($name) => trim($name), explode(',', (string) $new)),
+                fn ($name) => $name !== '',
             ))]);
         }
 
@@ -45,13 +56,18 @@ class SaveDoctorProfileRequest extends FormRequest
             'designation_bn' => ['nullable', 'string', 'max:255'],
             'reg_label' => ['required', 'string', 'max:32'],
             'reg_no' => ['nullable', 'string', 'max:64'],
-            'specialty_code' => ['required', Rule::in(array_keys(config('practice.specialties')))],
+            'specialty_ids' => ['sometimes', 'array', 'max:30'],
+            'specialty_ids.*' => ['integer', 'distinct', Rule::exists('specialties', 'id')->where('is_active', true)],
+            // Names not in the list yet; each joins the shared list (or matches an existing entry).
+            'new_specialties' => ['sometimes', 'array', 'max:5'],
+            'new_specialties.*' => ['string', 'min:2', 'max:100'],
             'default_template_id' => ['nullable', 'integer', Rule::exists('prescription_templates', 'id')],
             'credentials' => ['sometimes', 'array', 'max:20'],
             'credentials.*.text_en' => ['required', 'string', 'max:255'],
             'credentials.*.text_bn' => ['nullable', 'string', 'max:255'],
-            'chambers' => ['sometimes', 'array', 'max:10'],
-            'chambers.*.chamber_id' => ['required', 'integer', 'distinct', Rule::exists('chambers', 'id')],
+            // Hours and fees for chambers the admin assigned; assigning itself is admin-only.
+            'chambers' => ['sometimes', 'array', 'max:20'],
+            'chambers.*.chamber_id' => ['required', 'integer', 'distinct'],
             'chambers.*.visiting_hours_en' => ['nullable', 'string', 'max:1000'],
             'chambers.*.visiting_hours_bn' => ['nullable', 'string', 'max:1000'],
             'chambers.*.fees' => ['nullable', 'array'],
