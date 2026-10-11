@@ -9,6 +9,7 @@
 @use('App\Domain\Clinical\Vitals')
 @use('App\Domain\Patient\Gender')
 @use('App\Domain\Practice\VisitType')
+@use('Illuminate\Support\Arr')
 
 @php
     $rows = fn (string $key) => array_values(old($key, $initial[$key]));
@@ -25,16 +26,19 @@
     $vitals = old('vitals', $case?->vitals ?? []);
     $specialty = old('specialty_data', $case?->specialty_data ?? []);
     $field = 'w-full rounded px-2 py-1.5 text-sm ring-1 ring-gray-300';
-    $label = 'block text-xs font-medium text-gray-600';
+    $label = 'mb-1 block text-sm font-medium text-gray-600';
     $card = 'rounded-xl border border-gray-200 bg-white p-4 shadow-sm';
     $h2 = 'mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-teal-800';
     $addBtn = 'ml-auto rounded px-2 py-0.5 text-xs font-medium normal-case tracking-normal text-teal-800 ring-1 ring-teal-700 hover:bg-teal-50';
-    $removeBtn = 'text-xs text-red-700 hover:underline';
+    $removeBtn = 'inline-flex cursor-pointer h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-red-50 hover:text-red-700 focus:ring-2 focus:ring-red-300 focus:outline-none';
+    $error = 'text-sm text-red-700';
+    // Field rules mirror SaveVisitRequest; rules kept in PHP (vitals, specialty blocks) are mapped by ClientRules.
+    $rulesOf = fn (array $rules) => \App\Support\ClientRules::attributes($rules);
 @endphp
 
 @section('content')
     <form method="POST" action="{{ $case ? route('prescriptions.update', $case) : route('prescriptions.store') }}"
-          x-data="{ errors: @js($errors->toArray()), err(key) { return (this.errors[key] || [])[0] || ''; } }"
+          x-data="validatedForm(@js(Arr::except($errors->toArray(), 'reason')))"
           class="space-y-4">
         @csrf
         @if ($case)
@@ -48,12 +52,13 @@
             @endif
             <div class="ml-auto flex flex-wrap items-center gap-3 text-sm">
                 <label class="flex items-center gap-2">
-                    <span class="text-gray-600">Chamber</span>
+                    <span class="text-gray-600">Chamber <x-required-mark /></span>
                     <select name="chamber_id" class="rounded px-2 py-1.5 ring-1 ring-gray-300" required>
                         @foreach ($chambers as $chamber)
                             <option value="{{ $chamber->id }}" @selected((string) old('chamber_id', $case?->chamber_id ?? $chambers->first()?->id) === (string) $chamber->id)>{{ $chamber->name_en }}</option>
                         @endforeach
                     </select>
+                    <span class="{{ $error }}" x-text="err('chamber_id')"></span>
                 </label>
                 <label class="flex items-center gap-2">
                     <span class="text-gray-600">Visit</span>
@@ -66,16 +71,8 @@
             </div>
         </div>
 
-        @if ($errors->any())
-            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-800">
-                <p class="font-medium">Please check the highlighted fields.</p>
-                <ul class="mt-1 list-inside list-disc">
-                    @foreach (array_slice($errors->all(), 0, 6) as $message)
-                        <li>{{ $message }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+        {{-- Errors without a field on the pad (e.g. "status"); the rest show under their field or row. --}}
+        <x-form-errors class="mb-0" />
 
         {{-- Patient strip --}}
         <section class="{{ $card }}"
@@ -111,33 +108,34 @@
                         <p class="mb-2 text-xs text-gray-500">New to the chamber? Fill in the details; the patient is registered when you save. Already registered? Start typing the phone or name and pick them.</p>
                         <div class="grid gap-3 sm:grid-cols-6">
                             <div class="sm:col-span-2">
-                                <label class="{{ $label }}">Name *</label>
-                                <input name="patient[name]" x-model="form.name" @input="lookup()" class="{{ $field }}" autocomplete="off">
-                                <p class="text-xs text-red-700" x-text="err('patient.name')"></p>
+                                <label class="{{ $label }}">Name <x-required-mark /></label>
+                                <input name="patient[name]" x-model="form.name" @input="lookup()" required maxlength="255" class="{{ $field }}" autocomplete="off">
+                                <p class="{{ $error }}" x-text="err('patient.name')"></p>
                             </div>
                             <div>
-                                <label class="{{ $label }}">Age (years) *</label>
-                                <input name="patient[age_years]" x-model="form.age_years" inputmode="numeric" class="{{ $field }}">
-                                <p class="text-xs text-red-700" x-text="err('patient.age_years')"></p>
+                                <label class="{{ $label }}">Age (years) <x-required-mark /></label>
+                                <input name="patient[age_years]" x-model="form.age_years" inputmode="numeric" required data-rule="integer" data-min="0" data-max="130" class="{{ $field }}">
+                                <p class="{{ $error }}" x-text="err('patient.age_years')"></p>
                             </div>
                             <div>
-                                <label class="{{ $label }}">Sex *</label>
-                                <select name="patient[gender]" x-model="form.gender" class="{{ $field }}">
+                                <label class="{{ $label }}">Sex <x-required-mark /></label>
+                                <select name="patient[gender]" x-model="form.gender" required class="{{ $field }}">
                                     <option value="">—</option>
                                     @foreach (Gender::cases() as $gender)
                                         <option value="{{ $gender->value }}">{{ $gender->label() }}</option>
                                     @endforeach
                                 </select>
-                                <p class="text-xs text-red-700" x-text="err('patient.gender')"></p>
+                                <p class="{{ $error }}" x-text="err('patient.gender')"></p>
                             </div>
                             <div class="sm:col-span-2">
-                                <label class="{{ $label }}">Phone *</label>
-                                <input name="patient[phone]" x-model="form.phone" @input="lookup()" inputmode="tel" class="{{ $field }}" autocomplete="off">
-                                <p class="text-xs text-red-700" x-text="err('patient.phone')"></p>
+                                <label class="{{ $label }}">Phone <x-required-mark /></label>
+                                <input name="patient[phone]" x-model="form.phone" @input="lookup()" inputmode="tel" required maxlength="20" data-rule="phone" placeholder="01XXXXXXXXX" class="{{ $field }}" autocomplete="off">
+                                <p class="{{ $error }}" x-text="err('patient.phone')"></p>
                             </div>
                             <div class="sm:col-span-6">
                                 <label class="{{ $label }}">Address</label>
-                                <input name="patient[address]" x-model="form.address" class="{{ $field }}">
+                                <input name="patient[address]" x-model="form.address" maxlength="1000" class="{{ $field }}">
+                                <p class="{{ $error }}" x-text="err('patient.address')"></p>
                             </div>
                         </div>
 
@@ -184,14 +182,15 @@
                     <h2 class="{{ $h2 }}">Complaints <button type="button" @click="add()" class="{{ $addBtn }}">+ Add</button></h2>
                     <template x-for="(row, i) in rows" :key="row._key">
                         <div data-row class="mb-2 grid grid-cols-[1fr_4rem_5.5rem_auto] items-center gap-2">
-                            <input :name="`complaints[${i}][text]`" x-model="row.text" placeholder="e.g. Lower abdominal pain" class="{{ $field }}">
-                            <input :name="`complaints[${i}][duration_value]`" x-model="row.duration_value" inputmode="numeric" placeholder="for" class="{{ $field }}">
+                            <input :name="`complaints[${i}][text]`" x-model="row.text" maxlength="500" placeholder="e.g. Lower abdominal pain" class="{{ $field }}">
+                            <input :name="`complaints[${i}][duration_value]`" x-model="row.duration_value" inputmode="numeric" data-rule="integer" data-min="1" data-max="999" placeholder="for" class="{{ $field }}">
                             <select :name="`complaints[${i}][duration_unit]`" x-model="row.duration_unit" class="{{ $field }}">
                                 @foreach (PeriodUnit::cases() as $unit)
                                     <option value="{{ $unit->value }}">{{ $unit->label() }}</option>
                                 @endforeach
                             </select>
-                            <button type="button" @click="remove(i)" class="{{ $removeBtn }}" aria-label="Remove">✕</button>
+                            <button type="button" @click="remove(i)" class="{{ $removeBtn }}" aria-label="Remove"><x-icon-close /></button>
+                            <p x-show="rowErr(`complaints.${i}`)" class="{{ $error }} col-span-full" x-text="rowErr(`complaints.${i}`)"></p>
                         </div>
                     </template>
                 </section>
@@ -210,7 +209,7 @@
                                 <div @class(['sm:col-span-2' => $def['type'] === 'textarea'])>
                                     <label class="{{ $label }}" for="sp_{{ $block }}_{{ $key }}">{{ $def['label'] }}</label>
                                     @if ($def['type'] === 'textarea')
-                                        <textarea id="sp_{{ $block }}_{{ $key }}" name="specialty_data[{{ $block }}][{{ $key }}]" rows="2" placeholder="{{ $def['hint'] ?? '' }}" class="{{ $field }}">{{ $value }}</textarea>
+                                        <textarea id="sp_{{ $block }}_{{ $key }}" name="specialty_data[{{ $block }}][{{ $key }}]" rows="2" placeholder="{{ $def['hint'] ?? '' }}" {{ $rulesOf($def['rules']) }} class="{{ $field }}">{{ $value }}</textarea>
                                     @elseif ($def['type'] === 'select')
                                         <select id="sp_{{ $block }}_{{ $key }}" name="specialty_data[{{ $block }}][{{ $key }}]" class="{{ $field }}">
                                             <option value="">—</option>
@@ -220,9 +219,9 @@
                                         </select>
                                     @else
                                         <input id="sp_{{ $block }}_{{ $key }}" type="{{ $def['type'] === 'number' ? 'text' : $def['type'] }}" @if ($def['type'] === 'number') inputmode="numeric" @endif
-                                               name="specialty_data[{{ $block }}][{{ $key }}]" value="{{ $value }}" placeholder="{{ $def['hint'] ?? '' }}" class="{{ $field }}">
+                                               name="specialty_data[{{ $block }}][{{ $key }}]" value="{{ $value }}" placeholder="{{ $def['hint'] ?? '' }}" {{ $rulesOf($def['rules']) }} class="{{ $field }}">
                                     @endif
-                                    @error("specialty_data.{$block}.{$key}")<p class="text-xs text-red-700">{{ $message }}</p>@enderror
+                                    <p class="{{ $error }}" x-text="err(@js("specialty_data.{$block}.{$key}"))"></p>
                                 </div>
                             @endforeach
                         </div>
@@ -233,9 +232,10 @@
                     <h2 class="{{ $h2 }}">On examination <button type="button" @click="add()" class="{{ $addBtn }}">+ Add</button></h2>
                     <template x-for="(row, i) in rows" :key="row._key">
                         <div data-row class="mb-2 grid grid-cols-[7rem_1fr_auto] items-center gap-2">
-                            <input :name="`findings[${i}][label]`" x-model="row.label" placeholder="e.g. Anaemia" class="{{ $field }}">
-                            <input :name="`findings[${i}][value]`" x-model="row.value" placeholder="finding" class="{{ $field }}">
-                            <button type="button" @click="remove(i)" class="{{ $removeBtn }}" aria-label="Remove">✕</button>
+                            <input :name="`findings[${i}][label]`" x-model="row.label" maxlength="255" placeholder="e.g. Anaemia" class="{{ $field }}">
+                            <input :name="`findings[${i}][value]`" x-model="row.value" maxlength="500" placeholder="finding" class="{{ $field }}">
+                            <button type="button" @click="remove(i)" class="{{ $removeBtn }}" aria-label="Remove"><x-icon-close /></button>
+                            <p x-show="rowErr(`findings.${i}`)" class="{{ $error }} col-span-full" x-text="rowErr(`findings.${i}`)"></p>
                         </div>
                     </template>
                     <p x-show="rows.length === 0" class="text-xs text-gray-500">No findings yet.</p>
@@ -243,12 +243,12 @@
 
                 <section class="{{ $card }}">
                     <h2 class="{{ $h2 }}">Vitals</h2>
-                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div class="grid grid-cols-2 items-end gap-x-3 gap-y-2 sm:grid-cols-4">
                         @foreach (Vitals::FIELDS as $key => $def)
                             <div>
-                                <label class="{{ $label }}" for="v_{{ $key }}">{{ $def['label'] }} <span class="font-normal text-gray-400">{{ $def['unit'] }}</span></label>
-                                <input id="v_{{ $key }}" name="vitals[{{ $key }}]" value="{{ $vitals[$key] ?? '' }}" inputmode="decimal" class="{{ $field }}">
-                                @error("vitals.{$key}")<p class="text-xs text-red-700">{{ $message }}</p>@enderror
+                                <label class="{{ $label }} flex! items-baseline justify-between gap-1 whitespace-nowrap" for="v_{{ $key }}"><span>{{ $def['label'] }}</span> <span class="text-xs font-normal text-gray-400">{{ $def['unit'] }}</span></label>
+                                <input id="v_{{ $key }}" name="vitals[{{ $key }}]" value="{{ $vitals[$key] ?? '' }}" inputmode="decimal" {{ $rulesOf($def['rules']) }} class="{{ $field }}">
+                                <p class="{{ $error }}" x-text="err(@js("vitals.{$key}"))"></p>
                             </div>
                         @endforeach
                     </div>
@@ -259,8 +259,8 @@
             <div class="space-y-4 lg:col-span-3">
                 <section class="{{ $card }}">
                     <h2 class="{{ $h2 }}"><label for="diagnosis">Diagnosis</label></h2>
-                    <textarea id="diagnosis" name="diagnosis" rows="2" class="{{ $field }}">{{ old('diagnosis', $case?->diagnosis) }}</textarea>
-                    @error('diagnosis')<p class="text-xs text-red-700">{{ $message }}</p>@enderror
+                    <textarea id="diagnosis" name="diagnosis" rows="2" maxlength="2000" class="{{ $field }}">{{ old('diagnosis', $case?->diagnosis) }}</textarea>
+                    <p id="diagnosis-error" class="{{ $error }}" x-text="err('diagnosis')"></p>
                 </section>
 
                 <section class="{{ $card }}" x-data="rowList(@js($rows('plan_items')), { procedure_id: '', description: '', tooth_no: '', status: 'planned', fee: '' })">
@@ -270,18 +270,19 @@
                             <input type="hidden" :name="`plan_items[${i}][procedure_id]`" :value="row.procedure_id ?? ''">
                             @include('prescriptions._typeahead', [
                                 'url' => route('lookup.procedures'), 'label' => 'name_en', 'model' => 'row.description',
-                                'name' => '`plan_items[${i}][description]`', 'placeholder' => 'Procedure',
+                                'name' => '`plan_items[${i}][description]`', 'placeholder' => 'Procedure', 'maxlength' => 500,
                                 'picked' => "row.procedure_id = item ? item.id : ''; if (item && item.default_fee && !row.fee) row.fee = item.default_fee;",
                             ])
                             @if ($hasDental)
-                                <input :name="`plan_items[${i}][tooth_no]`" x-model="row.tooth_no" placeholder="Tooth" class="{{ $field }}">
+                                <input :name="`plan_items[${i}][tooth_no]`" x-model="row.tooth_no" maxlength="32" placeholder="Tooth" class="{{ $field }}">
                             @endif
-                            <input :name="`plan_items[${i}][fee]`" x-model="row.fee" inputmode="decimal" placeholder="Fee ৳" class="{{ $field }}">
+                            <input :name="`plan_items[${i}][fee]`" x-model="row.fee" inputmode="decimal" data-rule="money" placeholder="Fee ৳" class="{{ $field }}">
                             <select :name="`plan_items[${i}][status]`" x-model="row.status" class="{{ $field }}">
                                 <option value="planned">Planned</option>
                                 <option value="done">Done</option>
                             </select>
-                            <button type="button" @click="remove(i)" class="{{ $removeBtn }}" aria-label="Remove">✕</button>
+                            <button type="button" @click="remove(i)" class="{{ $removeBtn }}" aria-label="Remove"><x-icon-close /></button>
+                            <p x-show="rowErr(`plan_items.${i}`)" class="{{ $error }} col-span-full" x-text="rowErr(`plan_items.${i}`)"></p>
                         </div>
                     </template>
                     <p x-show="rows.length === 0" class="text-xs text-gray-500">No procedures.</p>
@@ -294,16 +295,17 @@
                             <input type="hidden" :name="`tests[${i}][lab_test_id]`" :value="row.lab_test_id ?? ''">
                             @include('prescriptions._typeahead', [
                                 'url' => route('lookup.lab-tests'), 'label' => 'name', 'model' => 'row.name',
-                                'name' => '`tests[${i}][name]`', 'placeholder' => 'Test',
+                                'name' => '`tests[${i}][name]`', 'placeholder' => 'Test', 'maxlength' => 255,
                                 'picked' => "row.lab_test_id = item ? item.id : ''; if (item && item.default_timing_note && !row.timing_note) row.timing_note = item.default_timing_note;",
                             ])
-                            <input :name="`tests[${i}][timing_note]`" x-model="row.timing_note" placeholder="D2, fasting" class="{{ $field }}">
+                            <input :name="`tests[${i}][timing_note]`" x-model="row.timing_note" maxlength="100" placeholder="D2, fasting" class="{{ $field }}">
                             <select :name="`tests[${i}][kind]`" x-model="row.kind" class="{{ $field }}">
                                 <option value="advised">Advised</option>
                                 <option value="reviewed">Report seen</option>
                             </select>
-                            <button type="button" @click="remove(i)" class="{{ $removeBtn }}" aria-label="Remove">✕</button>
-                            <input x-show="row.kind === 'reviewed'" :name="`tests[${i}][result]`" x-model="row.result" placeholder="Result" class="{{ $field }} col-span-3">
+                            <button type="button" @click="remove(i)" class="{{ $removeBtn }}" aria-label="Remove"><x-icon-close /></button>
+                            <input x-show="row.kind === 'reviewed'" :name="`tests[${i}][result]`" x-model="row.result" maxlength="1000" placeholder="Result" class="{{ $field }} col-span-3">
+                            <p x-show="rowErr(`tests.${i}`)" class="{{ $error }} col-span-full" x-text="rowErr(`tests.${i}`)"></p>
                         </div>
                     </template>
                     <p x-show="rows.length === 0" class="text-xs text-gray-500">No investigations.</p>
@@ -317,22 +319,22 @@
                             <div class="flex items-start gap-2">
                                 <span class="pt-1.5 text-sm font-semibold text-gray-500" x-text="`${i + 1}.`"></span>
                                 <div class="grid flex-1 gap-2 sm:grid-cols-[1fr_9rem]">
-                                    <input :name="`medicines[${i}][name]`" x-model="row.name" placeholder="e.g. Tab. Napa 500 mg" class="{{ $field }} font-medium">
+                                    <input :name="`medicines[${i}][name]`" x-model="row.name" maxlength="255" placeholder="e.g. Tab. Napa 500 mg" class="{{ $field }} font-medium">
                                     <div x-data="doseInput(row)">
                                         <input x-model="shortcut" @keydown.enter.prevent="apply()" @blur="apply()" placeholder="2+0+2 7d" aria-label="Dose shortcut" class="{{ $field }}">
-                                        <p class="text-xs text-red-700" x-text="error"></p>
+                                        <p class="text-sm text-red-700" x-text="error"></p>
                                     </div>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <button type="button" @click="move(i, -1)" class="text-xs text-gray-500 hover:text-gray-800" aria-label="Move up">▲</button>
                                     <button type="button" @click="move(i, 1)" class="text-xs text-gray-500 hover:text-gray-800" aria-label="Move down">▼</button>
                                 </div>
-                                <button type="button" @click="remove(i)" class="{{ $removeBtn }} pt-1.5" aria-label="Remove">✕</button>
+                                <button type="button" @click="remove(i)" class="{{ $removeBtn }} mt-0.5" aria-label="Remove"><x-icon-close /></button>
                             </div>
                             <div class="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-[3rem_3rem_3rem_6.5rem_7rem_4rem_6.5rem]">
-                                <input :name="`medicines[${i}][dose_morning]`" x-model="row.dose_morning" title="Morning" placeholder="M" class="{{ $field }} text-center">
-                                <input :name="`medicines[${i}][dose_noon]`" x-model="row.dose_noon" title="Noon" placeholder="N" class="{{ $field }} text-center">
-                                <input :name="`medicines[${i}][dose_night]`" x-model="row.dose_night" title="Night" placeholder="E" class="{{ $field }} text-center">
+                                <input :name="`medicines[${i}][dose_morning]`" x-model="row.dose_morning" maxlength="8" data-rule="dose-slot" title="Morning" placeholder="M" class="{{ $field }} text-center">
+                                <input :name="`medicines[${i}][dose_noon]`" x-model="row.dose_noon" maxlength="8" data-rule="dose-slot" title="Noon" placeholder="N" class="{{ $field }} text-center">
+                                <input :name="`medicines[${i}][dose_night]`" x-model="row.dose_night" maxlength="8" data-rule="dose-slot" title="Night" placeholder="E" class="{{ $field }} text-center">
                                 <select :name="`medicines[${i}][dose_unit]`" x-model="row.dose_unit" class="{{ $field }}">
                                     @foreach (DoseUnit::cases() as $unit)
                                         <option value="{{ $unit->value }}">{{ $unit->label() }}</option>
@@ -344,15 +346,15 @@
                                         <option value="{{ $timing->value }}">{{ $timing->label() }}</option>
                                     @endforeach
                                 </select>
-                                <input :name="`medicines[${i}][duration_value]`" x-model="row.duration_value" x-bind:disabled="['continuous', 'as_needed'].includes(row.duration_unit)" inputmode="numeric" placeholder="for" class="{{ $field }}">
+                                <input :name="`medicines[${i}][duration_value]`" x-model="row.duration_value" x-bind:disabled="['continuous', 'as_needed'].includes(row.duration_unit)" inputmode="numeric" data-rule="integer" data-min="1" data-max="{{ \App\Domain\Clinical\ValueObjects\Duration::MAX_VALUE }}" placeholder="for" class="{{ $field }}">
                                 <select :name="`medicines[${i}][duration_unit]`" x-model="row.duration_unit" class="{{ $field }}">
                                     @foreach (DurationUnit::cases() as $unit)
                                         <option value="{{ $unit->value }}">{{ $unit->label() }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <input :name="`medicines[${i}][instruction]`" x-model="row.instruction" placeholder="Instruction (optional), e.g. gargle after brushing" class="{{ $field }} mt-2">
-                            <p class="mt-1 text-xs text-red-700" x-text="err(`medicines.${i}.name`) || err(`medicines.${i}.dose`) || err(`medicines.${i}.duration_value`) || err(`medicines.${i}.duration_unit`)"></p>
+                            <input :name="`medicines[${i}][instruction]`" x-model="row.instruction" maxlength="500" placeholder="Instruction (optional), e.g. gargle after brushing" class="{{ $field }} mt-2">
+                            <p class="mt-1 {{ $error }}" x-text="rowErr(`medicines.${i}`)"></p>
                         </div>
                     </template>
                 </section>
@@ -377,8 +379,11 @@
                         <div data-row class="mb-2 flex items-start gap-2">
                             <input type="hidden" :name="`advice[${i}][source_template_id]`" :value="row.source_template_id ?? ''">
                             <input type="hidden" :name="`advice[${i}][text_bn]`" :value="row.text_bn ?? ''">
-                            <textarea :name="`advice[${i}][text]`" x-model="row.text" rows="3" class="{{ $field }}"></textarea>
-                            <button type="button" @click="remove(i)" class="{{ $removeBtn }}" aria-label="Remove">✕</button>
+                            <div class="flex-1">
+                                <textarea :name="`advice[${i}][text]`" x-model="row.text" rows="3" maxlength="5000" class="{{ $field }}"></textarea>
+                                <p class="{{ $error }}" x-text="rowErr(`advice.${i}`)"></p>
+                            </div>
+                            <button type="button" @click="remove(i)" class="{{ $removeBtn }}" aria-label="Remove"><x-icon-close /></button>
                         </div>
                     </template>
                 </section>
@@ -387,22 +392,22 @@
                     <h2 class="{{ $h2 }}">Follow-up</h2>
                     <div class="flex flex-wrap items-center gap-2 text-sm">
                         <span>Come back after</span>
-                        <input name="follow_up_value" value="{{ old('follow_up_value', $case?->follow_up_value) }}" inputmode="numeric" class="w-16 rounded px-2 py-1.5 ring-1 ring-gray-300" aria-label="Follow-up after">
+                        <input name="follow_up_value" value="{{ old('follow_up_value', $case?->follow_up_value) }}" inputmode="numeric" data-rule="integer" data-min="1" data-max="365" class="w-16 rounded px-2 py-1.5 ring-1 ring-gray-300" aria-label="Follow-up after">
                         <select name="follow_up_unit" class="rounded px-2 py-1.5 ring-1 ring-gray-300" aria-label="Follow-up unit">
                             @foreach (PeriodUnit::cases() as $unit)
                                 <option value="{{ $unit->value }}" @selected(old('follow_up_unit', $case?->follow_up_unit?->value ?? 'week') === $unit->value)>{{ $unit->label() }}</option>
                             @endforeach
                         </select>
                         <span>or on</span>
-                        <input type="date" name="follow_up_date" value="{{ old('follow_up_date', $case?->follow_up_date?->toDateString()) }}" class="rounded px-2 py-1.5 ring-1 ring-gray-300" aria-label="Follow-up date">
+                        <input type="date" name="follow_up_date" value="{{ old('follow_up_date', $case?->follow_up_date?->toDateString()) }}" min="{{ now()->toDateString() }}" data-rule="future-date" class="rounded px-2 py-1.5 ring-1 ring-gray-300" aria-label="Follow-up date">
                     </div>
-                    @error('follow_up_value')<p class="text-xs text-red-700">{{ $message }}</p>@enderror
-                    @error('follow_up_date')<p class="text-xs text-red-700">{{ $message }}</p>@enderror
+                    <p class="{{ $error }}" x-text="err('follow_up_value') || err('follow_up_unit') || err('follow_up_date')"></p>
                 </section>
 
                 <section class="{{ $card }}">
                     <h2 class="{{ $h2 }}"><label for="notes_private">Private notes</label> <span class="text-xs font-normal normal-case text-gray-500">not printed</span></h2>
-                    <textarea id="notes_private" name="notes_private" rows="2" class="{{ $field }}">{{ old('notes_private', $case?->notes_private) }}</textarea>
+                    <textarea id="notes_private" name="notes_private" rows="2" maxlength="5000" class="{{ $field }}">{{ old('notes_private', $case?->notes_private) }}</textarea>
+                    <p id="notes_private-error" class="{{ $error }}" x-text="err('notes_private')"></p>
                 </section>
             </div>
         </div>
@@ -417,17 +422,19 @@
     </form>
 
     @if ($case)
-        <form method="POST" action="{{ route('prescriptions.cancel', $case) }}" class="mt-4 flex flex-wrap items-center gap-2 text-sm" x-data="{ open: false }">
+        <form method="POST" action="{{ route('prescriptions.cancel', $case) }}" class="mt-4 text-sm" x-data="validatedForm(@js(array_filter(['reason' => $errors->get('reason')])))">
             @csrf
-            <button type="button" x-show="!open" @click="open = true" class="text-red-700 hover:underline">Cancel this draft…</button>
-            <template x-if="open">
-                <div class="flex flex-wrap items-center gap-2">
-                    <input name="reason" required minlength="3" placeholder="Reason" class="rounded px-2 py-1.5 ring-1 ring-gray-300">
-                    <button type="submit" class="rounded bg-red-700 px-3 py-1.5 text-white">Cancel draft</button>
-                    <button type="button" @click="open = false" class="text-gray-600">Keep it</button>
-                </div>
-            </template>
-            @error('reason')<p class="text-xs text-red-700">{{ $message }}</p>@enderror
+            <div class="flex flex-wrap items-center gap-2" x-data="{ open: @js($errors->has('reason')) }">
+                <button type="button" x-show="!open" @click="open = true" class="text-red-700 hover:underline">Cancel this draft…</button>
+                <template x-if="open">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input name="reason" value="{{ old('reason') }}" required minlength="3" maxlength="500" placeholder="Reason" class="rounded px-2 py-1.5 ring-1 ring-gray-300">
+                        <button type="submit" class="rounded bg-red-700 px-3 py-1.5 text-white">Cancel draft</button>
+                        <button type="button" @click="open = false" class="text-gray-600">Keep it</button>
+                    </div>
+                </template>
+            </div>
+            <p class="{{ $error }}" x-text="err('reason')"></p>
         </form>
     @endif
 @endsection

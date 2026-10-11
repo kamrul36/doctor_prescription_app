@@ -63,7 +63,7 @@ class PrescriptionPadTest extends TestCase
 
         $patient = Patient::where('name', 'Karim Uddin')->firstOrFail();
         $case = CaseHistory::firstOrFail();
-        $response->assertRedirect(route('prescriptions.edit', $case))->assertSessionHas('status', fn ($s) => str_contains($s, $patient->code));
+        $response->assertRedirect(route('prescriptions.edit', $case))->assertSessionHas('success', fn ($s) => str_contains($s, $patient->code));
         $this->assertSame('01712345678', $patient->phone);
         $this->assertSame(45, $patient->ageYears());
         $this->assertMatchesRegularExpression('/^\d{8}$/', $patient->code);

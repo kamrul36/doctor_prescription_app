@@ -7,36 +7,41 @@
 
     <h1 class="mb-4 text-2xl font-semibold">{{ $item->exists ? 'Edit advice template' : 'New advice template' }}</h1>
 
-    <form method="POST" action="{{ $item->exists ? route('catalog.advice-templates.update', $item) : route('catalog.advice-templates.store') }}" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <form method="POST" action="{{ $item->exists ? route('catalog.advice-templates.update', $item) : route('catalog.advice-templates.store') }}"
+          x-data="validatedForm(@js($errors->toArray()))" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         @csrf
+        <x-form-errors />
         @if ($item->exists)
             @method('PUT')
         @endif
-        @include('admin._errors')
-        @php($input = 'mt-1 w-full rounded px-3 py-2 ring-1 ring-gray-300')
+        @php($input = 'mt-2 w-full rounded px-3 py-2 ring-1 ring-gray-300')
 
         <div class="grid gap-4 sm:grid-cols-2">
             <div class="sm:col-span-2">
-                <label for="title" class="block text-sm font-medium">Title</label>
+                <label for="title" class="block text-base font-medium">Title <x-required-mark /></label>
                 <input id="title" name="title" value="{{ old('title', $item->title) }}" required maxlength="255" class="{{ $input }}">
+                <x-field-error for="title" />
             </div>
             @include('catalog._specialty_field')
             <div>
-                <label for="is_default_for_template_id" class="block text-sm font-medium">Default advice for template</label>
+                <label for="is_default_for_template_id" class="block text-base font-medium">Default advice for template</label>
                 <select id="is_default_for_template_id" name="is_default_for_template_id" class="{{ $input }}">
                     <option value="">None</option>
                     @foreach ($templates as $template)
                         <option value="{{ $template->id }}" @selected((int) old('is_default_for_template_id', $item->is_default_for_template_id) === $template->id)>{{ $template->name }}</option>
                     @endforeach
                 </select>
+                <x-field-error for="is_default_for_template_id" />
             </div>
             <div class="sm:col-span-2">
-                <label for="text_en" class="block text-sm font-medium">Text (English)</label>
+                <label for="text_en" class="block text-base font-medium">Text (English) <x-required-mark /></label>
                 <textarea id="text_en" name="text_en" rows="5" required maxlength="5000" class="{{ $input }}">{{ old('text_en', $item->text_en) }}</textarea>
+                <x-field-error for="text_en" />
             </div>
             <div class="sm:col-span-2">
-                <label for="text_bn" class="block text-sm font-medium">Text (Bangla)</label>
+                <label for="text_bn" class="block text-base font-medium">Text (Bangla)</label>
                 <textarea id="text_bn" name="text_bn" rows="5" maxlength="5000" class="{{ $input }}">{{ old('text_bn', $item->text_bn) }}</textarea>
+                <x-field-error for="text_bn" />
             </div>
         </div>
 

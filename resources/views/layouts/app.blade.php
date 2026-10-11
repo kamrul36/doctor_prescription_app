@@ -58,15 +58,38 @@
     @endauth
 
     <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-        @if (session('status'))
-            <div class="mb-5 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
-                <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
-                {{ session('status') }}
-            </div>
-        @endif
-
+        @auth
+            @unless (request()->routeIs('home'))
+                {{-- Goes to the page the user came from; the href is the fallback when there is no history. --}}
+                <a href="{{ url()->previous(route('home')) }}" onclick="if (history.length > 1) { history.back(); return false; }"
+                   class="mb-4 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.7 4.3a1 1 0 010 1.4L8.4 10l4.3 4.3a1 1 0 11-1.4 1.4l-5-5a1 1 0 010-1.4l5-5a1 1 0 011.4 0z" clip-rule="evenodd"/></svg>
+                    Back
+                </a>
+            @endunless
+        @endauth
         @yield('content')
     </main>
+
+    {{-- Flash messages become toasts (spec §10.1). `status` is the older name for success. --}}
+    @php
+        $toasts = array_filter([
+            'success' => session('success') ?? session('status'),
+            'warning' => session('warning'),
+            'error' => session('error') ?? match (true) {
+                session('warning') !== null || $errors->isEmpty() => null,
+                $errors->count() === 1 => $errors->first(),
+                default => "Please fix the {$errors->count()} highlighted fields.",
+            },
+        ]);
+    @endphp
+    @if ($toasts)
+        <script type="module">
+            @foreach ($toasts as $type => $message)
+                window.toast?.{{ $type }}(@js($message));
+            @endforeach
+        </script>
+    @endif
 
     <footer class="border-t border-gray-200 py-4 text-center text-xs text-gray-500">
         {{ config('app.name') }} &middot; Chamber management

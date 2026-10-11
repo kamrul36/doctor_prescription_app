@@ -33,7 +33,7 @@ class SpecialtyController extends Controller
     {
         $specialty = $save->handle(null, $request->validated());
 
-        return redirect()->route('admin.specialties.index')->with('status', "Specialty {$specialty->name} added.");
+        return redirect()->route('admin.specialties.index')->with('success', "Specialty {$specialty->name} added.");
     }
 
     public function edit(Specialty $specialty): View
@@ -47,6 +47,6 @@ class SpecialtyController extends Controller
     {
         $save->handle($specialty, $request->validated());
 
-        return redirect()->route('admin.specialties.index')->with('status', "Specialty {$specialty->name} saved.");
+        return redirect()->route('admin.specialties.index')->with('success', "Specialty {$specialty->name} saved.");
     }
 }

@@ -15,6 +15,7 @@ use App\Domain\Clinical\Vitals;
 use App\Domain\Patient\Gender;
 use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\VisitType;
+use App\Support\Phone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -57,11 +58,11 @@ class SaveVisitRequest extends FormRequest
             }
         }
 
-        // Phones are stored as digits (and a leading +), like on the patient form.
+        // Phones are stored as digits (and a leading +), like on the patient form; only separators are removed.
         $phone = $this->input('patient.phone');
         if (is_string($phone)) {
             $patient = (array) $this->input('patient');
-            $patient['phone'] = preg_replace('/(?!^\+)[^\d]/', '', trim($phone)) ?: null;
+            $patient['phone'] = Phone::normalize($phone);
             $merge['patient'] = $patient;
         }
 
@@ -92,7 +93,7 @@ class SaveVisitRequest extends FormRequest
             'patient.name' => ['required_without:patient_id', 'nullable', 'string', 'max:255'],
             'patient.age_years' => ['required_without:patient_id', 'nullable', 'integer', 'between:0,130'],
             'patient.gender' => ['required_without:patient_id', 'nullable', Rule::in(Gender::values())],
-            'patient.phone' => ['required_without:patient_id', 'nullable', 'string', 'regex:/^\+?\d{6,15}$/'],
+            'patient.phone' => ['required_without:patient_id', 'nullable', 'string', Phone::RULE],
             'patient.address' => ['nullable', 'string', 'max:1000'],
             // Answer to "same person?": an existing patient's id, or "new".
             'patient_choice' => ['nullable', function (string $attribute, mixed $value, \Closure $fail) {
@@ -190,6 +191,16 @@ class SaveVisitRequest extends FormRequest
                 }
             }
         }];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'patient.phone.regex' => Phone::MESSAGE,
+            'plan_items.*.fee.regex' => 'Enter an amount like 500 or 1250.50.',
+            'follow_up_date.after_or_equal' => 'The follow-up date cannot be in the past.',
+        ];
     }
 
     /** @return array<string, string> */

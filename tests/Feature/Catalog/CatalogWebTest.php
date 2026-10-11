@@ -66,7 +66,7 @@ class CatalogWebTest extends TestCase
 
         $this->actingAs($doctor)->get('/catalog/lab-tests/create')->assertOk();
         $this->actingAs($doctor)->post('/catalog/lab-tests', ['name' => 'Widal', 'category' => 'Serology', 'is_active' => '1'])
-            ->assertRedirect('/catalog/lab-tests')->assertSessionHas('status');
+            ->assertRedirect('/catalog/lab-tests')->assertSessionHas('success');
         $test = LabTest::where('name', 'Widal')->firstOrFail();
 
         $this->actingAs($doctor)->get("/catalog/lab-tests/{$test->id}/edit")->assertOk()->assertSee('Widal');

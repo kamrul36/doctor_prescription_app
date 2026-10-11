@@ -67,7 +67,8 @@ class PrescriptionController extends Controller
         try {
             $case = $save->handle($this->actor($request), null, $request->validated());
         } catch (PossibleDuplicatePatients $e) {
-            return back()->withInput()->with('patient_candidates', $e->candidates->pluck('id')->all());
+            return back()->withInput()->with('patient_candidates', $e->candidates->pluck('id')->all())
+                ->with('warning', 'This patient may already be registered. Choose one below, then save again.');
         }
 
         return $this->afterSave($request, $case, $finalize, created: true);
@@ -113,14 +114,14 @@ class PrescriptionController extends Controller
             return redirect()->route('prescriptions.edit', $case)->withErrors($e->errors());
         }
 
-        return redirect()->route('prescriptions.show', $case)->with('status', "Prescription {$case->prescription_no} finalized.");
+        return redirect()->route('prescriptions.show', $case)->with('success', "Prescription {$case->prescription_no} finalized.");
     }
 
     public function cancel(CancelVisitRequest $request, CaseHistory $case, CancelVisitAction $cancel): RedirectResponse
     {
         $cancel->handle($this->actor($request), $case, $request->validated()['reason']);
 
-        return redirect()->route('prescriptions.index')->with('status', 'Draft cancelled.');
+        return redirect()->route('prescriptions.index')->with('success', 'Draft cancelled.');
     }
 
     /** "Save & finalize" saves first, so a finalize problem never loses the doctor's work. */
@@ -129,11 +130,11 @@ class PrescriptionController extends Controller
         $registered = $created && $case->patient->wasRecentlyCreated ? " Patient registered as {$case->patient->code}." : '';
 
         if ($request->input('action') !== 'finalize') {
-            return redirect()->route('prescriptions.edit', $case)->with('status', 'Draft saved.'.$registered);
+            return redirect()->route('prescriptions.edit', $case)->with('success', 'Draft saved.'.$registered);
         }
 
         if ($this->actor($request)->cannot('finalize', $case)) {
-            return redirect()->route('prescriptions.edit', $case)->with('status', 'Draft saved. You may not finalize prescriptions.'.$registered);
+            return redirect()->route('prescriptions.edit', $case)->with('warning', 'Draft saved. You may not finalize prescriptions.'.$registered);
         }
 
         try {
@@ -141,10 +142,10 @@ class PrescriptionController extends Controller
         } catch (ValidationException $e) {
             return redirect()->route('prescriptions.edit', $case)
                 ->withErrors($e->errors())
-                ->with('status', 'Draft saved, but it cannot be finalized yet.'.$registered);
+                ->with('warning', 'Draft saved, but it cannot be finalized yet.'.$registered);
         }
 
-        return redirect()->route('prescriptions.show', $case)->with('status', "Prescription {$case->prescription_no} finalized.".$registered);
+        return redirect()->route('prescriptions.show', $case)->with('success', "Prescription {$case->prescription_no} finalized.".$registered);
     }
 
     /** The pad needs a doctor profile with at least one open chamber. */
@@ -153,11 +154,11 @@ class PrescriptionController extends Controller
         $doctor = Doctor::query()->where('user_id', $request->user()?->id)->with(['chambers', 'specialties'])->first();
 
         if ($doctor === null) {
-            return redirect()->route('settings.doctor.edit')->with('status', 'Set up your doctor profile before writing prescriptions.');
+            return redirect()->route('settings.doctor.edit')->with('warning', 'Set up your doctor profile before writing prescriptions.');
         }
 
         if ($doctor->activeChambers()->isEmpty()) {
-            return redirect()->route('settings.doctor.edit')->with('status', 'No chamber is assigned to you yet. Ask the admin to assign one before writing prescriptions.');
+            return redirect()->route('settings.doctor.edit')->with('warning', 'No chamber is assigned to you yet. Ask the admin to assign one before writing prescriptions.');
         }
 
         return $doctor;

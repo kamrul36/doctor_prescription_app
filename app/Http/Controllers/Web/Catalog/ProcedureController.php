@@ -43,7 +43,7 @@ class ProcedureController extends Controller
         $actor = $request->user();
         $item = $save->handle($actor, Procedure::class, null, $request->validated());
 
-        return redirect()->route('catalog.procedures.index')->with('status', "Procedure {$item->name_en} added.");
+        return redirect()->route('catalog.procedures.index')->with('success', "Procedure {$item->name_en} added.");
     }
 
     public function edit(Procedure $procedure): View
@@ -59,7 +59,7 @@ class ProcedureController extends Controller
         $actor = $request->user();
         $save->handle($actor, Procedure::class, $procedure, $request->validated());
 
-        return redirect()->route('catalog.procedures.index')->with('status', 'Procedure saved.');
+        return redirect()->route('catalog.procedures.index')->with('success', 'Procedure saved.');
     }
 
     public function destroy(Procedure $procedure, DeleteCatalogItemAction $delete): RedirectResponse
@@ -68,6 +68,6 @@ class ProcedureController extends Controller
 
         $delete->handle($procedure);
 
-        return redirect()->route('catalog.procedures.index')->with('status', 'Procedure deleted.');
+        return redirect()->route('catalog.procedures.index')->with('success', 'Procedure deleted.');
     }
 }

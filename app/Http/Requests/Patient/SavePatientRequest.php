@@ -6,6 +6,7 @@ use App\Domain\Patient\BloodGroup;
 use App\Domain\Patient\Gender;
 use App\Domain\Patient\Models\Patient;
 use App\Domain\Patient\PatientType;
+use App\Support\Phone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,7 +22,10 @@ class SavePatientRequest extends FormRequest
             : $this->user()?->can('update', $patient));
     }
 
-    /** Phones are stored as digits (and a leading +) so a typed fragment always matches. */
+    /**
+     * Phones are stored as digits (and a leading +) so a typed fragment always matches.
+     * Only separators are removed; letters stay, so the format rule rejects them.
+     */
     protected function prepareForValidation(): void
     {
         $merge = [];
@@ -30,7 +34,7 @@ class SavePatientRequest extends FormRequest
             $value = $this->input($field);
 
             if (is_string($value)) {
-                $merge[$field] = preg_replace('/(?!^\+)[^\d]/', '', trim($value)) ?: null;
+                $merge[$field] = Phone::normalize($value);
             }
         }
 
@@ -52,11 +56,11 @@ class SavePatientRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'name_bn' => ['nullable', 'string', 'max:255'],
-            'dob' => ['nullable', 'date', 'before_or_equal:today', 'required_without:age_years'],
+            'dob' => ['nullable', 'date', 'before_or_equal:today'],
             'age_years' => ['nullable', 'integer', 'between:0,130', 'required_without:dob'],
             'gender' => ['required', Rule::in(Gender::values())],
-            'phone' => ['required', 'string', 'regex:/^\+?\d{6,15}$/'],
-            'alt_phone' => ['nullable', 'string', 'regex:/^\+?\d{6,15}$/'],
+            'phone' => ['required', 'string', Phone::RULE],
+            'alt_phone' => ['nullable', 'string', Phone::RULE],
             'address' => ['required', 'string', 'max:1000'],
             'occupation' => ['nullable', 'string', 'max:255'],
             'blood_group' => ['nullable', Rule::in(BloodGroup::values())],
@@ -64,6 +68,17 @@ class SavePatientRequest extends FormRequest
             'allergies' => ['nullable', 'string', 'max:2000'],
             'conditions' => ['nullable', 'string', 'max:2000'],
             'notes' => ['nullable', 'string', 'max:5000'],
+        ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'phone.regex' => Phone::MESSAGE,
+            'alt_phone.regex' => Phone::MESSAGE,
+            'dob.before_or_equal' => 'The date of birth cannot be in the future.',
+            'age_years.required_without' => 'Enter the age.',
         ];
     }
 }

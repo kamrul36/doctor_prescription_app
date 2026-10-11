@@ -18,15 +18,25 @@ class SaveTemplateRequest extends FormRequest
         return (bool) $this->user()?->can('create', PrescriptionTemplate::class);
     }
 
-    /** The Blade form sends an `order` number per section; sort by it, then drop it. */
-    protected function prepareForValidation(): void
+    /**
+     * The Blade form sends an `order` number per section; after validation the
+     * sections are sorted by it and it is dropped. Sorting afterwards keeps the
+     * error keys (`sections.3.order`) on the row the user typed in.
+     *
+     * @param  array-key|null  $key
+     */
+    public function validated($key = null, $default = null): mixed
     {
-        $sections = $this->input('sections');
+        $data = parent::validated();
 
-        if (is_array($sections) && collect($sections)->contains(fn ($s) => is_array($s) && isset($s['order']))) {
-            $sorted = collect($sections)->filter(fn ($s) => is_array($s))->sortBy(fn ($s) => (int) ($s['order'] ?? 0))->values();
-            $this->merge(['sections' => $sorted->map(fn ($s) => collect($s)->except('order')->all())->all()]);
+        if (is_array($data['sections'] ?? null) && collect($data['sections'])->contains(fn ($s) => isset($s['order']))) {
+            $data['sections'] = collect($data['sections'])
+                ->sortBy(fn ($s) => (int) ($s['order'] ?? 0))
+                ->map(fn ($s) => collect($s)->except('order')->all())
+                ->values()->all();
         }
+
+        return data_get($data, $key, $default);
     }
 
     /**
@@ -50,6 +60,7 @@ class SaveTemplateRequest extends FormRequest
             'is_default' => ['boolean'],
             'is_active' => ['boolean'],
             'sections' => ['required', 'array', 'min:1', 'max:'.count(SectionKey::cases())],
+            'sections.*.order' => ['sometimes', 'nullable', 'integer', 'between:0,999'],
             'sections.*.section_key' => ['required', 'distinct', Rule::in(SectionKey::values())],
             'sections.*.zone' => ['required', Rule::in(SectionZone::values())],
             'sections.*.label_en' => ['nullable', 'string', 'max:255'],
@@ -63,6 +74,8 @@ class SaveTemplateRequest extends FormRequest
     {
         return [
             'code.regex' => 'Use lowercase letters, digits and underscores, starting with a letter.',
+            'sections.*.order.*' => 'The order is a whole number from 0 to 999.',
+            'margins.*.*' => 'A margin is a whole number of mm from 0 to 100.',
         ];
     }
 }

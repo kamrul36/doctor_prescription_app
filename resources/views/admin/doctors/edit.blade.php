@@ -13,10 +13,11 @@
     <h1 class="mb-1 text-2xl font-semibold">Chambers for {{ $user->doctor?->name_en ?? $user->name }}</h1>
     <p class="mb-4 text-sm text-gray-600">Unticking a chamber also removes this doctor's fees for it.</p>
 
-    <form method="POST" action="{{ route('admin.doctors.update', $user) }}" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    {{-- Only checkboxes here; AssignDoctorChambersRequest errors (e.g. an inactive chamber) are listed at the top. --}}
+    <form method="POST" action="{{ route('admin.doctors.update', $user) }}" x-data="validatedForm(@js($errors->toArray()))" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         @csrf
         @method('PUT')
-        @include('admin._errors')
+        <x-form-errors />
 
         @if ($chambers->isEmpty())
             <p class="text-sm text-gray-600">No chambers yet. <a href="{{ route('admin.chambers.create') }}" class="underline">Create one</a> first.</p>

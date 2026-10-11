@@ -1,33 +1,35 @@
 @php
+    // Rules mirror StoreUserRequest / UpdateUserRequest; the form sits inside x-data="validatedForm(...)".
     $selected = old('roles', $user->exists ? $user->roles->pluck('name')->all() : []);
+    $input = 'mt-2 w-full rounded px-3 py-2 ring-1 ring-gray-300';
 @endphp
 
-@include('admin._errors')
-
 @csrf
+<x-form-errors />
 
 <div class="grid gap-4 sm:grid-cols-2">
     <div>
-        <label for="name" class="block text-sm font-medium">Name</label>
-        <input id="name" name="name" value="{{ old('name', $user->name) }}" required
-               class="mt-1 w-full rounded px-3 py-2 ring-1 ring-gray-300">
+        <label for="name" class="block text-base font-medium">Name <x-required-mark /></label>
+        <input id="name" name="name" value="{{ old('name', $user->name) }}" required maxlength="255" class="{{ $input }}">
+        <x-field-error for="name" />
     </div>
     <div>
-        <label for="email" class="block text-sm font-medium">Email</label>
-        <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required
-               class="mt-1 w-full rounded px-3 py-2 ring-1 ring-gray-300">
+        <label for="email" class="block text-base font-medium">Email <x-required-mark /></label>
+        <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required maxlength="255" class="{{ $input }}">
+        <x-field-error for="email" />
     </div>
     <div>
-        <label for="phone" class="block text-sm font-medium">Phone</label>
-        <input id="phone" name="phone" value="{{ old('phone', $user->phone) }}"
-               class="mt-1 w-full rounded px-3 py-2 ring-1 ring-gray-300">
+        <label for="phone" class="block text-base font-medium">Phone</label>
+        <input id="phone" name="phone" type="tel" value="{{ old('phone', $user->phone) }}" maxlength="20" data-rule="phone" placeholder="01XXXXXXXXX" class="{{ $input }}">
+        <x-field-error for="phone" />
     </div>
     <div>
-        <label for="password" class="block text-sm font-medium">
-            Password @if ($user->exists)<span class="font-normal text-gray-500">(leave blank to keep)</span>@endif
+        <label for="password" class="block text-base font-medium">
+            Password @unless ($user->exists)<x-required-mark />@endunless @if ($user->exists)<span class="font-normal text-gray-500">(leave blank to keep)</span>@endif
         </label>
-        <input id="password" name="password" type="password" autocomplete="new-password" @required(! $user->exists)
-               class="mt-1 w-full rounded px-3 py-2 ring-1 ring-gray-300">
+        <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" @required(! $user->exists) class="{{ $input }}">
+        <x-field-error for="password" />
+        <p class="mt-1 text-sm text-gray-500">At least 8 characters.</p>
     </div>
 </div>
 
@@ -41,6 +43,7 @@
             </label>
         @endforeach
     </div>
+    <p id="roles-error" class="mt-1 text-sm text-red-700" x-text="err('roles') || rowErr('roles')"></p>
 </fieldset>
 
 <label class="mt-6 flex items-center gap-2 text-sm">
@@ -48,6 +51,7 @@
     <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $user->is_active))>
     Active (inactive users cannot log in)
 </label>
+<x-field-error for="is_active" />
 
 <div class="mt-6 flex gap-3">
     <button type="submit" class="rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-4 py-2 text-white">Save</button>

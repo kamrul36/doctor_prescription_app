@@ -7,31 +7,37 @@
 
     <h1 class="mb-4 text-2xl font-semibold">{{ $item->exists ? 'Edit procedure' : 'New procedure' }}</h1>
 
-    <form method="POST" action="{{ $item->exists ? route('catalog.procedures.update', $item) : route('catalog.procedures.store') }}" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <form method="POST" action="{{ $item->exists ? route('catalog.procedures.update', $item) : route('catalog.procedures.store') }}"
+          x-data="validatedForm(@js($errors->toArray()))" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         @csrf
+        <x-form-errors />
         @if ($item->exists)
             @method('PUT')
         @endif
-        @include('admin._errors')
-        @php($input = 'mt-1 w-full rounded px-3 py-2 ring-1 ring-gray-300')
+        @php($input = 'mt-2 w-full rounded px-3 py-2 ring-1 ring-gray-300')
 
         <div class="grid gap-4 sm:grid-cols-2">
             <div>
-                <label for="code" class="block text-sm font-medium">Code</label>
-                <input id="code" name="code" value="{{ old('code', $item->code) }}" required maxlength="32" class="{{ $input }} uppercase">
-                <p class="mt-1 text-xs text-gray-500">Letters, digits, dashes or underscores. Must be unique, even against deleted procedures.</p>
+                <label for="code" class="block text-base font-medium">Code <x-required-mark /></label>
+                <input id="code" name="code" value="{{ old('code', $item->code) }}" required maxlength="32" class="{{ $input }} uppercase"
+                       data-pattern="\s*[A-Za-z0-9_\-]{2,32}\s*" data-pattern-message="Use 2 to 32 letters, digits, dashes or underscores.">
+                <x-field-error for="code" />
+                <p class="mt-1 text-sm text-gray-500">Letters, digits, dashes or underscores. Must be unique, even against deleted procedures.</p>
             </div>
             <div>
-                <label for="default_fee" class="block text-sm font-medium">Default fee (৳)</label>
-                <input id="default_fee" name="default_fee" inputmode="decimal" value="{{ old('default_fee', $item->default_fee?->toDecimal()) }}" placeholder="Leave empty if it varies" class="{{ $input }}">
+                <label for="default_fee" class="block text-base font-medium">Default fee (৳)</label>
+                <input id="default_fee" name="default_fee" inputmode="decimal" value="{{ old('default_fee', $item->default_fee?->toDecimal()) }}" data-rule="money" placeholder="Leave empty if it varies" class="{{ $input }}">
+                <x-field-error for="default_fee" />
             </div>
             <div>
-                <label for="name_en" class="block text-sm font-medium">Name (English)</label>
+                <label for="name_en" class="block text-base font-medium">Name (English) <x-required-mark /></label>
                 <input id="name_en" name="name_en" value="{{ old('name_en', $item->name_en) }}" required maxlength="255" class="{{ $input }}">
+                <x-field-error for="name_en" />
             </div>
             <div>
-                <label for="name_bn" class="block text-sm font-medium">Name (Bangla)</label>
+                <label for="name_bn" class="block text-base font-medium">Name (Bangla)</label>
                 <input id="name_bn" name="name_bn" value="{{ old('name_bn', $item->name_bn) }}" maxlength="255" class="{{ $input }}">
+                <x-field-error for="name_bn" />
             </div>
             @include('catalog._specialty_field')
         </div>

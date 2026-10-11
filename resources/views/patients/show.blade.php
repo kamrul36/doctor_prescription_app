@@ -69,7 +69,7 @@
                         <p class="mt-1 text-gray-700">{{ \Illuminate\Support\Str::limit($visit->diagnosis, 140) }}</p>
                     @endif
                     @if ($visit->medicines->isNotEmpty())
-                        <p class="mt-1 text-xs text-gray-500">℞ {{ $visit->medicines->map(fn ($m) => trim($m->display_name.' '.($m->dose()?->format() ?? '')))->join(' · ') }}</p>
+                        <p class="mt-1 text-sm text-gray-500">℞ {{ $visit->medicines->map(fn ($m) => trim($m->display_name.' '.($m->dose()?->format() ?? '')))->join(' · ') }}</p>
                     @endif
                 </a>
             @empty

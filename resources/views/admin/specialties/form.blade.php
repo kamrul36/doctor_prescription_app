@@ -5,31 +5,34 @@
 @section('content')
     <h1 class="mb-4 text-2xl font-semibold">{{ $specialty->exists ? 'Edit '.$specialty->name : 'New specialty' }}</h1>
 
-    <form method="POST" action="{{ $specialty->exists ? route('admin.specialties.update', $specialty) : route('admin.specialties.store') }}" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <form method="POST" action="{{ $specialty->exists ? route('admin.specialties.update', $specialty) : route('admin.specialties.store') }}"
+          x-data="validatedForm(@js($errors->toArray()))" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         @csrf
+        <x-form-errors />
         @if ($specialty->exists)
             @method('PUT')
         @endif
-        @include('admin._errors')
-        @php($input = 'mt-1 w-full rounded px-3 py-2 ring-1 ring-gray-300')
+        @php($input = 'mt-2 w-full rounded px-3 py-2 ring-1 ring-gray-300')
 
         <div class="grid gap-4 sm:grid-cols-2">
             <div>
-                <label for="name" class="block text-sm font-medium">Name</label>
-                <input id="name" name="name" value="{{ old('name', $specialty->name) }}" required maxlength="100" class="{{ $input }}">
+                <label for="name" class="block text-base font-medium">Name <x-required-mark /></label>
+                <input id="name" name="name" value="{{ old('name', $specialty->name) }}" required minlength="2" maxlength="100" class="{{ $input }}">
+                <x-field-error for="name" />
                 @if ($specialty->exists)
-                    <p class="mt-1 text-xs text-gray-500">Code <code>{{ $specialty->code }}</code> stays the same when you rename.</p>
+                    <p class="mt-1 text-sm text-gray-500">Code <code>{{ $specialty->code }}</code> stays the same when you rename.</p>
                 @endif
             </div>
             <div>
-                <label for="block" class="block text-sm font-medium">Prescription block</label>
+                <label for="block" class="block text-base font-medium">Prescription block</label>
                 <select id="block" name="block" class="{{ $input }}">
                     <option value="">None (only catalog suggestions)</option>
                     @foreach (\App\Domain\Practice\SpecialtyBlock::cases() as $block)
                         <option value="{{ $block->value }}" @selected(old('block', $specialty->block?->value) === $block->value)>{{ $block->label() }}</option>
                     @endforeach
                 </select>
-                <p class="mt-1 text-xs text-gray-500">Extra fields shown on the prescription pad for doctors with this specialty.</p>
+                <x-field-error for="block" />
+                <p class="mt-1 text-sm text-gray-500">Extra fields shown on the prescription pad for doctors with this specialty.</p>
             </div>
         </div>
 

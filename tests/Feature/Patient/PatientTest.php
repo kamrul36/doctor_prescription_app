@@ -97,7 +97,7 @@ class PatientTest extends TestCase
         $h = $this->bearer(User::factory()->doctor()->create());
 
         $this->postJson('/api/v1/patients', $this->payload(['dob' => null]), $h)
-            ->assertUnprocessable()->assertJsonValidationErrors(['dob', 'age_years']);
+            ->assertUnprocessable()->assertJsonValidationErrors('age_years');
         $this->postJson('/api/v1/patients', $this->payload(['dob' => '2999-01-01']), $h)
             ->assertUnprocessable()->assertJsonValidationErrors('dob');
 

@@ -10,8 +10,8 @@ final class Vitals
 {
     /** @var array<string, array{label: string, unit: string, rules: list<string>}> */
     public const FIELDS = [
-        'bp_sys' => ['label' => 'BP systolic', 'unit' => 'mmHg', 'rules' => ['integer', 'between:40,300']],
-        'bp_dia' => ['label' => 'BP diastolic', 'unit' => 'mmHg', 'rules' => ['integer', 'between:20,200']],
+        'bp_sys' => ['label' => 'Upper BP', 'unit' => 'mmHg', 'rules' => ['integer', 'between:40,300']],
+        'bp_dia' => ['label' => 'Lower BP', 'unit' => 'mmHg', 'rules' => ['integer', 'between:20,200']],
         'pulse' => ['label' => 'Pulse', 'unit' => '/min', 'rules' => ['integer', 'between:20,250']],
         'temp' => ['label' => 'Temp', 'unit' => '°F', 'rules' => ['numeric', 'between:90,110']],
         'weight_kg' => ['label' => 'Weight', 'unit' => 'kg', 'rules' => ['numeric', 'between:0.5,350']],

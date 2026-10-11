@@ -3,7 +3,7 @@
 //   "1+0+0 6m"  -> 6 months;   "1+1+1 2w" -> 2 weeks
 //   "0+0+1 cont" / "1+0+1 sos" -> continuous / as needed
 // Slots accept 0, ½ (or 1/2), 1, 1½ (or 1.5), 2, 3 ...
-const SLOT = /^(?:\d+(?:\.5)?|½|\d+½|\d+\s?1\/2|1\/2)$/;
+export const SLOT = /^(?:\d+(?:\.5)?|½|\d+½|\d+\s?1\/2|1\/2)$/;
 const UNITS = { d: 'day', day: 'day', days: 'day', w: 'week', wk: 'week', week: 'week', weeks: 'week', m: 'month', mo: 'month', month: 'month', months: 'month' };
 const OPEN_ENDED = { cont: 'continuous', continuous: 'continuous', sos: 'as_needed', prn: 'as_needed', as_needed: 'as_needed' };
 
@@ -69,6 +69,7 @@ export default function doseInput(row) {
                 }
             }
             this.shortcut = '';
+            this.$dispatch('recheck-fields');
         },
     };
 }

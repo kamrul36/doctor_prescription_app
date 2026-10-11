@@ -33,7 +33,7 @@ class ChamberController extends Controller
     {
         $chamber = $save->handle(null, $request->validated());
 
-        return redirect()->route('admin.chambers.index')->with('status', "Chamber {$chamber->name_en} created.");
+        return redirect()->route('admin.chambers.index')->with('success', "Chamber {$chamber->name_en} created.");
     }
 
     public function edit(Chamber $chamber): View
@@ -47,6 +47,6 @@ class ChamberController extends Controller
     {
         $save->handle($chamber, $request->validated());
 
-        return redirect()->route('admin.chambers.index')->with('status', "Chamber {$chamber->name_en} saved.");
+        return redirect()->route('admin.chambers.index')->with('success', "Chamber {$chamber->name_en} saved.");
     }
 }

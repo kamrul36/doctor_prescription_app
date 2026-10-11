@@ -48,3 +48,12 @@
         @apply tracking-tight text-gray-900;
     }
 }
+
+/* A field with a validation error (set by validatedForm). Outside the layers on purpose,
+   so it wins over the views' ring-gray-300 / focus:ring-teal-600 utilities. */
+input[aria-invalid='true'],
+select[aria-invalid='true'],
+textarea[aria-invalid='true'] {
+    --tw-ring-color: var(--color-red-500);
+    background-color: color-mix(in oklab, var(--color-red-50) 60%, white);
+}

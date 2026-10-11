@@ -43,7 +43,7 @@ class LabTestController extends Controller
         $actor = $request->user();
         $item = $save->handle($actor, LabTest::class, null, $request->validated());
 
-        return redirect()->route('catalog.lab-tests.index')->with('status', "Lab test {$item->name} added.");
+        return redirect()->route('catalog.lab-tests.index')->with('success', "Lab test {$item->name} added.");
     }
 
     public function edit(LabTest $labTest): View
@@ -59,7 +59,7 @@ class LabTestController extends Controller
         $actor = $request->user();
         $save->handle($actor, LabTest::class, $labTest, $request->validated());
 
-        return redirect()->route('catalog.lab-tests.index')->with('status', 'Lab test saved.');
+        return redirect()->route('catalog.lab-tests.index')->with('success', 'Lab test saved.');
     }
 
     public function destroy(LabTest $labTest, DeleteCatalogItemAction $delete): RedirectResponse
@@ -68,6 +68,6 @@ class LabTestController extends Controller
 
         $delete->handle($labTest);
 
-        return redirect()->route('catalog.lab-tests.index')->with('status', 'Lab test deleted.');
+        return redirect()->route('catalog.lab-tests.index')->with('success', 'Lab test deleted.');
     }
 }

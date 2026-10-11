@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Practice;
 
 use App\Domain\Practice\Models\Chamber;
+use App\Support\Phone;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SaveChamberRequest extends FormRequest
@@ -33,15 +34,22 @@ class SaveChamberRequest extends FormRequest
             'name_bn' => ['nullable', 'string', 'max:255'],
             'address_en' => ['nullable', 'string', 'max:1000'],
             'address_bn' => ['nullable', 'string', 'max:1000'],
-            'phone' => ['nullable', 'string', 'max:64'],
+            // One or more numbers, comma-separated, stored as typed.
+            'phone' => ['nullable', 'string', 'max:64', Phone::contactList(4)],
             'email' => ['nullable', 'email', 'max:255'],
             'is_active' => ['sometimes', 'boolean'],
             'branches' => ['sometimes', 'nullable', 'array', 'max:20'],
             'branches.*.name_en' => ['required', 'string', 'max:255'],
             'branches.*.name_bn' => ['nullable', 'string', 'max:255'],
             // A list from the API, or one comma-separated string from the Blade form.
-            'branches.*.phones' => ['nullable'],
+            'branches.*.phones' => ['nullable', Phone::contactList()],
             'branches.*.phones.*' => ['string', 'max:32'],
         ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return ['branches.*.name_en.required' => 'Give the branch a name (English).'];
     }
 }

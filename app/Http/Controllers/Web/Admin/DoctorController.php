@@ -46,6 +46,6 @@ class DoctorController extends Controller
         $user = $request->doctorUser();
         $assign->handle($user, $request->validated()['chamber_ids']);
 
-        return redirect()->route('admin.doctors.index')->with('status', "Chambers saved for {$user->name}.");
+        return redirect()->route('admin.doctors.index')->with('success', "Chambers saved for {$user->name}.");
     }
 }

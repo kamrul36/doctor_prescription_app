@@ -29,6 +29,7 @@ export default function rowList(initial = [], blank = {}, { min = 0 } = {}) {
 
         remove(index) {
             this.rows.splice(index, 1);
+            this.$dispatch('recheck-fields');
         },
 
         move(index, step) {
@@ -38,6 +39,7 @@ export default function rowList(initial = [], blank = {}, { min = 0 } = {}) {
             }
             const [row] = this.rows.splice(index, 1);
             this.rows.splice(target, 0, row);
+            this.$dispatch('recheck-fields');
         },
     };
 }
