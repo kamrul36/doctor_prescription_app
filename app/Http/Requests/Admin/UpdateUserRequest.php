@@ -47,7 +47,7 @@ class UpdateUserRequest extends FormRequest
     /** @return array<string, string> */
     public function messages(): array
     {
-        return ['phone.regex' => Phone::MESSAGE, 'email.unique' => 'Another user already has this email.'];
+        return ['phone.regex' => __(Phone::MESSAGE), 'email.unique' => __('Another user already has this email.')];
     }
 
     private function targetUser(): ?User

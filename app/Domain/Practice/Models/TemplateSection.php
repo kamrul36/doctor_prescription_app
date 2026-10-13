@@ -4,6 +4,7 @@ namespace App\Domain\Practice\Models;
 
 use App\Domain\Practice\SectionKey;
 use App\Domain\Practice\SectionZone;
+use App\Support\Concerns\HasBilingualFields;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class TemplateSection extends Model
 {
+    use HasBilingualFields;
+
     protected $table = 'prescription_template_sections';
 
     protected $fillable = ['template_id', 'section_key', 'zone', 'label_en', 'label_bn', 'sort_order', 'is_visible'];

@@ -32,7 +32,7 @@ class FinalizeVisitAction
         $doctor = SaveVisitAction::doctorFor($actor);
 
         if ($case->doctor_id !== $doctor->id) {
-            throw new AuthorizationException('Only the doctor who wrote this prescription can finalize it.');
+            throw new AuthorizationException(__('Only the doctor who wrote this prescription can finalize it.'));
         }
 
         return DB::transaction(function () use ($actor, $case) {
@@ -42,14 +42,14 @@ class FinalizeVisitAction
                 return $case; // idempotent
             }
             if ($case->status === VisitStatus::Cancelled) {
-                throw ValidationException::withMessages(['status' => 'A cancelled prescription cannot be finalized.']);
+                throw ValidationException::withMessages(['status' => __('A cancelled prescription cannot be finalized.')]);
             }
 
             $this->ensureComplete($case);
 
             $case->prescription_no = $this->numbers->next(NumberGenerator::PRESCRIPTION);
-            $case->patient_snapshot = $this->patientSnapshot($case);
-            $case->doctor_snapshot = $this->doctorSnapshot($case);
+            $case->patient_snapshot = self::patientSnapshot($case);
+            $case->doctor_snapshot = self::doctorSnapshot($case);
             $case->status = VisitStatus::Finalized;
             $case->finalized_at = now();
             $case->finalized_by = $actor->id;
@@ -68,7 +68,7 @@ class FinalizeVisitAction
         $errors = [];
 
         if (blank($case->diagnosis) && $case->medicines->isEmpty()) {
-            $errors['diagnosis'] = 'Write a diagnosis or at least one medicine before finalizing.';
+            $errors['diagnosis'] = __('Write a diagnosis or at least one medicine before finalizing.');
         }
 
         foreach ($case->medicines->values() as $i => $medicine) {
@@ -91,8 +91,13 @@ class FinalizeVisitAction
         }
     }
 
-    /** @return array<string, mixed> */
-    private function patientSnapshot(CaseHistory $case): array
+    /**
+     * What a finalized visit keeps of the patient (and, below, the doctor and chamber); the print
+     * builder uses the same shape for a draft preview.
+     *
+     * @return array<string, mixed>
+     */
+    public static function patientSnapshot(CaseHistory $case): array
     {
         $patient = $case->patient;
 
@@ -108,7 +113,7 @@ class FinalizeVisitAction
     }
 
     /** @return array<string, mixed> */
-    private function doctorSnapshot(CaseHistory $case): array
+    public static function doctorSnapshot(CaseHistory $case): array
     {
         $doctor = $case->doctor()->with(['credentials', 'specialties'])->firstOrFail();
         $chamber = $case->chamber()->with('branches')->firstOrFail();

@@ -7,6 +7,7 @@ use App\Domain\Catalog\Concerns\HasSpecialty;
 use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\Models\PrescriptionTemplate;
 use App\Domain\Practice\Models\Specialty;
+use App\Support\Concerns\HasBilingualFields;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -26,6 +27,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class AdviceTemplate extends Model implements CatalogEntry
 {
+    use HasBilingualFields;
     use HasSpecialty;
     use SoftDeletes;
 

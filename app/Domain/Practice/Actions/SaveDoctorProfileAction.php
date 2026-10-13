@@ -110,7 +110,7 @@ class SaveDoctorProfileAction
         foreach ($chambers as $i => $row) {
             if (! in_array((int) $row['chamber_id'], $assigned, true)) {
                 throw ValidationException::withMessages([
-                    "chambers.{$i}.chamber_id" => 'This chamber is not assigned to you. Ask the admin to assign it.',
+                    "chambers.{$i}.chamber_id" => __('This chamber is not assigned to you. Ask the admin to assign it.'),
                 ]);
             }
         }
@@ -156,7 +156,7 @@ class SaveDoctorProfileAction
 
         if (! $usable) {
             throw ValidationException::withMessages([
-                'default_template_id' => 'Choose an active template that is shared or your own.',
+                'default_template_id' => __('Choose an active template that is shared or your own.'),
             ]);
         }
     }

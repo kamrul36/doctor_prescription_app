@@ -1,8 +1,8 @@
-<nav class="mb-6 flex gap-1 border-b border-gray-200 text-sm" aria-label="Catalogs">
+<nav class="mb-6 flex gap-1 border-b border-gray-200 text-sm" aria-label="{{ __('Catalogs') }}">
     @foreach ([
-        ['catalog.lab-tests.index', 'catalog.lab-tests.*', 'Lab tests'],
-        ['catalog.procedures.index', 'catalog.procedures.*', 'Procedures'],
-        ['catalog.advice-templates.index', 'catalog.advice-templates.*', 'Advice templates'],
+        ['catalog.lab-tests.index', 'catalog.lab-tests.*', __('Lab tests')],
+        ['catalog.procedures.index', 'catalog.procedures.*', __('Procedures')],
+        ['catalog.advice-templates.index', 'catalog.advice-templates.*', __('Advice templates')],
     ] as [$route, $pattern, $label])
         <a href="{{ route($route) }}"
            @class([

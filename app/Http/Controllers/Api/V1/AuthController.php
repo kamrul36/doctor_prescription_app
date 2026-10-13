@@ -6,6 +6,7 @@ use App\Domain\Access\Actions\AuthenticateAction;
 use App\Domain\Audit\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\UpdateLocaleRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -34,6 +35,20 @@ class AuthController extends Controller
     {
         /** @var User $user */
         $user = $this->guard()->user();
+
+        return (new UserResource($user))->withPermissions();
+    }
+
+    /**
+     * Save the user's UI language (`bn` | `en`).
+     *
+     * Later requests use it (it wins over `Accept-Language`): validation and error messages and the default print language.
+     */
+    public function updateLocale(UpdateLocaleRequest $request): UserResource
+    {
+        /** @var User $user */
+        $user = $this->guard()->user();
+        $user->forceFill(['locale' => $request->validated()['locale']])->save();
 
         return (new UserResource($user))->withPermissions();
     }

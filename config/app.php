@@ -78,9 +78,12 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'bn'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+
+    // Languages the UI can switch between (spec §6). Bangla is the primary one.
+    'supported_locales' => ['bn', 'en'],
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 

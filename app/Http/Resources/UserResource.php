@@ -28,6 +28,8 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
+            /** UI language the user picked (`bn` | `en`); null = app default. */
+            'locale' => $this->locale,
             'is_active' => $this->is_active,
             /** @var list<string> */
             'roles' => $this->getRoleNames()->values()->all(),

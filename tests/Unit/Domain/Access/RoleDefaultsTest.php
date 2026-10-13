@@ -4,7 +4,7 @@ namespace Tests\Unit\Domain\Access;
 
 use App\Domain\Access\Permission;
 use App\Domain\Access\Role;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class RoleDefaultsTest extends TestCase
 {

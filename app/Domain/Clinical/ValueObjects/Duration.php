@@ -18,7 +18,7 @@ final class Duration
         $unit = $unit instanceof DurationUnit ? $unit : DurationUnit::tryFrom((string) $unit);
 
         if ($unit === null) {
-            throw new InvalidArgumentException('Choose a duration (days, weeks, months, continue or as needed).');
+            throw new InvalidArgumentException(__('Choose a duration (days, weeks, months, continue or as needed).'));
         }
 
         if (! $unit->needsValue()) {
@@ -26,20 +26,21 @@ final class Duration
         }
 
         if ($value === null || $value === '' || ! ctype_digit((string) $value) || (int) $value < 1 || (int) $value > self::MAX_VALUE) {
-            throw new InvalidArgumentException('Give the number of '.$unit->label().' (1 to '.self::MAX_VALUE.').');
+            throw new InvalidArgumentException(__('Give the number of :unit (1 to :max).', ['unit' => $unit->label(), 'max' => self::MAX_VALUE]));
         }
 
         return new self((int) $value, $unit);
     }
 
-    public function format(bool $bangla = false): string
+    /** "7 days" / "৭ দিন" ("7 দিন" without Bangla digits). */
+    public function format(bool $bangla = false, bool $banglaDigits = true): string
     {
         if (! $this->unit->needsValue()) {
-            return $bangla ? $this->unit->labelBn() : $this->unit->label();
+            return $bangla ? $this->unit->labelBn() : $this->unit->label(2, 'en');
         }
 
         return $bangla
-            ? BanglaDigits::convert((string) $this->value).' '.$this->unit->labelBn()
-            : $this->value.' '.$this->unit->label((int) $this->value);
+            ? ($banglaDigits ? BanglaDigits::convert((string) $this->value) : $this->value).' '.$this->unit->labelBn()
+            : $this->value.' '.$this->unit->label((int) $this->value, 'en');
     }
 }

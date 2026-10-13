@@ -26,12 +26,12 @@ final class DosePattern
 
         foreach ($slots as $slot) {
             if (preg_match(self::SLOT, $slot) !== 1) {
-                throw new InvalidArgumentException('Each dose slot is a number such as 0, ½, 1, 1½ or 2.');
+                throw new InvalidArgumentException(__('Each dose slot is a number such as 0, ½, 1, 1½ or 2.'));
             }
         }
 
         if ($slots === ['0', '0', '0']) {
-            throw new InvalidArgumentException('A dose of 0+0+0 gives nothing.');
+            throw new InvalidArgumentException(__('A dose of 0+0+0 gives nothing.'));
         }
 
         return new self(...$slots);
@@ -52,7 +52,7 @@ final class DosePattern
         $parts = array_map('trim', explode('+', $pattern));
 
         if (count($parts) !== 3) {
-            throw new InvalidArgumentException('Write the dose as morning+noon+night, e.g. 1+0+1.');
+            throw new InvalidArgumentException(__('Write the dose as morning+noon+night, e.g. 1+0+1.'));
         }
 
         return self::fromSlots(...$parts);

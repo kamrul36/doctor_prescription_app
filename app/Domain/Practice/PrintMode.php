@@ -2,21 +2,18 @@
 
 namespace App\Domain\Practice;
 
-enum PrintMode: string
+use App\Support\Concerns\HasTranslatedLabel;
+use App\Support\Contracts\HasLabel;
+
+enum PrintMode: string implements HasLabel
 {
+    use HasTranslatedLabel;
+
     /** Data only, for pre-printed pads. */
     case PadOnly = 'pad_only';
 
     /** Full letterhead, for PDF saving and sharing. */
     case WithLetterhead = 'with_letterhead';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::PadOnly => 'Pad only (pre-printed stationery)',
-            self::WithLetterhead => 'With letterhead',
-        };
-    }
 
     /** @return list<string> */
     public static function values(): array

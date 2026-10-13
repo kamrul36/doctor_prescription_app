@@ -2,16 +2,16 @@
 
 namespace App\Domain\Patient;
 
-enum Gender: string
+use App\Support\Concerns\HasTranslatedLabel;
+use App\Support\Contracts\HasLabel;
+
+enum Gender: string implements HasLabel
 {
+    use HasTranslatedLabel;
+
     case Male = 'male';
     case Female = 'female';
     case Other = 'other';
-
-    public function label(): string
-    {
-        return ucfirst($this->value);
-    }
 
     /** @return list<string> */
     public static function values(): array

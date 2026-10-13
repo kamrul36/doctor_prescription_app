@@ -8,16 +8,16 @@
         <span class="rounded bg-teal-50 px-2 py-0.5 font-mono text-sm text-teal-800">{{ $patient->code }}</span>
         <div class="ml-auto flex items-center gap-3">
             @can('create', \App\Domain\Clinical\Models\CaseHistory::class)
-                <a href="{{ route('prescriptions.create', ['patient' => $patient->id]) }}" class="rounded bg-teal-700 px-4 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-teal-800">Write prescription</a>
+                <a href="{{ route('prescriptions.create', ['patient' => $patient->id]) }}" class="rounded bg-teal-700 px-4 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-teal-800">{{ __('Write prescription') }}</a>
             @endcan
             @can('update', $patient)
-                <a href="{{ route('patients.edit', $patient) }}" class="rounded bg-teal-700 px-3 py-1.5 text-sm text-white shadow-sm transition hover:bg-teal-800">Edit</a>
+                <a href="{{ route('patients.edit', $patient) }}" class="rounded bg-teal-700 px-3 py-1.5 text-sm text-white shadow-sm transition hover:bg-teal-800">{{ __('Edit') }}</a>
             @endcan
             @can('delete', $patient)
-                <form method="POST" action="{{ route('patients.destroy', $patient) }}" onsubmit="return confirm('Delete this patient?')">
+                <form method="POST" action="{{ route('patients.destroy', $patient) }}" onsubmit="return confirm(@js(__('Delete this patient?')))">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="text-sm text-red-700 hover:underline">Delete</button>
+                    <button type="submit" class="text-sm text-red-700 hover:underline">{{ __('Delete') }}</button>
                 </form>
             @endcan
         </div>
@@ -25,19 +25,19 @@
 
     @php
         $rows = [
-            'Name (Bangla)' => $patient->name_bn,
-            'Age' => $patient->age_text,
-            'Date of birth' => $patient->dob?->format('j M Y'),
-            'Gender' => $patient->gender->label(),
-            'Blood group' => $patient->blood_group,
-            'Phone' => $patient->phone,
-            'Alternate phone' => $patient->alt_phone,
-            'Address' => $patient->address,
-            'Occupation' => $patient->occupation,
-            'Patient type' => $patient->patient_type->label(),
-            'Allergies' => $patient->allergies,
-            'Chronic conditions' => $patient->conditions,
-            'Notes' => $patient->notes,
+            __('Name (Bangla)') => $patient->name_bn,
+            __('Age') => $patient->age_text,
+            __('Date of birth') => $patient->dob?->translatedFormat('j M Y'),
+            __('Gender') => $patient->gender->label(),
+            __('Blood group') => $patient->blood_group,
+            __('Phone') => $patient->phone,
+            __('Alternate phone') => $patient->alt_phone,
+            __('Address') => $patient->address,
+            __('Occupation') => $patient->occupation,
+            __('Patient type') => $patient->patient_type->label(),
+            __('Allergies') => $patient->allergies,
+            __('Chronic conditions') => $patient->conditions,
+            __('Notes') => $patient->notes,
         ];
     @endphp
 
@@ -56,12 +56,12 @@
         @php
             $visits = $patient->visits()->with(['doctor', 'medicines'])->limit(50)->get();
         @endphp
-        <h2 class="mt-8 mb-3 text-sm font-semibold tracking-wide text-gray-500 uppercase">Visit history</h2>
+        <h2 class="mt-8 mb-3 text-sm font-semibold tracking-wide text-gray-500 uppercase">{{ __('Visit history') }}</h2>
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
             @forelse ($visits as $visit)
                 <a href="{{ route('prescriptions.show', $visit) }}" class="block border-b px-4 py-3 text-sm last:border-0 hover:bg-gray-50">
                     <div class="flex flex-wrap items-center gap-x-3">
-                        <span class="font-medium">{{ $visit->visit_date->format('j M Y') }}</span>
+                        <span class="font-medium">{{ $visit->visit_date->translatedFormat('j M Y') }}</span>
                         <span class="text-gray-600">{{ $visit->visit_type->label() }} · {{ $visit->doctor->name_en }}</span>
                         <span class="ml-auto font-mono text-xs">{{ $visit->prescription_no ?? $visit->status->label() }}</span>
                     </div>
@@ -73,7 +73,7 @@
                     @endif
                 </a>
             @empty
-                <p class="px-4 py-6 text-center text-sm text-gray-500">No visits yet.</p>
+                <p class="px-4 py-6 text-center text-sm text-gray-500">{{ __('No visits yet.') }}</p>
             @endforelse
         </div>
     @endcan

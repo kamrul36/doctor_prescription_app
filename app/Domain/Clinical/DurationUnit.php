@@ -17,26 +17,15 @@ enum DurationUnit: string
         return in_array($this, [self::Day, self::Week, self::Month], true);
     }
 
-    public function label(int $value = 2): string
+    /** Singular for 1, plural otherwise (`lang/{locale}/enums.php`). */
+    public function label(int $value = 2, ?string $locale = null): string
     {
-        return match ($this) {
-            self::Day => $value === 1 ? 'day' : 'days',
-            self::Week => $value === 1 ? 'week' : 'weeks',
-            self::Month => $value === 1 ? 'month' : 'months',
-            self::Continuous => 'continue',
-            self::AsNeeded => 'as needed',
-        };
+        return trans_choice('enums.duration_unit.'.$this->value, $value, [], $locale);
     }
 
     public function labelBn(): string
     {
-        return match ($this) {
-            self::Day => 'দিন',
-            self::Week => 'সপ্তাহ',
-            self::Month => 'মাস',
-            self::Continuous => 'চলবে',
-            self::AsNeeded => 'প্রয়োজনে',
-        };
+        return $this->label(2, 'bn');
     }
 
     /** @return list<string> */

@@ -43,17 +43,17 @@ class SaveVisitAction
 
         if ($case !== null) {
             if ($case->doctor_id !== $doctor->id) {
-                throw new AuthorizationException('Only the doctor who wrote this prescription can change it.');
+                throw new AuthorizationException(__('Only the doctor who wrote this prescription can change it.'));
             }
             if ($case->status !== VisitStatus::Draft) {
-                throw ValidationException::withMessages(['status' => 'A finalized or cancelled prescription cannot be changed.']);
+                throw ValidationException::withMessages(['status' => __('A finalized or cancelled prescription cannot be changed.')]);
             }
         }
 
         $chamberId = (int) $data['chamber_id'];
         $usable = $doctor->activeChambers()->pluck('id')->map(fn ($id) => (int) $id)->all();
         if (! in_array($chamberId, $usable, true) && $chamberId !== $case?->chamber_id) {
-            throw ValidationException::withMessages(['chamber_id' => 'Choose one of your chambers.']);
+            throw ValidationException::withMessages(['chamber_id' => __('Choose one of your chambers.')]);
         }
 
         return DB::transaction(function () use ($actor, $doctor, $case, $data, $chamberId) {
@@ -110,7 +110,7 @@ class SaveVisitAction
         $doctor = Doctor::query()->where('user_id', $actor->id)->with(['chambers', 'specialties'])->first();
 
         if ($doctor === null) {
-            throw ValidationException::withMessages(['doctor' => 'Set up your doctor profile before writing prescriptions.']);
+            throw ValidationException::withMessages(['doctor' => __('Set up your doctor profile before writing prescriptions.')]);
         }
 
         return $doctor;

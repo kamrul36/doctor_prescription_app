@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Catalog\AdviceTemplateController;
 use App\Http\Controllers\Api\V1\Catalog\LabTestController;
 use App\Http\Controllers\Api\V1\Catalog\ProcedureController;
 use App\Http\Controllers\Api\V1\Clinical\CaseHistoryController;
+use App\Http\Controllers\Api\V1\Clinical\CaseHistoryExportController;
 use App\Http\Controllers\Api\V1\Patient\PatientController;
 use App\Http\Controllers\Api\V1\Practice\ChamberController;
 use App\Http\Controllers\Api\V1\Practice\DoctorController;
@@ -25,6 +26,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('logout', [AuthController::class, 'logout'])->name('logout');
             Route::post('refresh', [AuthController::class, 'refresh'])->name('refresh');
             Route::get('me', [AuthController::class, 'me'])->name('me');
+            Route::put('me/locale', [AuthController::class, 'updateLocale'])->name('me.locale');
         });
     });
 
@@ -47,6 +49,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::apiResource('case-histories', CaseHistoryController::class)->parameters(['case-histories' => 'case'])->except(['destroy']);
             Route::post('case-histories/{case}/finalize', [CaseHistoryController::class, 'finalize'])->name('case-histories.finalize');
             Route::post('case-histories/{case}/cancel', [CaseHistoryController::class, 'cancel'])->name('case-histories.cancel');
+            Route::get('case-histories/{case}/export', CaseHistoryExportController::class)->name('case-histories.export');
         });
         Route::middleware('throttle:120,1')->group(function () {
             Route::apiResource('lab-tests', LabTestController::class);

@@ -1,24 +1,24 @@
 @extends('layouts.app')
 
-@section('title', 'Procedures')
+@section('title', __('Procedures'))
 
 @section('content')
     @include('catalog._tabs')
 
     <div class="mb-4 flex flex-wrap items-center gap-4">
-        <h1 class="text-2xl font-semibold">Procedures</h1>
+        <h1 class="text-2xl font-semibold">{{ __('Procedures') }}</h1>
         <form method="GET" class="ml-auto flex items-center gap-3">
-            <input type="search" name="q" value="{{ $q }}" placeholder="Search" aria-label="Search Procedures"
+            <input type="search" name="q" value="{{ $q }}" placeholder="{{ __('Search') }}" aria-label="{{ __('Search Procedures') }}"
                    class="rounded px-3 py-1.5 ring-1 ring-gray-300">
             @include('catalog._specialty_filter')
             @can('catalog.manage')
                 <label class="flex items-center gap-1 text-sm text-gray-600">
-                    <input type="checkbox" name="all" value="1" @checked($all) x-data @change="$el.form.submit()"> Show inactive
+                    <input type="checkbox" name="all" value="1" @checked($all) x-data @change="$el.form.submit()"> {{ __('Show inactive') }}
                 </label>
             @endcan
         </form>
         @can("create", \App\Domain\Catalog\Models\Procedure::class)
-            <a href="{{ route('catalog.procedures.create') }}" class="rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-3 py-1.5 text-sm text-white">New procedure</a>
+            <a href="{{ route('catalog.procedures.create') }}" class="rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-3 py-1.5 text-sm text-white">{{ __('New procedure') }}</a>
         @endcan
     </div>
 
@@ -26,13 +26,13 @@
         <table class="w-full text-left text-sm">
             <thead class="border-b bg-gray-50">
                 <tr>
-                    <th class="px-4 py-2">Code</th>
-                    <th class="px-4 py-2">Name</th>
-                    <th class="px-4 py-2">Name (Bangla)</th>
-                    <th class="px-4 py-2">Specialty</th>
-                    <th class="px-4 py-2">Default fee</th>
-                    <th class="px-4 py-2">Billable</th>
-                    <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">{{ __('Code') }}</th>
+                    <th class="px-4 py-2">{{ __('Name') }}</th>
+                    <th class="px-4 py-2">{{ __('Name (Bangla)') }}</th>
+                    <th class="px-4 py-2">{{ __('Specialty') }}</th>
+                    <th class="px-4 py-2">{{ __('Default fee') }}</th>
+                    <th class="px-4 py-2">{{ __('Billable') }}</th>
+                    <th class="px-4 py-2">{{ __('Status') }}</th>
                     <th class="px-4 py-2"></th>
                 </tr>
             </thead>
@@ -45,22 +45,22 @@
                         <td class="px-4 py-2">{{ \App\Domain\Practice\Models\Specialty::labelFor($item->specialty) }}</td>
                         <td class="px-4 py-2">{{ $item->default_fee?->format() ?? "—" }}</td>
                         <td class="px-4 py-2">{{ $item->is_billable ? "Yes" : "No" }}</td>
-                        <td class="px-4 py-2">{{ $item->is_active ? 'Active' : 'Inactive' }}</td>
+                        <td class="px-4 py-2">{{ $item->is_active ? __('Active') : __('Inactive') }}</td>
                         <td class="px-4 py-2 text-right">
                             @can('update', $item)
-                                <a href="{{ route('catalog.procedures.edit', $item) }}" class="hover:underline">Edit</a>
+                                <a href="{{ route('catalog.procedures.edit', $item) }}" class="hover:underline">{{ __('Edit') }}</a>
                             @endcan
                             @can('delete', $item)
-                                <form method="POST" action="{{ route('catalog.procedures.destroy', $item) }}" class="ml-3 inline" onsubmit="return confirm('Delete this entry?')">
+                                <form method="POST" action="{{ route('catalog.procedures.destroy', $item) }}" class="ml-3 inline" onsubmit="return confirm(@js(__('Delete this entry?')))">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-700 hover:underline">Delete</button>
+                                    <button type="submit" class="text-red-700 hover:underline">{{ __('Delete') }}</button>
                                 </form>
                             @endcan
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="9" class="px-4 py-6 text-center text-gray-500">Nothing found.</td></tr>
+                    <tr><td colspan="9" class="px-4 py-6 text-center text-gray-500">{{ __('Nothing found.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

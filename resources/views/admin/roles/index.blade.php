@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Roles')
+@section('title', __('Roles'))
 
 @section('content')
     <div class="mb-4 flex items-center gap-4">
-        <h1 class="text-2xl font-semibold">Roles</h1>
-        <a href="{{ route('admin.roles.create') }}" class="ml-auto rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-3 py-1.5 text-sm text-white">New role</a>
+        <h1 class="text-2xl font-semibold">{{ __('Roles') }}</h1>
+        <a href="{{ route('admin.roles.create') }}" class="ml-auto rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-3 py-1.5 text-sm text-white">{{ __('New role') }}</a>
     </div>
 
     @include('admin._errors')
@@ -14,9 +14,9 @@
         <table class="w-full text-left text-sm">
             <thead class="border-b bg-gray-50">
                 <tr>
-                    <th class="px-4 py-2">Role</th>
-                    <th class="px-4 py-2">Permissions</th>
-                    <th class="px-4 py-2">Users</th>
+                    <th class="px-4 py-2">{{ __('Role') }}</th>
+                    <th class="px-4 py-2">{{ __('Permissions') }}</th>
+                    <th class="px-4 py-2">{{ __('Users') }}</th>
                     <th class="px-4 py-2"></th>
                 </tr>
             </thead>
@@ -25,18 +25,18 @@
                     <tr class="border-b last:border-0">
                         <td class="px-4 py-2 font-medium">{{ $role->name }}</td>
                         <td class="px-4 py-2">
-                            {{ $role->name === \App\Domain\Access\Role::SUPER_ADMIN ? 'All' : $role->permissions_count }}
+                            {{ $role->name === \App\Domain\Access\Role::SUPER_ADMIN ? __('All') : $role->permissions_count }}
                         </td>
                         <td class="px-4 py-2">{{ $role->users_count }}</td>
                         <td class="px-4 py-2 text-right">
                             @unless ($role->name === \App\Domain\Access\Role::SUPER_ADMIN)
-                                <a href="{{ route('admin.roles.edit', $role) }}" class="hover:underline">Edit</a>
+                                <a href="{{ route('admin.roles.edit', $role) }}" class="hover:underline">{{ __('Edit') }}</a>
                                 @if ($role->users_count === 0)
                                     <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" class="ml-3 inline"
-                                          onsubmit="return confirm('Delete role {{ $role->name }}?')">
+                                          onsubmit="return confirm(@js(__('Delete role :name?', ['name' => $role->name])))">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-700 hover:underline">Delete</button>
+                                        <button type="submit" class="text-red-700 hover:underline">{{ __('Delete') }}</button>
                                     </form>
                                 @endif
                             @endunless

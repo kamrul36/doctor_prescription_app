@@ -47,7 +47,7 @@ class SaveRoleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.regex' => 'Use lowercase letters, digits and underscores, starting with a letter.',
+            'name.regex' => __('Use lowercase letters, digits and underscores, starting with a letter.'),
         ];
     }
 

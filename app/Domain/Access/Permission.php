@@ -35,7 +35,13 @@ enum Permission: string
     case RolesManage = 'roles.manage';
     case AuditRead = 'audit.read';
 
-    public function label(): string
+    /** English text is the key; Bangla in lang/bn.json. */
+    public function label(?string $locale = null): string
+    {
+        return __($this->englishLabel(), [], $locale);
+    }
+
+    private function englishLabel(): string
     {
         return match ($this) {
             self::PatientsRead => 'View patients',

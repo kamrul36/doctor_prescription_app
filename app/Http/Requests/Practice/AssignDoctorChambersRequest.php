@@ -56,7 +56,7 @@ class AssignDoctorChambersRequest extends FormRequest
             $chamber = Chamber::query()->find($value);
 
             if ($chamber === null || (! $chamber->is_active && ! in_array($chamber->id, $assigned))) {
-                $fail('Choose an active chamber.');
+                $fail(__('Choose an active chamber.'));
             }
         };
     }

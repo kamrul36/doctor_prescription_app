@@ -18,7 +18,7 @@ class UsableSpecialty implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_numeric($value)) {
-            $fail('Choose a specialty from the list.');
+            $fail(__('Choose a specialty from the list.'));
 
             return;
         }
@@ -26,7 +26,7 @@ class UsableSpecialty implements ValidationRule
         $specialty = Specialty::query()->find((int) $value);
 
         if ($specialty === null || (! $specialty->is_active && (int) $value !== $this->currentId)) {
-            $fail('Choose an active specialty from the list.');
+            $fail(__('Choose an active specialty from the list.'));
         }
     }
 }

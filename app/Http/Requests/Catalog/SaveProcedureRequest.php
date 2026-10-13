@@ -51,9 +51,9 @@ class SaveProcedureRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'code.regex' => 'Use 2 to 32 letters, digits, dashes or underscores.',
-            'code.unique' => 'This procedure code is already in use (it may belong to a deleted procedure).',
-            'default_fee.regex' => 'Enter an amount such as 500 or 500.50 (up to 7 digits and 2 decimals).',
+            'code.regex' => __('Use 2 to 32 letters, digits, dashes or underscores.'),
+            'code.unique' => __('This procedure code is already in use (it may belong to a deleted procedure).'),
+            'default_fee.regex' => __('Enter an amount such as 500 or 500.50 (up to 7 digits and 2 decimals).'),
         ];
     }
 }

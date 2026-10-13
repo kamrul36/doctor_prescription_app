@@ -2,20 +2,16 @@
 
 namespace App\Domain\Practice;
 
-enum TemplateLayout: string
+use App\Support\Concerns\HasTranslatedLabel;
+use App\Support\Contracts\HasLabel;
+
+enum TemplateLayout: string implements HasLabel
 {
+    use HasTranslatedLabel;
+
     case SidebarLeft = 'sidebar_left';
     case SingleColumn = 'single_column';
     case TwoColumn = 'two_column';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::SidebarLeft => 'Left sidebar',
-            self::SingleColumn => 'Single column',
-            self::TwoColumn => 'Two columns',
-        };
-    }
 
     /** @return list<string> */
     public static function values(): array

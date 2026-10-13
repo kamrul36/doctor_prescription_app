@@ -5,6 +5,7 @@ namespace App\Domain\Patient\Models;
 use App\Domain\Clinical\Models\CaseHistory;
 use App\Domain\Patient\Gender;
 use App\Domain\Patient\PatientType;
+use App\Support\Bilingual;
 use Database\Factories\PatientFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -109,5 +110,24 @@ class Patient extends Model
         $years = $this->ageYears();
 
         return $years === null ? null : "{$years} y";
+    }
+
+    /**
+     * `age_text` ("34 y", "7 m", "12 d", also kept in visit snapshots) in a language: "34 y" / "34 বছর".
+     * Digits are left as they are; prints convert them.
+     */
+    public static function ageLabel(?string $ageText, ?string $locale = null): string
+    {
+        if ($ageText === null || preg_match('/^(\d+) ([ymd])$/', $ageText, $m) !== 1) {
+            return (string) $ageText;
+        }
+
+        return __(':n '.$m[2], ['n' => $m[1]], $locale);
+    }
+
+    /** The name in the UI language: `name_bn` in Bangla when entered, otherwise `name`. */
+    public function localizedName(?string $locale = null): string
+    {
+        return Bilingual::pick($this->name, $this->name_bn, $locale) ?? '';
     }
 }

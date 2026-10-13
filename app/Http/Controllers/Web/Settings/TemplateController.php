@@ -43,7 +43,7 @@ class TemplateController extends Controller
     {
         $template = $save->handle($this->actor($request), null, $request->validated());
 
-        return redirect()->route('settings.templates.index')->with('success', "Template {$template->name} created.");
+        return redirect()->route('settings.templates.index')->with('success', __('Template :name created.', ['name' => $template->name]));
     }
 
     public function edit(PrescriptionTemplate $template): View
@@ -57,7 +57,7 @@ class TemplateController extends Controller
     {
         $save->handle($this->actor($request), $template, $request->validated());
 
-        return redirect()->route('settings.templates.index')->with('success', "Template {$template->name} updated.");
+        return redirect()->route('settings.templates.index')->with('success', __('Template :name updated.', ['name' => $template->name]));
     }
 
     /** @return array<string, mixed> */

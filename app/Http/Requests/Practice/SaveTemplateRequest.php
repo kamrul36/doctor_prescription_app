@@ -73,9 +73,9 @@ class SaveTemplateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'code.regex' => 'Use lowercase letters, digits and underscores, starting with a letter.',
-            'sections.*.order.*' => 'The order is a whole number from 0 to 999.',
-            'margins.*.*' => 'A margin is a whole number of mm from 0 to 100.',
+            'code.regex' => __('Use lowercase letters, digits and underscores, starting with a letter.'),
+            'sections.*.order.*' => __('The order is a whole number from 0 to 999.'),
+            'margins.*.*' => __('A margin is a whole number of mm from 0 to 100.'),
         ];
     }
 }

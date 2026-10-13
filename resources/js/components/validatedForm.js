@@ -1,4 +1,5 @@
 import { SLOT } from './dose';
+import { t } from '../i18n';
 
 // Field validation while typing (spec §10.1, validation and feedback rule).
 // The server's FormRequest stays the authority; these checks mirror it so the
@@ -16,19 +17,19 @@ const RULES = {
         // Same as the FormRequest: separators are removed, then digits with an optional leading +.
         const digits = value.replace(/[\s().-]/g, '');
         if (/[^\d+]/.test(digits) || digits.lastIndexOf('+') > 0) {
-            return 'Use digits only (spaces and dashes are fine).';
+            return t('Use digits only (spaces and dashes are fine).');
         }
-        return /^\+?\d{6,15}$/.test(digits) ? '' : 'Enter a phone number of 6 to 15 digits.';
+        return /^\+?\d{6,15}$/.test(digits) ? '' : t('Enter a phone number of 6 to 15 digits.');
     },
     // Chamber/branch contact numbers: comma-separated, each 5 to 15 digits (App\Support\Phone::contactList).
     'phone-list'(value, el) {
         const numbers = value.split(',').map((n) => n.trim()).filter(Boolean);
         const max = Number(el.dataset.maxItems || 10);
         if (numbers.length > max) {
-            return `Enter at most ${max} numbers.`;
+            return t('Enter at most :max numbers.', { max });
         }
         const ok = numbers.every((n) => /^\+?\d{5,15}$/.test(n.replace(/[\s().-]/g, '')));
-        return ok ? '' : 'Enter phone numbers of 5 to 15 digits, separated by commas.';
+        return ok ? '' : t('Enter phone numbers of 5 to 15 digits, separated by commas.');
     },
     // Comma-separated names: data-max-items, data-item-min, data-item-max.
     list(value, el) {
@@ -36,27 +37,27 @@ const RULES = {
         const max = Number(el.dataset.maxItems || 10);
         const [min, longest] = [Number(el.dataset.itemMin || 1), Number(el.dataset.itemMax || 255)];
         if (items.length > max) {
-            return `Enter at most ${max}, separated by commas.`;
+            return t('Enter at most :max, separated by commas.', { max });
         }
-        return items.every((item) => item.length >= min && item.length <= longest) ? '' : `Each one needs ${min} to ${longest} characters.`;
+        return items.every((item) => item.length >= min && item.length <= longest) ? '' : t('Each one needs :min to :max characters.', { min, max: longest });
     },
     integer(value, el) {
-        return /^\d+$/.test(value) ? range(Number(value), el) : 'Enter a whole number.';
+        return /^\d+$/.test(value) ? range(Number(value), el) : t('Enter a whole number.');
     },
     decimal(value, el) {
-        return /^\d+(\.\d+)?$/.test(value) ? range(Number(value), el) : 'Enter a number, e.g. 98.6.';
+        return /^\d+(\.\d+)?$/.test(value) ? range(Number(value), el) : t('Enter a number, e.g. 98.6.');
     },
     money(value) {
-        return /^\d{1,7}(\.\d{1,2})?$/.test(value) ? '' : 'Enter an amount like 500 or 1250.50.';
+        return /^\d{1,7}(\.\d{1,2})?$/.test(value) ? '' : t('Enter an amount like 500 or 1250.50.');
     },
     'dose-slot'(value) {
-        return SLOT.test(value.replace(/\s+/g, '')) ? '' : 'Use 0, ½, 1, 1½, 2 …';
+        return SLOT.test(value.replace(/\s+/g, '')) ? '' : t('Use 0, ½, 1, 1½, 2 …');
     },
     'past-date'(value) {
-        return value <= today() ? '' : 'The date cannot be in the future.';
+        return value <= today() ? '' : t('The date cannot be in the future.');
     },
     'future-date'(value) {
-        return value >= today() ? '' : 'The date cannot be in the past.';
+        return value >= today() ? '' : t('The date cannot be in the past.');
     },
 };
 
@@ -64,7 +65,7 @@ function range(number, el) {
     const min = el.dataset.min === undefined ? null : Number(el.dataset.min);
     const max = el.dataset.max === undefined ? null : Number(el.dataset.max);
     if ((min !== null && number < min) || (max !== null && number > max)) {
-        return min !== null && max !== null ? `Enter a value from ${min} to ${max}.` : min !== null ? `Enter at least ${min}.` : `Enter at most ${max}.`;
+        return min !== null && max !== null ? t('Enter a value from :min to :max.', { min, max }) : min !== null ? t('Enter at least :min.', { min }) : t('Enter at most :max.', { max });
     }
     return '';
 }
@@ -167,29 +168,29 @@ export default function validatedForm(serverErrors = {}) {
             const strict = this.submitted || this.touchedFields[el.name];
 
             if (el.validity?.badInput) {
-                return el.type === 'date' ? 'Enter a complete date.' : 'Enter a valid value.';
+                return el.type === 'date' ? t('Enter a complete date.') : t('Enter a valid value.');
             }
             if (value === '') {
                 if (strict && el.required) {
-                    return el.tagName === 'SELECT' ? 'Choose one.' : 'This field is required.';
+                    return el.tagName === 'SELECT' ? t('Choose one.') : t('This field is required.');
                 }
                 const other = el.dataset.requiredWithout && this.formEl.elements.namedItem(el.dataset.requiredWithout);
                 if (strict && other && (other.value ?? '').trim() === '') {
-                    return el.dataset.requiredMessage || 'This field is required.';
+                    return el.dataset.requiredMessage || t('This field is required.');
                 }
                 return '';
             }
             if (el.maxLength > 0 && value.length > el.maxLength) {
-                return `Use at most ${el.maxLength} characters.`;
+                return t('Use at most :max characters.', { max: el.maxLength });
             }
             if (el.minLength > 0 && value.length < el.minLength) {
-                return `Use at least ${el.minLength} characters.`;
+                return t('Use at least :min characters.', { min: el.minLength });
             }
             if (el.type === 'email' && el.validity?.typeMismatch) {
-                return 'Enter a valid email address.';
+                return t('Enter a valid email address.');
             }
             if (el.dataset.pattern && !new RegExp(`^(?:${el.dataset.pattern})$`, 'u').test(value)) {
-                return el.dataset.patternMessage || 'This format is not valid.';
+                return el.dataset.patternMessage || t('This format is not valid.');
             }
             const rule = RULES[el.dataset.rule];
             return rule ? rule(value, el) : '';
@@ -244,7 +245,7 @@ export default function validatedForm(serverErrors = {}) {
             if (invalid.length) {
                 event.preventDefault();
                 invalid[0].focus();
-                window.toast?.error(invalid.length === 1 ? 'Please fix the highlighted field.' : `Please fix the ${invalid.length} highlighted fields.`);
+                window.toast?.error(invalid.length === 1 ? t('Please fix the highlighted field.') : t('Please fix the :count highlighted fields.', { count: invalid.length }));
             }
         },
     };

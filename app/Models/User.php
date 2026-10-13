@@ -18,6 +18,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $name
  * @property string $email
  * @property string|null $phone
+ * @property string|null $locale UI language (bn|en); null = app default
  * @property bool $is_active
  * @property int $token_version
  */
@@ -51,6 +52,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'phone',
+        'locale',
         'password',
         'is_active',
     ];

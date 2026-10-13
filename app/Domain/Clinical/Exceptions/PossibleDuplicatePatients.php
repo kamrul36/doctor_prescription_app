@@ -16,6 +16,6 @@ class PossibleDuplicatePatients extends RuntimeException
     /** @param  Collection<int, Patient>  $candidates */
     public function __construct(public readonly Collection $candidates)
     {
-        parent::__construct('This patient may already be registered.');
+        parent::__construct(__('This patient may already be registered.'));
     }
 }

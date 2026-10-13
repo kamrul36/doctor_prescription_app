@@ -31,7 +31,7 @@ class UserAccessRules
 
         if ($was !== $will && ! $actor->isSuperAdmin()) {
             throw ValidationException::withMessages([
-                'roles' => 'Only a super admin can grant or revoke the super admin role.',
+                'roles' => __('Only a super admin can grant or revoke the super admin role.'),
             ]);
         }
 
@@ -39,7 +39,7 @@ class UserAccessRules
 
         if (! $this->holdsAll($actor, $this->permissionsOfRoles($changed))) {
             throw ValidationException::withMessages([
-                'roles' => 'You can only grant or revoke roles whose permissions you have yourself.',
+                'roles' => __('You can only grant or revoke roles whose permissions you have yourself.'),
             ]);
         }
     }
@@ -54,7 +54,7 @@ class UserAccessRules
     {
         if ($user->isSuperAdmin() && ! $actor->isSuperAdmin()) {
             throw ValidationException::withMessages([
-                'user' => 'Only a super admin can change a super admin account.',
+                'user' => __('Only a super admin can change a super admin account.'),
             ]);
         }
 
@@ -62,13 +62,13 @@ class UserAccessRules
 
         if (! $this->holdsAll($actor, $user->getAllPermissions()->pluck('name')->all())) {
             throw ValidationException::withMessages([
-                'user' => 'You cannot change a user who has permissions you do not have.',
+                'user' => __('You cannot change a user who has permissions you do not have.'),
             ]);
         }
 
         if ($actor->is($user) && ! $willBeActive) {
             throw ValidationException::withMessages([
-                'is_active' => 'You cannot deactivate your own account.',
+                'is_active' => __('You cannot deactivate your own account.'),
             ]);
         }
 
@@ -78,7 +78,7 @@ class UserAccessRules
 
         if ($losesSuperAdmin && $this->otherActiveSuperAdmins($user) === 0) {
             throw ValidationException::withMessages([
-                'roles' => 'At least one active super admin must remain.',
+                'roles' => __('At least one active super admin must remain.'),
             ]);
         }
     }
@@ -98,7 +98,7 @@ class UserAccessRules
 
         if (! $this->holdsAll($actor, $changed)) {
             throw ValidationException::withMessages([
-                'permissions' => 'You can only grant or revoke permissions you have yourself.',
+                'permissions' => __('You can only grant or revoke permissions you have yourself.'),
             ]);
         }
     }

@@ -14,7 +14,9 @@ use App\Http\Controllers\Web\Catalog\AdviceTemplateController;
 use App\Http\Controllers\Web\Catalog\LabTestController;
 use App\Http\Controllers\Web\Catalog\ProcedureController;
 use App\Http\Controllers\Web\Clinical\PrescriptionController;
+use App\Http\Controllers\Web\Clinical\PrescriptionPrintController;
 use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\Web\LocaleController;
 use App\Http\Controllers\Web\Patient\PatientController;
 use App\Http\Controllers\Web\Settings\DoctorProfileController;
 use App\Http\Controllers\Web\Settings\TemplateController;
@@ -22,6 +24,9 @@ use Illuminate\Support\Facades\Route;
 
 // Blade UI (session auth). API equivalents live in routes/api.php and share
 // the same Actions, FormRequests and Policies.
+
+// The বাংলা | EN switch: guests (login page) keep it in the session, users also on their account.
+Route::put('locale', [LocaleController::class, 'update'])->middleware('throttle:30,1')->name('locale.update');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [LoginController::class, 'create'])->name('login');
@@ -47,6 +52,8 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::put('{case}', 'update')->name('update');
         Route::post('{case}/finalize', 'finalize')->name('finalize');
         Route::post('{case}/cancel', 'cancel')->name('cancel');
+        // A4 print view: ?lang=en|bn|bilingual&mode=pad_only|with_letterhead&bn_digits=1 (spec §6).
+        Route::get('{case}/print', PrescriptionPrintController::class)->name('print');
     });
 
     // Typeahead for the Blade pad: the same API controllers (search, ranking, cache), on the session.

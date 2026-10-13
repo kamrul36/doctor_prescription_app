@@ -48,7 +48,7 @@ class UserController extends Controller
         $actor = $request->user();
         $user = $create->handle($actor, $request->validated());
 
-        return redirect()->route('admin.users.index')->with('success', "User {$user->name} created.");
+        return redirect()->route('admin.users.index')->with('success', __('User :name created.', ['name' => $user->name]));
     }
 
     public function edit(User $user): View
@@ -66,7 +66,7 @@ class UserController extends Controller
         // The edit form always submits the full role list; no ticks means no roles.
         $update->handle($actor, $user, $request->validated() + ['roles' => []]);
 
-        return redirect()->route('admin.users.index')->with('success', "User {$user->name} updated.");
+        return redirect()->route('admin.users.index')->with('success', __('User :name updated.', ['name' => $user->name]));
     }
 
     /** @return list<string> */

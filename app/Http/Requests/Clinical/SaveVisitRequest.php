@@ -98,7 +98,7 @@ class SaveVisitRequest extends FormRequest
             // Answer to "same person?": an existing patient's id, or "new".
             'patient_choice' => ['nullable', function (string $attribute, mixed $value, \Closure $fail) {
                 if ($value !== 'new' && ! ctype_digit((string) $value)) {
-                    $fail('Choose an existing patient or "register new".');
+                    $fail(__('Choose an existing patient or "register new".'));
                 }
             }],
         ] : [
@@ -197,9 +197,9 @@ class SaveVisitRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'patient.phone.regex' => Phone::MESSAGE,
-            'plan_items.*.fee.regex' => 'Enter an amount like 500 or 1250.50.',
-            'follow_up_date.after_or_equal' => 'The follow-up date cannot be in the past.',
+            'patient.phone.regex' => __(Phone::MESSAGE),
+            'plan_items.*.fee.regex' => __('Enter an amount like 500 or 1250.50.'),
+            'follow_up_date.after_or_equal' => __('The follow-up date cannot be in the past.'),
         ];
     }
 
@@ -207,9 +207,9 @@ class SaveVisitRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'patient.name' => 'patient name', 'patient.age_years' => 'age', 'patient.gender' => 'sex',
-            'patient.phone' => 'phone', 'chamber_id' => 'chamber', 'medicines.*.name' => 'medicine name',
-            'tests.*.name' => 'test name', 'complaints.*.text' => 'complaint',
+            'patient.name' => __('patient name'), 'patient.age_years' => __('age'), 'patient.gender' => __('sex'),
+            'patient.phone' => __('phone'), 'chamber_id' => __('chamber'), 'medicines.*.name' => __('medicine name'),
+            'tests.*.name' => __('test name'), 'complaints.*.text' => __('complaint'),
         ];
     }
 

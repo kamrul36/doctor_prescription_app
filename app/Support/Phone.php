@@ -33,14 +33,14 @@ final class Phone
             $numbers = array_values(array_filter(array_map(fn ($n) => is_string($n) ? trim($n) : $n, $numbers), fn ($n) => $n !== '' && $n !== null));
 
             if (count($numbers) > $maxNumbers) {
-                $fail("Enter at most {$maxNumbers} numbers.");
+                $fail(__('Enter at most :max numbers.', ['max' => $maxNumbers]));
 
                 return;
             }
 
             foreach ($numbers as $number) {
                 if (! is_string($number) || mb_strlen($number) > 32 || ! preg_match('/^\+?\d{5,15}$/', (string) self::normalize($number))) {
-                    $fail('Enter phone numbers of 5 to 15 digits, separated by commas.');
+                    $fail(__('Enter phone numbers of 5 to 15 digits, separated by commas.'));
 
                     return;
                 }

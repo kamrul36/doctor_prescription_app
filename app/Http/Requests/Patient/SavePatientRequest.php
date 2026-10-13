@@ -75,10 +75,10 @@ class SavePatientRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone.regex' => Phone::MESSAGE,
-            'alt_phone.regex' => Phone::MESSAGE,
-            'dob.before_or_equal' => 'The date of birth cannot be in the future.',
-            'age_years.required_without' => 'Enter the age.',
+            'phone.regex' => __(Phone::MESSAGE),
+            'alt_phone.regex' => __(Phone::MESSAGE),
+            'dob.before_or_equal' => __('The date of birth cannot be in the future.'),
+            'age_years.required_without' => __('Enter the age.'),
         ];
     }
 }

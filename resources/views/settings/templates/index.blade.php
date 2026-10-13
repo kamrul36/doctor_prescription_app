@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Prescription templates')
+@section('title', __('Prescription templates'))
 
 @section('content')
     <div class="mb-4 flex items-center gap-4">
-        <h1 class="text-2xl font-semibold">Prescription templates</h1>
+        <h1 class="text-2xl font-semibold">{{ __('Prescription templates') }}</h1>
         @can('templates.manage')
-            <a href="{{ route('settings.templates.create') }}" class="ml-auto rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-3 py-1.5 text-sm text-white">New template</a>
+            <a href="{{ route('settings.templates.create') }}" class="ml-auto rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-3 py-1.5 text-sm text-white">{{ __('New template') }}</a>
         @endcan
     </div>
 
@@ -14,12 +14,12 @@
         <table class="w-full text-left text-sm">
             <thead class="border-b bg-gray-50">
                 <tr>
-                    <th class="px-4 py-2">Name</th>
-                    <th class="px-4 py-2">Code</th>
-                    <th class="px-4 py-2">Layout</th>
-                    <th class="px-4 py-2">Print mode</th>
-                    <th class="px-4 py-2">Owner</th>
-                    <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">{{ __('Name') }}</th>
+                    <th class="px-4 py-2">{{ __('Code') }}</th>
+                    <th class="px-4 py-2">{{ __('Layout') }}</th>
+                    <th class="px-4 py-2">{{ __('Print mode') }}</th>
+                    <th class="px-4 py-2">{{ __('Owner') }}</th>
+                    <th class="px-4 py-2">{{ __('Status') }}</th>
                     <th class="px-4 py-2"></th>
                 </tr>
             </thead>
@@ -30,13 +30,13 @@
                         <td class="px-4 py-2"><code>{{ $template->code }}</code></td>
                         <td class="px-4 py-2">{{ $template->layout->label() }} · {{ $template->paper_size }}</td>
                         <td class="px-4 py-2">{{ $template->default_print_mode->label() }}</td>
-                        <td class="px-4 py-2">{{ $template->doctor?->name_en ?? 'Shared' }}</td>
+                        <td class="px-4 py-2">{{ $template->doctor?->name_en ?? __('Shared') }}</td>
                         <td class="px-4 py-2">
-                            {{ $template->is_active ? 'Active' : 'Inactive' }}{{ $template->is_default ? ' · default' : '' }}
+                            {{ $template->is_active ? __('Active') : __('Inactive') }}{{ $template->is_default ? ' · default' : '' }}
                         </td>
                         <td class="px-4 py-2 text-right">
                             @can('templates.manage')
-                                <a href="{{ route('settings.templates.edit', $template) }}" class="hover:underline">Edit</a>
+                                <a href="{{ route('settings.templates.edit', $template) }}" class="hover:underline">{{ __('Edit') }}</a>
                             @endcan
                         </td>
                     </tr>

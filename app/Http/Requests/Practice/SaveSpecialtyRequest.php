@@ -36,7 +36,7 @@ class SaveSpecialtyRequest extends FormRequest
                     ->when($specialty, fn ($q) => $q->whereKeyNot($specialty->id))
                     ->exists();
                 if ($taken) {
-                    $fail('This specialty is already in the list.');
+                    $fail(__('This specialty is already in the list.'));
                 }
             }],
             // Optional built-in prescription block (menstrual history, dental findings).

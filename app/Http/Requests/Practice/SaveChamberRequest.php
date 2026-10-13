@@ -50,6 +50,6 @@ class SaveChamberRequest extends FormRequest
     /** @return array<string, string> */
     public function messages(): array
     {
-        return ['branches.*.name_en.required' => 'Give the branch a name (English).'];
+        return ['branches.*.name_en.required' => __('Give the branch a name (English).')];
     }
 }

@@ -52,7 +52,7 @@ final class Vitals
     }
 
     /**
-     * "BP 120/80 mmHg · Pulse 72/min".
+     * "BP 120/80 mmHg · Pulse 72/min", labels in the UI language (prints build their own line).
      *
      * @param  array<string, int|float>|null  $vitals
      */
@@ -64,11 +64,11 @@ final class Vitals
 
         $parts = [];
         if (isset($vitals['bp_sys'], $vitals['bp_dia'])) {
-            $parts[] = "BP {$vitals['bp_sys']}/{$vitals['bp_dia']} mmHg";
+            $parts[] = __('BP')." {$vitals['bp_sys']}/{$vitals['bp_dia']} mmHg";
         }
         foreach (self::FIELDS as $key => $field) {
             if (! str_starts_with($key, 'bp_') && isset($vitals[$key])) {
-                $parts[] = "{$field['label']} {$vitals[$key]}{$field['unit']}";
+                $parts[] = __($field['label'])." {$vitals[$key]}{$field['unit']}";
             }
         }
 

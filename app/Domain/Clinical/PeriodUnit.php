@@ -10,19 +10,15 @@ enum PeriodUnit: string
     case Month = 'month';
     case Year = 'year';
 
-    public function label(int $value = 2): string
+    /** Singular for 1, plural otherwise (`lang/{locale}/enums.php`). */
+    public function label(int $value = 2, ?string $locale = null): string
     {
-        return $value === 1 ? $this->value : $this->value.'s';
+        return trans_choice('enums.period_unit.'.$this->value, $value, [], $locale);
     }
 
     public function labelBn(): string
     {
-        return match ($this) {
-            self::Day => 'দিন',
-            self::Week => 'সপ্তাহ',
-            self::Month => 'মাস',
-            self::Year => 'বছর',
-        };
+        return $this->label(2, 'bn');
     }
 
     /** @return list<string> */

@@ -21,14 +21,14 @@ class CancelVisitAction
     public function handle(User $actor, CaseHistory $case, string $reason): CaseHistory
     {
         if ($case->doctor_id !== SaveVisitAction::doctorFor($actor)->id) {
-            throw new AuthorizationException('Only the doctor who wrote this prescription can cancel it.');
+            throw new AuthorizationException(__('Only the doctor who wrote this prescription can cancel it.'));
         }
 
         return DB::transaction(function () use ($actor, $case, $reason) {
             $case = CaseHistory::query()->lockForUpdate()->findOrFail($case->id);
 
             if ($case->status !== VisitStatus::Draft) {
-                throw ValidationException::withMessages(['status' => 'Only a draft can be cancelled.']);
+                throw ValidationException::withMessages(['status' => __('Only a draft can be cancelled.')]);
             }
 
             $case->status = VisitStatus::Cancelled;

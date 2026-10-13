@@ -2,6 +2,7 @@
 
 namespace App\Domain\Practice\Models;
 
+use App\Support\Concerns\HasBilingualFields;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ChamberBranch extends Model
 {
+    use HasBilingualFields;
+
     protected $fillable = ['chamber_id', 'name_en', 'name_bn', 'phones', 'sort_order'];
 
     protected function casts(): array

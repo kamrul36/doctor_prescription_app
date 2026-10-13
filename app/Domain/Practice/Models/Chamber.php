@@ -2,6 +2,7 @@
 
 namespace App\Domain\Practice\Models;
 
+use App\Support\Concerns\HasBilingualFields;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Chamber extends Model
 {
+    use HasBilingualFields;
+
     protected $fillable = [
         'name_en', 'name_bn', 'address_en', 'address_bn', 'phone', 'email', 'logo_path', 'letterhead_path', 'is_active',
     ];

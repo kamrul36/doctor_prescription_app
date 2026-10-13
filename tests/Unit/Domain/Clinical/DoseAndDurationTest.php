@@ -9,7 +9,7 @@ use App\Domain\Clinical\ValueObjects\Duration;
 use App\Domain\Document\Support\BanglaDigits;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class DoseAndDurationTest extends TestCase
 {

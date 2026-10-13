@@ -44,7 +44,7 @@ class PatientController extends Controller
         $patient = $save->handle(null, $request->validated());
 
         return redirect()->route('patients.show', $patient)
-            ->with('success', "Patient registered with code {$patient->code}.");
+            ->with('success', __('Patient registered with code :code.', ['code' => $patient->code]));
     }
 
     public function show(Patient $patient): View
@@ -67,7 +67,7 @@ class PatientController extends Controller
     {
         $save->handle($patient, $request->validated());
 
-        return redirect()->route('patients.show', $patient)->with('success', 'Patient saved.');
+        return redirect()->route('patients.show', $patient)->with('success', __('Patient saved.'));
     }
 
     public function destroy(Patient $patient, DeletePatientAction $delete): RedirectResponse
@@ -76,6 +76,6 @@ class PatientController extends Controller
 
         $delete->handle($patient);
 
-        return redirect()->route('patients.index')->with('success', 'Patient deleted.');
+        return redirect()->route('patients.index')->with('success', __('Patient deleted.'));
     }
 }

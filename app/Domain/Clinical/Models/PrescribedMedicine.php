@@ -49,18 +49,22 @@ class PrescribedMedicine extends Model
         }
     }
 
-    /** "2+0+2 tablet · 7 days · after meal" (English; Bangla printing comes with P1.6). */
-    public function summary(): string
+    /**
+     * "2+0+2 tablet · 7 days · after meal", or in Bangla "২+০+২ ট্যাবলেট · ৭ দিন · খাবারের পরে"
+     * (Western digits when `$banglaDigits` is false). English unless a locale is given.
+     */
+    public function summary(string $locale = 'en', bool $banglaDigits = true): string
     {
+        $bangla = $locale === 'bn';
         $parts = [];
         if ($dose = $this->dose()) {
-            $parts[] = trim($dose->format().' '.mb_strtolower($this->dose_unit?->label() ?? ''));
+            $parts[] = trim($dose->format($bangla && $banglaDigits).' '.mb_strtolower($this->dose_unit?->label($locale) ?? ''));
         }
         if ($duration = $this->duration()) {
-            $parts[] = $duration->format();
+            $parts[] = $duration->format($bangla, $banglaDigits);
         }
         if ($this->timing !== null && $this->timing !== DoseTiming::Any) {
-            $parts[] = mb_strtolower($this->timing->label());
+            $parts[] = mb_strtolower($this->timing->label($locale));
         }
 
         return implode(' · ', $parts);

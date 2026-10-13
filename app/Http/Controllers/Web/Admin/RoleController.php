@@ -40,7 +40,7 @@ class RoleController extends Controller
     {
         $role = $save->handle($this->actor($request), null, $request->validated());
 
-        return redirect()->route('admin.roles.index')->with('success', "Role {$role->name} created.");
+        return redirect()->route('admin.roles.index')->with('success', __('Role :name created.', ['name' => $role->name]));
     }
 
     public function edit(Role $role): View
@@ -58,7 +58,7 @@ class RoleController extends Controller
     {
         $save->handle($this->actor($request), $role, $request->validated());
 
-        return redirect()->route('admin.roles.index')->with('success', "Role {$role->name} updated.");
+        return redirect()->route('admin.roles.index')->with('success', __('Role :name updated.', ['name' => $role->name]));
     }
 
     public function destroy(Role $role, DeleteRoleAction $delete): RedirectResponse
@@ -67,7 +67,7 @@ class RoleController extends Controller
 
         $delete->handle($role);
 
-        return redirect()->route('admin.roles.index')->with('success', "Role {$role->name} deleted.");
+        return redirect()->route('admin.roles.index')->with('success', __('Role :name deleted.', ['name' => $role->name]));
     }
 
     private function actor(SaveRoleRequest $request): User

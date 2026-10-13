@@ -45,6 +45,16 @@ class CaseHistoryPolicy
         return $this->update($actor, $case);
     }
 
+    /** Finalized visits print; a draft prints only as a "DRAFT" preview, by its own doctor. Cancelled ones never. */
+    public function print(User $actor, CaseHistory $case): bool
+    {
+        if (! $actor->can(Permission::CasesRead->value) || ! $actor->can(Permission::PrescriptionsPrint->value)) {
+            return false;
+        }
+
+        return $case->isFinalized() || ($case->isDraft() && $this->owns($actor, $case));
+    }
+
     public function viewPrivateNotes(User $actor, CaseHistory $case): bool
     {
         return $actor->can(Permission::CasesReadPrivate->value) || $this->owns($actor, $case);

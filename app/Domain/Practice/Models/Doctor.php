@@ -4,6 +4,7 @@ namespace App\Domain\Practice\Models;
 
 use App\Domain\Practice\SpecialtyBlock;
 use App\Models\User;
+use App\Support\Concerns\HasBilingualFields;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Doctor extends Model
 {
+    use HasBilingualFields;
+
     protected $fillable = [
         'user_id', 'name_en', 'name_bn', 'designation_en', 'designation_bn', 'reg_label', 'reg_no',
         'signature_path', 'default_template_id',

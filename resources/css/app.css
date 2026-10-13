@@ -6,7 +6,8 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Bengali',
+    /* Latin from the system sans; Bangla glyphs fall through to Noto Serif Bengali (Google Fonts, see partials/fonts). */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Noto Serif Bengali', Roboto, 'Noto Sans',
         sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
 }
 

@@ -50,17 +50,17 @@ class SaveAdviceTemplateRequest extends FormRequest
             $template = PrescriptionTemplate::query()->find($value);
 
             if ($template === null || ! $template->is_active) {
-                $fail('Choose an active prescription template.');
+                $fail(__('Choose an active prescription template.'));
 
                 return;
             }
 
             if ($template->doctor_id !== null && $template->doctor_id !== $this->ownerDoctorId()) {
-                $fail('That prescription template belongs to another doctor.');
+                $fail(__('That prescription template belongs to another doctor.'));
             }
 
             if ($this->has('is_active') && ! $this->boolean('is_active')) {
-                $fail('An inactive advice template cannot be a default.');
+                $fail(__('An inactive advice template cannot be a default.'));
             }
         };
     }

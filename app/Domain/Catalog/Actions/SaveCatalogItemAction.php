@@ -77,7 +77,7 @@ class SaveCatalogItemAction
             });
         } catch (UniqueConstraintViolationException) {
             // Two requests raced past the validation rule; the database constraint is the last word.
-            throw ValidationException::withMessages(['code' => 'This code is already in use.']);
+            throw ValidationException::withMessages(['code' => __('This code is already in use.')]);
         }
 
         $this->cache->flush();

@@ -7,6 +7,7 @@ use App\Domain\Catalog\Concerns\HasSpecialty;
 use App\Domain\Finance\Casts\MoneyCast;
 use App\Domain\Finance\Money;
 use App\Domain\Practice\Models\Specialty;
+use App\Support\Concerns\HasBilingualFields;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Procedure extends Model implements CatalogEntry
 {
+    use HasBilingualFields;
     use HasSpecialty;
     use SoftDeletes;
 

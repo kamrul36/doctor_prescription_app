@@ -9,19 +9,19 @@
 
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <div>
-        <label for="name" class="block text-base font-medium">Name <x-required-mark /></label>
+        <label for="name" class="block text-base font-medium">{{ __('Name') }} <x-required-mark /></label>
         <input id="name" name="name" value="{{ old('name', $template->name) }}" required maxlength="255" class="{{ $input }}">
         <x-field-error for="name" />
     </div>
     <div>
-        <label for="code" class="block text-base font-medium">Code <x-required-mark /></label>
+        <label for="code" class="block text-base font-medium">{{ __('Code') }} <x-required-mark /></label>
         <input id="code" name="code" value="{{ old('code', $template->code) }}" required maxlength="64" data-pattern="[a-z][a-z0-9_]*"
-               data-pattern-message="Use lowercase letters, digits and underscores, starting with a letter." class="{{ $input }}">
+               data-pattern-message="{{ __('Use lowercase letters, digits and underscores, starting with a letter.') }}" class="{{ $input }}">
         <x-field-error for="code" />
-        <p class="mt-1 text-sm text-gray-500">Lowercase letters, digits and underscores, e.g. <code>general_a5</code>.</p>
+        <p class="mt-1 text-sm text-gray-500">{!! __('Lowercase letters, digits and underscores, e.g. :example.', ['example' => '<code>general_a5</code>']) !!}</p>
     </div>
     <div>
-        <label for="paper_size" class="block text-base font-medium">Paper size <x-required-mark /></label>
+        <label for="paper_size" class="block text-base font-medium">{{ __('Paper size') }} <x-required-mark /></label>
         <select id="paper_size" name="paper_size" class="{{ $input }}">
             @foreach (['A4', 'A5'] as $size)
                 <option @selected(old('paper_size', $template->paper_size) === $size)>{{ $size }}</option>
@@ -30,7 +30,7 @@
         <x-field-error for="paper_size" />
     </div>
     <div>
-        <label for="layout" class="block text-base font-medium">Layout <x-required-mark /></label>
+        <label for="layout" class="block text-base font-medium">{{ __('Layout') }} <x-required-mark /></label>
         <select id="layout" name="layout" class="{{ $input }}">
             @foreach (\App\Domain\Practice\TemplateLayout::cases() as $layout)
                 <option value="{{ $layout->value }}" @selected(old('layout', $template->layout?->value) === $layout->value)>{{ $layout->label() }}</option>
@@ -39,7 +39,7 @@
         <x-field-error for="layout" />
     </div>
     <div>
-        <label for="default_print_mode" class="block text-base font-medium">Default print mode <x-required-mark /></label>
+        <label for="default_print_mode" class="block text-base font-medium">{{ __('Default print mode') }} <x-required-mark /></label>
         <select id="default_print_mode" name="default_print_mode" class="{{ $input }}">
             @foreach (\App\Domain\Practice\PrintMode::cases() as $mode)
                 <option value="{{ $mode->value }}" @selected(old('default_print_mode', $template->default_print_mode?->value) === $mode->value)>{{ $mode->label() }}</option>
@@ -49,8 +49,8 @@
     </div>
 </div>
 
-<h2 class="mt-8 text-lg font-semibold">Margins (mm)</h2>
-<p class="text-xs text-gray-500">Used in pad-only mode to keep the text off pre-printed areas.</p>
+<h2 class="mt-8 text-lg font-semibold">{{ __('Margins (mm)') }}</h2>
+<p class="text-xs text-gray-500">{{ __('Used in pad-only mode to keep the text off pre-printed areas.') }}</p>
 <div class="mt-2 grid max-w-md grid-cols-4 gap-2">
     @foreach (['top', 'right', 'bottom', 'left'] as $side)
         <div>
@@ -61,12 +61,12 @@
     @endforeach
 </div>
 
-<h2 class="mt-8 text-lg font-semibold">Options</h2>
+<h2 class="mt-8 text-lg font-semibold">{{ __('Options') }}</h2>
 <div class="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
     @foreach ([
-        'show_barcode' => 'Show barcode', 'show_branch_footer' => 'Show branches in footer',
-        'show_visiting_hours' => 'Show visiting hours', 'show_signature' => 'Show signature',
-        'is_default' => 'Default template', 'is_active' => 'Active',
+        'show_barcode' => __('Show barcode'), 'show_branch_footer' => __('Show branches in footer'),
+        'show_visiting_hours' => __('Show visiting hours'), 'show_signature' => __('Show signature'),
+        'is_default' => __('Default template'), 'is_active' => __('Active'),
     ] as $field => $label)
         <label class="flex items-center gap-2 text-sm">
             <input type="hidden" name="{{ $field }}" value="0">
@@ -75,28 +75,28 @@
         </label>
     @endforeach
     <div class="text-sm">
-        <label for="barcode_source">Barcode shows <x-required-mark /></label>
+        <label for="barcode_source">{{ __('Barcode shows') }} <x-required-mark /></label>
         <select id="barcode_source" name="barcode_source" class="ml-2 rounded px-2 py-1 ring-1 ring-gray-300">
-            <option value="prescription_no" @selected(old('barcode_source', $template->barcode_source) === 'prescription_no')>Prescription no.</option>
-            <option value="patient_code" @selected(old('barcode_source', $template->barcode_source) === 'patient_code')>Patient ID</option>
+            <option value="prescription_no" @selected(old('barcode_source', $template->barcode_source) === 'prescription_no')>{{ __('Prescription no.') }}</option>
+            <option value="patient_code" @selected(old('barcode_source', $template->barcode_source) === 'patient_code')>{{ __('Patient ID') }}</option>
         </select>
         <x-field-error for="barcode_source" />
     </div>
 </div>
 
-<h2 class="mt-8 text-lg font-semibold">Sections</h2>
-<p class="text-xs text-gray-500">Choose which blocks print, in which zone, and under which label. Lower order prints first within a zone. The <code>specialty</code> section prints the blocks of the doctor's specialties and stays empty for a general physician.</p>
+<h2 class="mt-8 text-lg font-semibold">{{ __('Sections') }}</h2>
+<p class="text-xs text-gray-500">{!! __('Choose which blocks print, in which zone, and under which label. Lower order prints first within a zone. The :section section prints the blocks of the doctor\'s specialties and stays empty for a general physician.', ['section' => '<code>specialty</code>']) !!}</p>
 <x-field-error for="sections" />
 <div class="mt-2 overflow-x-auto">
     <table class="w-full text-left text-sm">
         <thead class="border-b">
             <tr>
-                <th class="py-1 pr-3">Order</th>
-                <th class="py-1 pr-3">Section</th>
-                <th class="py-1 pr-3">Show</th>
-                <th class="py-1 pr-3">Zone</th>
-                <th class="py-1 pr-3">Label (English)</th>
-                <th class="py-1">Label (Bangla)</th>
+                <th class="py-1 pr-3">{{ __('Order') }}</th>
+                <th class="py-1 pr-3">{{ __('Section') }}</th>
+                <th class="py-1 pr-3">{{ __('Show') }}</th>
+                <th class="py-1 pr-3">{{ __('Zone') }}</th>
+                <th class="py-1 pr-3">{{ __('Label (English)') }}</th>
+                <th class="py-1">{{ __('Label (Bangla)') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -132,6 +132,6 @@
 </div>
 
 <div class="mt-6 flex gap-3">
-    <button type="submit" class="rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-4 py-2 text-white">Save</button>
-    <a href="{{ route('settings.templates.index') }}" class="px-4 py-2 text-gray-700">Cancel</a>
+    <button type="submit" class="rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-4 py-2 text-white">{{ __('Save') }}</button>
+    <a href="{{ route('settings.templates.index') }}" class="px-4 py-2 text-gray-700">{{ __('Cancel') }}</a>
 </div>

@@ -2,6 +2,9 @@
 
 namespace App\Domain\Practice;
 
+use App\Support\Concerns\HasTranslatedLabel;
+use App\Support\Contracts\HasLabel;
+
 /**
  * Built-in prescription blocks a specialty can bring to the pad. The list of
  * specialties itself is data (`specialties`, managed by the admin); a
@@ -10,18 +13,12 @@ namespace App\Domain\Practice;
  *
  * A new block = a new case here plus its schema in App\Domain\Clinical\Specialty.
  */
-enum SpecialtyBlock: string
+enum SpecialtyBlock: string implements HasLabel
 {
+    use HasTranslatedLabel;
+
     case Gynae = 'gynae';
     case Dental = 'dental';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::Gynae => 'Menstrual & obstetric history',
-            self::Dental => 'Dental findings',
-        };
-    }
 
     /** @return list<string> */
     public static function values(): array

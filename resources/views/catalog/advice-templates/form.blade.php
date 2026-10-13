@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $item->exists ? 'Edit advice template' : 'New advice template')
+@section('title', $item->exists ? __('Edit advice template') : __('New advice template'))
 
 @section('content')
     @include('catalog._tabs')
 
-    <h1 class="mb-4 text-2xl font-semibold">{{ $item->exists ? 'Edit advice template' : 'New advice template' }}</h1>
+    <h1 class="mb-4 text-2xl font-semibold">{{ $item->exists ? __('Edit advice template') : __('New advice template') }}</h1>
 
     <form method="POST" action="{{ $item->exists ? route('catalog.advice-templates.update', $item) : route('catalog.advice-templates.store') }}"
           x-data="validatedForm(@js($errors->toArray()))" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -18,15 +18,15 @@
 
         <div class="grid gap-4 sm:grid-cols-2">
             <div class="sm:col-span-2">
-                <label for="title" class="block text-base font-medium">Title <x-required-mark /></label>
+                <label for="title" class="block text-base font-medium">{{ __('Title') }} <x-required-mark /></label>
                 <input id="title" name="title" value="{{ old('title', $item->title) }}" required maxlength="255" class="{{ $input }}">
                 <x-field-error for="title" />
             </div>
             @include('catalog._specialty_field')
             <div>
-                <label for="is_default_for_template_id" class="block text-base font-medium">Default advice for template</label>
+                <label for="is_default_for_template_id" class="block text-base font-medium">{{ __('Default advice for template') }}</label>
                 <select id="is_default_for_template_id" name="is_default_for_template_id" class="{{ $input }}">
-                    <option value="">None</option>
+                    <option value="">{{ __('None') }}</option>
                     @foreach ($templates as $template)
                         <option value="{{ $template->id }}" @selected((int) old('is_default_for_template_id', $item->is_default_for_template_id) === $template->id)>{{ $template->name }}</option>
                     @endforeach
@@ -34,12 +34,12 @@
                 <x-field-error for="is_default_for_template_id" />
             </div>
             <div class="sm:col-span-2">
-                <label for="text_en" class="block text-base font-medium">Text (English) <x-required-mark /></label>
+                <label for="text_en" class="block text-base font-medium">{{ __('Text (English)') }} <x-required-mark /></label>
                 <textarea id="text_en" name="text_en" rows="5" required maxlength="5000" class="{{ $input }}">{{ old('text_en', $item->text_en) }}</textarea>
                 <x-field-error for="text_en" />
             </div>
             <div class="sm:col-span-2">
-                <label for="text_bn" class="block text-base font-medium">Text (Bangla)</label>
+                <label for="text_bn" class="block text-base font-medium">{{ __('Text (Bangla)') }}</label>
                 <textarea id="text_bn" name="text_bn" rows="5" maxlength="5000" class="{{ $input }}">{{ old('text_bn', $item->text_bn) }}</textarea>
                 <x-field-error for="text_bn" />
             </div>
@@ -48,12 +48,12 @@
         <label class="mt-4 flex items-center gap-2 text-sm">
             <input type="hidden" name="is_active" value="0">
             <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $item->is_active ?? true))>
-            Active (inactive entries are hidden from search)
+            {{ __('Active (inactive entries are hidden from search)') }}
         </label>
 
         <div class="mt-6 flex gap-3">
-            <button type="submit" class="rounded bg-teal-700 px-4 py-2 text-white shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none">Save</button>
-            <a href="{{ route('catalog.advice-templates.index') }}" class="px-4 py-2 text-gray-700">Cancel</a>
+            <button type="submit" class="rounded bg-teal-700 px-4 py-2 text-white shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none">{{ __('Save') }}</button>
+            <a href="{{ route('catalog.advice-templates.index') }}" class="px-4 py-2 text-gray-700">{{ __('Cancel') }}</a>
         </div>
     </form>
 @endsection

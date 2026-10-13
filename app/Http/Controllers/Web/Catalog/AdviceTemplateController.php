@@ -44,7 +44,7 @@ class AdviceTemplateController extends Controller
         $actor = $request->user();
         $item = $save->handle($actor, AdviceTemplate::class, null, $request->validated());
 
-        return redirect()->route('catalog.advice-templates.index')->with('success', "Advice template {$item->title} added.");
+        return redirect()->route('catalog.advice-templates.index')->with('success', __('Advice template :title added.', ['title' => $item->title]));
     }
 
     public function edit(AdviceTemplate $adviceTemplate): View
@@ -60,7 +60,7 @@ class AdviceTemplateController extends Controller
         $actor = $request->user();
         $save->handle($actor, AdviceTemplate::class, $adviceTemplate, $request->validated());
 
-        return redirect()->route('catalog.advice-templates.index')->with('success', 'Advice template saved.');
+        return redirect()->route('catalog.advice-templates.index')->with('success', __('Advice template saved.'));
     }
 
     public function destroy(AdviceTemplate $adviceTemplate, DeleteCatalogItemAction $delete): RedirectResponse
@@ -69,7 +69,7 @@ class AdviceTemplateController extends Controller
 
         $delete->handle($adviceTemplate);
 
-        return redirect()->route('catalog.advice-templates.index')->with('success', 'Advice template deleted.');
+        return redirect()->route('catalog.advice-templates.index')->with('success', __('Advice template deleted.'));
     }
 
     /** @return array<string, mixed> */

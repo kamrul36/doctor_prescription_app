@@ -46,6 +46,6 @@ class DoctorProfileController extends Controller
 
         $save->handle($user, $request->validated());
 
-        return redirect()->route('settings.doctor.edit')->with('success', 'Doctor profile saved.');
+        return redirect()->route('settings.doctor.edit')->with('success', __('Doctor profile saved.'));
     }
 }

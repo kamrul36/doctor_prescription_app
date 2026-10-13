@@ -26,7 +26,7 @@ class SaveRoleAction
     {
         if ($role !== null && $role->name === Role::SUPER_ADMIN) {
             throw ValidationException::withMessages([
-                'name' => 'The super admin role cannot be changed.',
+                'name' => __('The super admin role cannot be changed.'),
             ]);
         }
 

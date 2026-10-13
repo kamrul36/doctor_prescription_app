@@ -3,6 +3,8 @@
 //   "1+0+0 6m"  -> 6 months;   "1+1+1 2w" -> 2 weeks
 //   "0+0+1 cont" / "1+0+1 sos" -> continuous / as needed
 // Slots accept 0, ½ (or 1/2), 1, 1½ (or 1.5), 2, 3 ...
+import { t } from '../i18n';
+
 export const SLOT = /^(?:\d+(?:\.5)?|½|\d+½|\d+\s?1\/2|1\/2)$/;
 const UNITS = { d: 'day', day: 'day', days: 'day', w: 'week', wk: 'week', week: 'week', weeks: 'week', m: 'month', mo: 'month', month: 'month', months: 'month' };
 const OPEN_ENDED = { cont: 'continuous', continuous: 'continuous', sos: 'as_needed', prn: 'as_needed', as_needed: 'as_needed' };
@@ -22,16 +24,16 @@ export function parseDoseShortcut(input) {
 
     const match = text.match(/^([^\s]+(?:\s*\+\s*[^\s+]+){2})(?:\s+(.+))?$/);
     if (!match) {
-        return { ok: false, error: 'Write the dose as morning+noon+night, e.g. 1+0+1 7d' };
+        return { ok: false, error: t('Write the dose as morning+noon+night, e.g. 1+0+1 7d') };
     }
 
     const slots = match[1].split('+').map((s) => s.trim());
     if (slots.length !== 3 || !slots.every((s) => SLOT.test(s.replace(/\s+/g, '')))) {
-        return { ok: false, error: 'Each dose slot is a number such as 0, ½, 1, 1½ or 2' };
+        return { ok: false, error: t('Each dose slot is a number such as 0, ½, 1, 1½ or 2') };
     }
     const [morning, noon, night] = slots.map(normaliseSlot);
     if ([morning, noon, night].every((s) => s === '0')) {
-        return { ok: false, error: 'A dose of 0+0+0 gives nothing' };
+        return { ok: false, error: t('A dose of 0+0+0 gives nothing') };
     }
 
     const result = { ok: true, dose_morning: morning, dose_noon: noon, dose_night: night };
@@ -45,7 +47,7 @@ export function parseDoseShortcut(input) {
 
     const duration = rest.match(/^(\d{1,3})\s*([a-z_]+)$/);
     if (!duration || !UNITS[duration[2]]) {
-        return { ok: false, error: 'Duration: a number with d, w or m (7d, 2w, 6m), or cont / sos' };
+        return { ok: false, error: t('Duration: a number with d, w or m (7d, 2w, 6m), or cont / sos') };
     }
 
     return { ...result, duration_value: duration[1], duration_unit: UNITS[duration[2]] };

@@ -81,7 +81,7 @@ class SaveTemplateAction
             ->exists();
 
         if ($taken) {
-            throw ValidationException::withMessages(['code' => 'This template code is already in use.']);
+            throw ValidationException::withMessages(['code' => __('This template code is already in use.')]);
         }
     }
 }

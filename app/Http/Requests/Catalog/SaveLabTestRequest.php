@@ -39,6 +39,6 @@ class SaveLabTestRequest extends FormRequest
     /** @return array<string, string> */
     public function messages(): array
     {
-        return ['name.unique' => 'A lab test with this name already exists.'];
+        return ['name.unique' => __('A lab test with this name already exists.')];
     }
 }

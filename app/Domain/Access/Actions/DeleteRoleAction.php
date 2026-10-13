@@ -17,13 +17,13 @@ class DeleteRoleAction
     {
         if ($role->name === Role::SUPER_ADMIN) {
             throw ValidationException::withMessages([
-                'role' => 'The super admin role cannot be deleted.',
+                'role' => __('The super admin role cannot be deleted.'),
             ]);
         }
 
         if ($role->users()->exists()) {
             throw ValidationException::withMessages([
-                'role' => 'A role that is assigned to users cannot be deleted.',
+                'role' => __('A role that is assigned to users cannot be deleted.'),
             ]);
         }
 
