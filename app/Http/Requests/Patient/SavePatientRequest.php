@@ -45,6 +45,22 @@ class SavePatientRequest extends FormRequest
             }
         }
 
+        // Whose phone it is: the relation only applies to a phone that is not the patient's own.
+        // The checkbox posts 0/1; an API call that leaves it out keeps the stored value on update.
+        if ($this->has('phone_is_personal')) {
+            $merge['phone_is_personal'] = $this->boolean('phone_is_personal');
+        }
+
+        $personal = (bool) ($merge['phone_is_personal'] ?? $this->route('patient')?->phone_is_personal ?? true);
+        $phone = $merge['phone'] ?? $this->input('phone');
+        $merge['phone_is_personal'] = $personal || blank($phone);
+
+        if ($merge['phone_is_personal']) {
+            $merge['phone_relation'] = null;
+        } elseif (is_string($this->input('phone_relation'))) {
+            $merge['phone_relation'] = trim($this->input('phone_relation'));
+        }
+
         $this->merge($merge);
     }
 
@@ -61,7 +77,9 @@ class SavePatientRequest extends FormRequest
             'gender' => ['required', Rule::in(Gender::values())],
             'phone' => ['required', 'string', Phone::RULE],
             'alt_phone' => ['nullable', 'string', Phone::RULE],
-            'address' => ['required', 'string', 'max:1000'],
+            'phone_is_personal' => ['required', 'boolean'],
+            'phone_relation' => [Rule::requiredIf(fn () => ! $this->boolean('phone_is_personal')), 'nullable', 'string', 'max:60'],
+            'address' => ['nullable', 'string', 'max:1000'],
             'occupation' => ['nullable', 'string', 'max:255'],
             'blood_group' => ['nullable', Rule::in(BloodGroup::values())],
             'patient_type' => ['sometimes', Rule::in(PatientType::values())],
@@ -79,6 +97,7 @@ class SavePatientRequest extends FormRequest
             'alt_phone.regex' => __(Phone::MESSAGE),
             'dob.before_or_equal' => __('The date of birth cannot be in the future.'),
             'age_years.required_without' => __('Enter the age.'),
+            'phone_relation.required' => __('Enter how this person is related to the patient.'),
         ];
     }
 }

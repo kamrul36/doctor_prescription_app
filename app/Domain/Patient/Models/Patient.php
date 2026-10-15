@@ -24,9 +24,11 @@ use Illuminate\Support\Carbon;
  * @property int|null $age_years
  * @property Carbon|null $age_recorded_on
  * @property Gender $gender
- * @property string $phone
+ * @property string|null $phone
+ * @property bool $phone_is_personal
+ * @property string|null $phone_relation who the phone belongs to when it is not the patient's own
  * @property string|null $alt_phone
- * @property string $address
+ * @property string|null $address
  * @property string|null $occupation
  * @property string|null $blood_group
  * @property PatientType $patient_type
@@ -43,12 +45,12 @@ class Patient extends Model
 
     /** @var list<string> */
     protected $fillable = [
-        'name', 'name_bn', 'dob', 'age_years', 'age_recorded_on', 'gender', 'phone', 'alt_phone',
-        'address', 'occupation', 'blood_group', 'patient_type', 'allergies', 'conditions', 'notes',
+        'name', 'name_bn', 'dob', 'age_years', 'age_recorded_on', 'gender', 'phone', 'phone_is_personal', 'phone_relation',
+        'alt_phone', 'address', 'occupation', 'blood_group', 'patient_type', 'allergies', 'conditions', 'notes',
     ];
 
     /** @var array<string, mixed> */
-    protected $attributes = ['patient_type' => 'general'];
+    protected $attributes = ['patient_type' => 'general', 'phone_is_personal' => true];
 
     /** @return array<string, mixed> */
     protected function casts(): array
@@ -57,6 +59,7 @@ class Patient extends Model
             'dob' => 'date',
             'age_recorded_on' => 'date',
             'age_years' => 'integer',
+            'phone_is_personal' => 'boolean',
             'gender' => Gender::class,
             'patient_type' => PatientType::class,
         ];

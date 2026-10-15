@@ -93,7 +93,7 @@ class SaveVisitRequest extends FormRequest
             'patient.name' => ['required_without:patient_id', 'nullable', 'string', 'max:255'],
             'patient.age_years' => ['required_without:patient_id', 'nullable', 'integer', 'between:0,130'],
             'patient.gender' => ['required_without:patient_id', 'nullable', Rule::in(Gender::values())],
-            'patient.phone' => ['required_without:patient_id', 'nullable', 'string', Phone::RULE],
+            'patient.phone' => ['nullable', 'string', Phone::RULE],
             'patient.address' => ['nullable', 'string', 'max:1000'],
             // Answer to "same person?": an existing patient's id, or "new".
             'patient_choice' => ['nullable', function (string $attribute, mixed $value, \Closure $fail) {

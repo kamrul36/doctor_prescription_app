@@ -253,7 +253,7 @@ class PatientTest extends TestCase
         $this->put("/patients/{$patient->id}", $this->payload(['name' => 'Edited', 'dob' => '', 'age_years' => '40']))
             ->assertRedirect("/patients/{$patient->id}");
         $this->get('/patients?q=Edited')->assertOk()->assertSee('26000001');
-        $this->post('/patients', [])->assertSessionHasErrors(['name', 'gender', 'phone', 'address']);
+        $this->post('/patients', [])->assertSessionHasErrors(['name', 'gender', 'phone']);
         $this->delete("/patients/{$patient->id}")->assertRedirect('/patients');
         $this->assertSoftDeleted($patient);
     }

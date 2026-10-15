@@ -92,7 +92,7 @@ class CaseHistoryApiTest extends TestCase
         $this->assertSame(2, Patient::count());
 
         $this->postJson('/api/v1/case-histories', ['chamber_id' => $chamber->id, 'patient' => ['name' => 'X']], $this->bearer($user))
-            ->assertUnprocessable()->assertJsonValidationErrors(['patient.age_years', 'patient.gender', 'patient.phone']);
+            ->assertUnprocessable()->assertJsonValidationErrors(['patient.age_years', 'patient.gender']);
     }
 
     public function test_assistant_reads_but_cannot_write_and_notes_stay_private(): void

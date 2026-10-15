@@ -128,8 +128,8 @@
                                 <p class="{{ $error }}" x-text="err('patient.gender')"></p>
                             </div>
                             <div class="sm:col-span-2">
-                                <label class="{{ $label }}">{{ __('Phone') }} <x-required-mark /></label>
-                                <input name="patient[phone]" x-model="form.phone" @input="lookup()" inputmode="tel" required maxlength="20" data-rule="phone" placeholder="01XXXXXXXXX" class="{{ $field }}" autocomplete="off">
+                                <label class="{{ $label }}">{{ __('Phone') }}</label>
+                                <input name="patient[phone]" x-model="form.phone" @input="lookup()" inputmode="tel" maxlength="20" data-rule="phone" placeholder="01XXXXXXXXX" class="{{ $field }}" autocomplete="off">
                                 <p class="{{ $error }}" x-text="err('patient.phone')"></p>
                             </div>
                             <div class="sm:col-span-6">

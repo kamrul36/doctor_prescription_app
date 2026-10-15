@@ -18,10 +18,7 @@
                 @include('partials.logo', ['class' => 'h-9 w-9'])
                 <span class="text-xl font-semibold text-teal-800">{{ config('app.name') }}</span>
             </div>
-            <div class="flex items-center">
-                <h2 class="text-2xl font-semibold text-gray-900">{{ __('Sign in') }}</h2>
-                @include('partials.locale-switch', ['class' => 'ml-auto'])
-            </div>
+            <h2 class="text-2xl font-semibold text-gray-900">{{ __('Sign in') }}</h2>
             <p class="mt-1 mb-6 text-sm text-gray-600">{{ __('Enter your account details to continue.') }}</p>
 
             <form method="POST" action="{{ route('login.store') }}" x-data="validatedForm(@js($errors->toArray()))" class="space-y-4">

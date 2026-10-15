@@ -40,12 +40,12 @@ class LocaleSwitchTest extends TestCase
         $this->assertSame(['bn', 'en'], $config['supported_locales']);
     }
 
-    public function test_a_guest_sees_the_default_language_and_can_switch(): void
+    public function test_a_guest_sees_the_default_language_and_no_switch_on_the_login_page(): void
     {
         config(['app.locale' => 'bn']);
 
         $this->get('/login')->assertOk()->assertSee('<html lang="bn">', false)->assertSee('সাইন ইন')
-            ->assertSee(route('locale.update'), false);
+            ->assertDontSee(route('locale.update'), false);
 
         $this->from('/login')->put('/locale', ['locale' => 'en'])->assertRedirect('/login')->assertSessionHas('locale', 'en');
         $this->get('/login')->assertSee('<html lang="en">', false)->assertSee('Sign in')->assertDontSee('সাইন ইন');

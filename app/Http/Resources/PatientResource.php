@@ -22,6 +22,8 @@ class PatientResource extends JsonResource
             'age_text' => $this->age_text,
             'gender' => $this->gender->value,
             'phone' => $this->phone,
+            'phone_is_personal' => $this->phone_is_personal,
+            'phone_relation' => $this->phone_relation,
             'alt_phone' => $this->alt_phone,
             'address' => $this->address,
             'occupation' => $this->occupation,

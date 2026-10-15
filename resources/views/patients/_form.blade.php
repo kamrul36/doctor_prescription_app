@@ -64,9 +64,22 @@
         <input id="alt_phone" type="tel" name="alt_phone" value="{{ $value('alt_phone') }}" maxlength="20" data-rule="phone" class="{{ $input }}">
         <p id="alt_phone-error" class="{{ $error }}" x-text="err('alt_phone')"></p>
     </div>
+    <div class="sm:col-span-2" x-data="{ personal: @js((bool) old('phone_is_personal', $patient->phone_is_personal ?? true)) }">
+        <input type="hidden" name="phone_is_personal" value="0">
+        <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="phone_is_personal" value="1" x-model="personal">
+            {{ __('This number belongs to the patient') }}
+        </label>
+        <div x-show="! personal" x-cloak class="mt-3">
+            <label for="phone_relation" class="block text-base font-medium">{{ __('Relation with patient') }} <x-required-mark /></label>
+            <input id="phone_relation" name="phone_relation" value="{{ $value('phone_relation') }}" maxlength="60" x-bind:required="! personal"
+                   placeholder="{{ __('e.g. Father, Wife, Neighbour') }}" class="{{ $input }}">
+            <p id="phone_relation-error" class="{{ $error }}" x-text="err('phone_relation')"></p>
+        </div>
+    </div>
     <div class="sm:col-span-2">
-        <label for="address" class="block text-base font-medium">{{ __('Address') }} <x-required-mark /></label>
-        <textarea id="address" name="address" rows="2" required maxlength="1000" class="{{ $input }}">{{ $value('address') }}</textarea>
+        <label for="address" class="block text-base font-medium">{{ __('Address') }}</label>
+        <textarea id="address" name="address" rows="2" maxlength="1000" class="{{ $input }}">{{ $value('address') }}</textarea>
         <p id="address-error" class="{{ $error }}" x-text="err('address')"></p>
     </div>
     <div>

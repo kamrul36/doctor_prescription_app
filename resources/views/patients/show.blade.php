@@ -30,7 +30,7 @@
             __('Date of birth') => $patient->dob?->translatedFormat('j M Y'),
             __('Gender') => $patient->gender->label(),
             __('Blood group') => $patient->blood_group,
-            __('Phone') => $patient->phone,
+            __('Phone') => $patient->phone_is_personal || blank($patient->phone) ? $patient->phone : $patient->phone.' ('.$patient->phone_relation.')',
             __('Alternate phone') => $patient->alt_phone,
             __('Address') => $patient->address,
             __('Occupation') => $patient->occupation,

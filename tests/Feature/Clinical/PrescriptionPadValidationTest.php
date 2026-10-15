@@ -75,7 +75,7 @@ class PrescriptionPadValidationTest extends TestCase
 
         $this->actingAs($user)->get('/prescriptions/create')->assertOk()
             ->assertSee('x-data="validatedForm(', false)
-            ->assertSee('required maxlength="20" data-rule="phone"', false)
+            ->assertSee('inputmode="tel" maxlength="20" data-rule="phone"', false)
             ->assertSee('data-rule="dose-slot"', false)
             ->assertSee('data-rule="money"', false)
             // From Vitals::FIELDS and the gynae schema, through ClientRules.

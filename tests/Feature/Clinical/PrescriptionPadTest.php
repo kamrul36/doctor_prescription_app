@@ -74,6 +74,23 @@ class PrescriptionPadTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'case.created']);
     }
 
+    public function test_a_new_patient_can_be_registered_without_phone_or_address(): void
+    {
+        [$user, , $chamber] = $this->doctor();
+        Patient::factory()->create(['name' => 'Someone Else', 'phone' => null, 'address' => null]);
+
+        $this->actingAs($user)->post('/prescriptions', $this->pad($chamber) + [
+            'patient' => ['name' => 'Karim Uddin', 'age_years' => '45', 'gender' => 'male', 'phone' => '', 'address' => ''],
+            'action' => 'draft',
+        ])->assertSessionHasNoErrors();
+
+        $patient = Patient::where('name', 'Karim Uddin')->firstOrFail();
+        $this->assertNull($patient->phone);
+        $this->assertNull($patient->address);
+        $this->assertTrue($patient->phone_is_personal);
+        $this->assertSame(1, CaseHistory::count());
+    }
+
     public function test_a_possible_duplicate_patient_asks_before_registering(): void
     {
         [$user, , $chamber] = $this->doctor();

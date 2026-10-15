@@ -51,8 +51,8 @@ class ResolvePatientAction
             'age_years' => (int) $details['age_years'],
             'dob' => null,
             'gender' => $details['gender'],
-            'phone' => $details['phone'],
-            'address' => $details['address'] ?? '',
+            'phone' => filled($details['phone'] ?? null) ? $details['phone'] : null,
+            'address' => filled($details['address'] ?? null) ? $details['address'] : null,
         ]);
     }
 
@@ -64,8 +64,9 @@ class ResolvePatientAction
      */
     public function candidates(array $details): Collection
     {
-        $byPhone = Patient::query()
-            ->where(fn ($q) => $q->where('phone', $details['phone'])->orWhere('alt_phone', $details['phone']))
+        $phone = $details['phone'] ?? null;
+        $byPhone = blank($phone) ? new Collection : Patient::query()
+            ->where(fn ($q) => $q->where('phone', $phone)->orWhere('alt_phone', $phone))
             ->limit(5)->get();
 
         $minScore = (float) config('clinical.duplicate_name_similarity', 0.85);
