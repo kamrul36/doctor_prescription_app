@@ -5,12 +5,12 @@ namespace Tests\Feature\Clinical;
 use App\Domain\Patient\Models\Patient;
 use App\Domain\Practice\Models\Chamber;
 use App\Domain\Practice\Models\Doctor;
-use App\Domain\Practice\Models\Specialty;
 use App\Models\User;
 use Database\Seeders\AccessSeeder;
 use Database\Seeders\PracticeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Tests\Support\Specialties;
 use Tests\TestCase;
 
 /** `case-histories` API: same rules as the web pad, with a 409 for possible duplicate patients. */
@@ -34,7 +34,6 @@ class CaseHistoryApiTest extends TestCase
             'chamber_id' => $chamber->id,
             'patient' => ['name' => 'Salma Akter', 'age_years' => 29, 'gender' => 'female', 'phone' => '01811111111'],
             'complaints' => [['text' => 'Irregular cycle', 'duration_value' => 6, 'duration_unit' => 'month']],
-            'specialty_data' => ['gynae' => ['parity' => 'P1', 'cycle_regular' => 'irregular']],
             'tests' => [['name' => 'FSH', 'timing_note' => 'D2']],
             'medicines' => [[
                 'name' => 'Tab. Biofol 5', 'dose_morning' => '1', 'dose_noon' => '0', 'dose_night' => '0',
@@ -50,10 +49,9 @@ class CaseHistoryApiTest extends TestCase
             ->assertJsonPath('data.medicines.0.dose', '1+0+0')
             ->assertJsonPath('data.medicines.0.summary', '1+0+0 tablet · 6 months')
             ->assertJsonPath('data.medicines.1.summary', '1+1+1 capsule · as needed')
-            ->assertJsonPath('data.specialty_data.gynae.parity', 'P1')
             ->json('data.id');
 
-        // Update replaces only the blocks sent; the patient can't change after creation.
+        // Update keeps what is not sent; the patient can't change after creation.
         $this->putJson("/api/v1/case-histories/{$id}", ['chamber_id' => $chamber->id, 'diagnosis' => 'PCOS'], $h)
             ->assertOk()->assertJsonPath('data.diagnosis', 'PCOS')->assertJsonCount(2, 'data.medicines');
         $this->putJson("/api/v1/case-histories/{$id}", ['chamber_id' => $chamber->id, 'patient_id' => 1], $h)
@@ -123,7 +121,7 @@ class CaseHistoryApiTest extends TestCase
         $doctor = Doctor::create(['user_id' => $user->id, 'name_en' => 'Dr. '.$user->id]);
         $chamber = Chamber::create(['name_en' => 'Chamber '.$user->id]);
         $doctor->chambers()->attach($chamber->id);
-        $doctor->specialties()->attach(Specialty::whereIn('code', $specialties)->pluck('id'));
+        $doctor->specialties()->attach(Specialties::ids($specialties));
 
         return [$user, $chamber];
     }

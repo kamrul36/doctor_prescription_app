@@ -3,13 +3,16 @@
 namespace App\Http\Resources;
 
 use App\Domain\Catalog\Models\Procedure;
+use App\Http\Resources\Concerns\HasAuthorFields;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin Procedure */
 class ProcedureResource extends JsonResource
 {
-    /** @return array<string, mixed> */
+    use HasAuthorFields;
+
+    /** @return array<int|string, mixed> mergeWhen() entries are unpacked by the resource */
     public function toArray(Request $request): array
     {
         return [
@@ -23,6 +26,7 @@ class ProcedureResource extends JsonResource
             'default_fee' => $this->default_fee?->toDecimal(),
             'is_billable' => $this->is_billable,
             'is_active' => $this->is_active,
+            $this->authorFields(true),
         ];
     }
 }

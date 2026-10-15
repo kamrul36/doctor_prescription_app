@@ -9,7 +9,7 @@ use App\Models\User;
 
 /**
  * One policy for the catalogs. Reading is open to anyone who can read clinical
- * data (the visit screen needs it); changing needs `catalog.manage`. A doctor's
+ * data (the visit screen needs it); changing needs `catalog.manage`, deleting `catalog.delete`. A doctor's
  * private advice template belongs to that doctor (a super admin passes via Gate::before).
  */
 class CatalogPolicy
@@ -36,7 +36,7 @@ class CatalogPolicy
 
     public function delete(User $actor, mixed $model = null): bool
     {
-        return $this->update($actor, $model);
+        return $actor->can(Permission::CatalogDelete->value) && $this->ownsOrShared($actor, $model);
     }
 
     private function ownsOrShared(User $actor, mixed $model): bool

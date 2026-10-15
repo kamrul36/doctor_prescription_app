@@ -3,13 +3,16 @@
 namespace App\Http\Resources;
 
 use App\Domain\Catalog\Models\LabTest;
+use App\Http\Resources\Concerns\HasAuthorFields;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin LabTest */
 class LabTestResource extends JsonResource
 {
-    /** @return array<string, mixed> */
+    use HasAuthorFields;
+
+    /** @return array<int|string, mixed> mergeWhen() entries are unpacked by the resource */
     public function toArray(Request $request): array
     {
         return [
@@ -21,6 +24,7 @@ class LabTestResource extends JsonResource
             'category' => $this->category,
             'default_timing_note' => $this->default_timing_note,
             'is_active' => $this->is_active,
+            $this->authorFields(true),
         ];
     }
 }

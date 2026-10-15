@@ -5,7 +5,6 @@ namespace App\Domain\Document\Builders;
 use App\Domain\Clinical\Actions\FinalizeVisitAction;
 use App\Domain\Clinical\Models\CaseHistory;
 use App\Domain\Clinical\Models\PrescribedMedicine;
-use App\Domain\Clinical\Specialty\SpecialtySchemas;
 use App\Domain\Clinical\TestKind;
 use App\Domain\Clinical\Vitals;
 use App\Domain\Document\PrescriptionDocument;
@@ -18,7 +17,6 @@ use App\Domain\Practice\Models\PrescriptionTemplate;
 use App\Domain\Practice\Models\TemplateSection;
 use App\Domain\Practice\SectionKey;
 use App\Domain\Practice\SectionZone;
-use App\Domain\Practice\SpecialtyBlock;
 use App\Domain\Practice\TemplateLayout;
 use App\Support\Bilingual;
 use Illuminate\Support\Collection;
@@ -128,7 +126,7 @@ final class PrescriptionDocumentBuilder
                     ? ' — '.$this->each(fn (string $lang) => $t->digits($c->duration_value, $lang).' '.$c->duration_unit->label((int) $c->duration_value, $lang))
                     : ''),
             ]))->values()->all(),
-            SectionKey::Specialty => $this->specialty($case),
+            SectionKey::Specialty => [], // no built-in specialty blocks; kept so saved templates still load
             SectionKey::Examination => $case->findings->map(fn ($f) => $this->item(null, [($f->label ? $f->label.': ' : '').$f->value]))->values()->all(),
             SectionKey::Vitals => $this->vitals($case->vitals),
             SectionKey::Diagnosis => filled($case->diagnosis) ? [$this->item(null, [(string) $case->diagnosis])] : [],
@@ -159,33 +157,6 @@ final class PrescriptionDocumentBuilder
         $lines = array_map(fn (string $lang) => $medicine->summary($lang, $this->t->options->banglaDigits), $this->t->locale()->languages());
 
         return array_values(array_unique(array_filter($lines, 'filled')));
-    }
-
-    /** @return list<Item> */
-    private function specialty(CaseHistory $case): array
-    {
-        $items = [];
-        foreach ($case->specialty_data ?? [] as $block => $values) {
-            $enum = SpecialtyBlock::tryFrom((string) $block);
-            if ($enum === null || $values === []) {
-                continue;
-            }
-            $fields = SpecialtySchemas::for($enum)->fields();
-            $lines = [];
-            foreach ($values as $field => $value) {
-                $def = $fields[$field] ?? null;
-                $label = $def ? $this->t->ui($def['label']) : (string) $field;
-                $shown = match (true) {
-                    isset($def['options'][$value]) => $this->t->ui($def['options'][$value]),
-                    ($def['type'] ?? null) === 'number' => $this->t->number($value),
-                    default => (string) $value,
-                };
-                $lines[] = "{$label}: {$shown}";
-            }
-            $items[] = $this->item($this->t->enum($enum), $lines);
-        }
-
-        return $items;
     }
 
     /**

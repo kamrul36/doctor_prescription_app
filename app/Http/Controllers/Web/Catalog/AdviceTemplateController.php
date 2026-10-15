@@ -51,7 +51,7 @@ class AdviceTemplateController extends Controller
     {
         Gate::authorize('update', $adviceTemplate);
 
-        return view('catalog.advice-templates.form', $this->formData($adviceTemplate));
+        return view('catalog.advice-templates.form', $this->formData($adviceTemplate->load(AdviceTemplate::AUTHORS)));
     }
 
     public function update(SaveAdviceTemplateRequest $request, AdviceTemplate $adviceTemplate, SaveCatalogItemAction $save): RedirectResponse

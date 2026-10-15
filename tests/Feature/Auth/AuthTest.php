@@ -12,9 +12,11 @@ class AuthTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected bool $seed = true;
-
-    protected string $seeder = AccessSeeder::class;
+    /** Seeded for every test: the in-memory database is shared by all test classes, so seeding at migrate time would only reach the first. */
+    protected function afterRefreshingDatabase(): void
+    {
+        $this->seed(AccessSeeder::class);
+    }
 
     public function test_user_can_login_with_valid_credentials(): void
     {
@@ -58,7 +60,7 @@ class AuthTest extends TestCase
         $this->postJson('/api/v1/auth/login', [
             'email' => $user->email,
             'password' => 'password',
-        ])->assertStatus(401)->assertJsonPath('errors.email.0', trans('auth.failed'));
+        ])->assertStatus(401)->assertJsonPath('errors.login.0', trans('auth.failed'));
     }
 
     public function test_login_is_locked_after_five_failed_attempts(): void

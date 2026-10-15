@@ -14,13 +14,13 @@
         <x-field-error for="name" />
     </div>
     <div>
-        <label for="email" class="block text-base font-medium">{{ __('Email') }} <x-required-mark /></label>
-        <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required maxlength="255" class="{{ $input }}">
+        <label for="email" class="block text-base font-medium">{{ __('Email') }}</label>
+        <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" maxlength="255" class="{{ $input }}">
         <x-field-error for="email" />
     </div>
     <div>
-        <label for="phone" class="block text-base font-medium">{{ __('Phone') }}</label>
-        <input id="phone" name="phone" type="tel" value="{{ old('phone', $user->phone) }}" maxlength="20" data-rule="phone" placeholder="01XXXXXXXXX" class="{{ $input }}">
+        <label for="phone" class="block text-base font-medium">{{ __('Phone') }} <x-required-mark /></label>
+        <input id="phone" name="phone" type="tel" value="{{ old('phone', $user->phone) }}" required maxlength="15" inputmode="numeric" data-rule="local-phone" placeholder="01XXXXXXXXX" class="{{ $input }}">
         <x-field-error for="phone" />
     </div>
     <div>

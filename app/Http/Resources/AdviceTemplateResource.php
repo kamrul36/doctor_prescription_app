@@ -3,13 +3,16 @@
 namespace App\Http\Resources;
 
 use App\Domain\Catalog\Models\AdviceTemplate;
+use App\Http\Resources\Concerns\HasAuthorFields;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin AdviceTemplate */
 class AdviceTemplateResource extends JsonResource
 {
-    /** @return array<string, mixed> */
+    use HasAuthorFields;
+
+    /** @return array<int|string, mixed> mergeWhen() entries are unpacked by the resource */
     public function toArray(Request $request): array
     {
         return [
@@ -23,6 +26,7 @@ class AdviceTemplateResource extends JsonResource
             'text_bn' => $this->text_bn,
             'is_default_for_template_id' => $this->is_default_for_template_id,
             'is_active' => $this->is_active,
+            $this->authorFields(true),
         ];
     }
 }

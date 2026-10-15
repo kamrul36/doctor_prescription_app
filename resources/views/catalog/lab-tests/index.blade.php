@@ -31,6 +31,7 @@
                     <th class="px-4 py-2">{{ __('Specialty') }}</th>
                     <th class="px-4 py-2">{{ __('Usual timing') }}</th>
                     <th class="px-4 py-2">{{ __('Status') }}</th>
+                    <th class="px-4 py-2">{{ __('Updated by') }}</th>
                     <th class="px-4 py-2"></th>
                 </tr>
             </thead>
@@ -42,6 +43,7 @@
                         <td class="px-4 py-2">{{ \App\Domain\Practice\Models\Specialty::labelFor($item->specialty) }}</td>
                         <td class="px-4 py-2">{{ $item->default_timing_note }}</td>
                         <td class="px-4 py-2">{{ $item->is_active ? __('Active') : __('Inactive') }}</td>
+                        <td class="px-4 py-2 text-gray-600">{{ $item->updater?->name ?? '—' }}</td>
                         <td class="px-4 py-2 text-right">
                             @can('update', $item)
                                 <a href="{{ route('catalog.lab-tests.edit', $item) }}" class="hover:underline">{{ __('Edit') }}</a>

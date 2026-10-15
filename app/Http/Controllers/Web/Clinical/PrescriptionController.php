@@ -7,11 +7,9 @@ use App\Domain\Clinical\Actions\FinalizeVisitAction;
 use App\Domain\Clinical\Actions\SaveVisitAction;
 use App\Domain\Clinical\Exceptions\PossibleDuplicatePatients;
 use App\Domain\Clinical\Models\CaseHistory;
-use App\Domain\Clinical\Specialty\SpecialtySchemas;
 use App\Domain\Clinical\VisitStatus;
 use App\Domain\Patient\Models\Patient;
 use App\Domain\Practice\Models\Doctor;
-use App\Domain\Practice\SpecialtyBlock;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Clinical\CancelVisitRequest;
 use App\Http\Requests\Clinical\SaveVisitRequest;
@@ -175,8 +173,6 @@ class PrescriptionController extends Controller
             'doctor' => $doctor,
             'patient' => $patient,
             'chambers' => $doctor->activeChambers(),
-            'schemas' => array_map(fn ($block) => SpecialtySchemas::for($block), $doctor->blocks()),
-            'hasDental' => in_array(SpecialtyBlock::Dental, $doctor->blocks(), true),
             'suggestedVisitType' => $suggested,
             'initial' => $this->initialRows($case),
             'candidates' => Patient::query()->whereIn('id', (array) session('patient_candidates', []))->get(),
@@ -198,7 +194,7 @@ class PrescriptionController extends Controller
             'complaints' => $case->complaints->map(fn ($c) => ['text' => $c->text, 'duration_value' => $c->duration_value, 'duration_unit' => $c->duration_unit?->value])->all(),
             'findings' => $case->findings->map(fn ($f) => ['label' => $f->label, 'value' => $f->value])->all(),
             'plan_items' => $case->planItems->map(fn ($p) => [
-                'procedure_id' => $p->procedure_id, 'description' => $p->description, 'tooth_no' => $p->tooth_no,
+                'procedure_id' => $p->procedure_id, 'description' => $p->description,
                 'status' => $p->status, 'fee' => $p->fee?->toDecimal(),
             ])->all(),
             'tests' => $case->tests->map(fn ($t) => [

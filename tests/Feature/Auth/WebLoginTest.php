@@ -11,9 +11,11 @@ class WebLoginTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected bool $seed = true;
-
-    protected string $seeder = AccessSeeder::class;
+    /** Seeded for every test: the in-memory database is shared by all test classes, so seeding at migrate time would only reach the first. */
+    protected function afterRefreshingDatabase(): void
+    {
+        $this->seed(AccessSeeder::class);
+    }
 
     public function test_guest_is_redirected_to_login(): void
     {
@@ -29,7 +31,7 @@ class WebLoginTest extends TestCase
     {
         $user = User::factory()->doctor()->create();
 
-        $this->post('/login', ['email' => $user->email, 'password' => 'password'])
+        $this->post('/login', ['login' => $user->email, 'password' => 'password'])
             ->assertRedirect(route('home'));
         $this->assertAuthenticatedAs($user, 'web');
 
@@ -44,9 +46,9 @@ class WebLoginTest extends TestCase
         $user = User::factory()->create();
 
         $this->from('/login')
-            ->post('/login', ['email' => $user->email, 'password' => 'nope'])
+            ->post('/login', ['login' => $user->email, 'password' => 'nope'])
             ->assertRedirect('/login')
-            ->assertSessionHasErrors('email');
+            ->assertSessionHasErrors('login');
         $this->assertGuest('web');
     }
 
@@ -54,8 +56,8 @@ class WebLoginTest extends TestCase
     {
         $user = User::factory()->inactive()->create();
 
-        $this->post('/login', ['email' => $user->email, 'password' => 'password'])
-            ->assertSessionHasErrors('email');
+        $this->post('/login', ['login' => $user->email, 'password' => 'password'])
+            ->assertSessionHasErrors('login');
         $this->assertGuest('web');
     }
 
@@ -64,14 +66,14 @@ class WebLoginTest extends TestCase
         $user = User::factory()->create();
 
         for ($i = 0; $i < 5; $i++) {
-            $this->post('/login', ['email' => $user->email, 'password' => 'nope']);
+            $this->post('/login', ['login' => $user->email, 'password' => 'nope']);
         }
 
         $this->from('/login')
-            ->post('/login', ['email' => $user->email, 'password' => 'password'])
+            ->post('/login', ['login' => $user->email, 'password' => 'password'])
             ->assertRedirect('/login')
-            ->assertSessionHasErrors('email');
-        $this->assertStringContainsString('Too many login attempts', session('errors')->first('email'));
+            ->assertSessionHasErrors('login');
+        $this->assertStringContainsString('Too many login attempts', session('errors')->first('login'));
         $this->assertGuest('web');
     }
 
@@ -89,7 +91,7 @@ class WebLoginTest extends TestCase
     public function test_session_from_before_deactivation_stays_revoked_after_reactivation(): void
     {
         $user = User::factory()->doctor()->create();
-        $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertRedirect();
+        $this->post('/login', ['login' => $user->email, 'password' => 'password'])->assertRedirect();
         $this->get('/')->assertOk();
 
         // Deactivated and reactivated without the session making a request in between.

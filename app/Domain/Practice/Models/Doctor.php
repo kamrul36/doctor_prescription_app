@@ -2,7 +2,6 @@
 
 namespace App\Domain\Practice\Models;
 
-use App\Domain\Practice\SpecialtyBlock;
 use App\Models\User;
 use App\Support\Concerns\HasBilingualFields;
 use Illuminate\Database\Eloquent\Collection;
@@ -60,16 +59,6 @@ class Doctor extends Model
     public function specialtyIds(): array
     {
         return $this->specialties->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
-    }
-
-    /**
-     * Built-in prescription blocks this doctor's active specialties bring to the pad.
-     *
-     * @return list<SpecialtyBlock>
-     */
-    public function blocks(): array
-    {
-        return $this->specialties->where('is_active', true)->pluck('block')->filter()->unique()->values()->all();
     }
 
     /**

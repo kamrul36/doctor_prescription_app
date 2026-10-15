@@ -4,7 +4,6 @@ namespace App\Domain\Clinical\Actions;
 
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Clinical\Models\CaseHistory;
-use App\Domain\Clinical\Specialty\SpecialtySchemas;
 use App\Domain\Clinical\TestKind;
 use App\Domain\Clinical\VisitStatus;
 use App\Domain\Clinical\Vitals;
@@ -61,6 +60,8 @@ class SaveVisitAction
 
             if ($creating) {
                 $patient = $this->patients->handle($data);
+                // Waits for, and then sees, a delete running at the same time (DeletePatientAction).
+                Patient::query()->whereKey($patient->id)->sharedLock()->firstOrFail(['id']);
                 $case = new CaseHistory;
                 $case->patient_id = $patient->id;
                 $case->doctor_id = $doctor->id;
@@ -81,7 +82,6 @@ class SaveVisitAction
                 'visit_type' => $data['visit_type'] ?? ($creating ? self::suggestVisitType($patient, $doctor)->value : $case->visit_type->value),
                 'vitals' => Vitals::clean($data['vitals'] ?? null),
                 'diagnosis' => $data['diagnosis'] ?? null,
-                'specialty_data' => SpecialtySchemas::clean($data['specialty_data'] ?? null),
                 'follow_up_value' => $data['follow_up_value'] ?? null,
                 'follow_up_unit' => isset($data['follow_up_value']) ? ($data['follow_up_unit'] ?? null) : null,
                 'follow_up_date' => $data['follow_up_date'] ?? null,
@@ -167,7 +167,7 @@ class SaveVisitAction
             'findings' => fn (array $r) => ['label' => $r['label'] ?? null, 'value' => $r['value']],
             'plan_items' => fn (array $r) => [
                 'procedure_id' => $r['procedure_id'] ?? null, 'description' => $r['description'],
-                'tooth_no' => $r['tooth_no'] ?? null, 'status' => $r['status'] ?? 'planned',
+                'status' => $r['status'] ?? 'planned',
                 'fee' => isset($r['fee']) && $r['fee'] !== '' ? Money::fromDecimal((string) $r['fee']) : null,
                 'is_billable' => (bool) ($r['is_billable'] ?? true),
             ],

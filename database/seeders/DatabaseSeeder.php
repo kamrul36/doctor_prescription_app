@@ -22,21 +22,26 @@ class DatabaseSeeder extends Seeder
         $adminPassword = config('access.seed_admin.password');
 
         if ($adminEmail && $adminPassword) {
-            $this->seedUser('Super Admin', $adminEmail, $adminPassword, Role::SUPER_ADMIN);
+            $this->seedUser('Super Admin', $adminEmail, config('access.seed_admin.phone') ?: null, $adminPassword, Role::SUPER_ADMIN);
         }
 
         if (app()->environment('local')) {
-            $this->seedUser('Demo Doctor', 'doctor@example.com', 'password', Role::DOCTOR);
-            $this->seedUser('Demo Assistant', 'assistant@example.com', 'password', Role::ASSISTANT);
+            $this->seedUser('Demo Doctor', 'doctor@example.com', '01700000001', 'password', Role::DOCTOR);
+            $this->seedUser('Demo Assistant', 'assistant@example.com', '01700000002', 'password', Role::ASSISTANT);
         }
     }
 
-    private function seedUser(string $name, string $email, string $password, string $role): void
+    /** An existing account keeps its values; only a missing phone is filled in. */
+    private function seedUser(string $name, string $email, ?string $phone, string $password, string $role): void
     {
         $user = User::query()->firstOrCreate(
             ['email' => $email],
-            ['name' => $name, 'password' => $password, 'is_active' => true],
+            ['name' => $name, 'phone' => $phone, 'password' => $password, 'is_active' => true],
         );
+
+        if ($user->phone === null && $phone !== null && User::query()->where('phone', $phone)->doesntExist()) {
+            $user->update(['phone' => $phone]);
+        }
 
         $user->assignRole($role);
     }

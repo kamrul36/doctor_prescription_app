@@ -3,37 +3,24 @@
 namespace Database\Seeders;
 
 use App\Domain\Practice\Models\PrescriptionTemplate;
-use App\Domain\Practice\Models\Specialty;
 use App\Domain\Practice\PrintMode;
 use App\Domain\Practice\SectionKey as K;
 use App\Domain\Practice\SectionZone as Z;
-use App\Domain\Practice\SpecialtyBlock;
 use App\Domain\Practice\TemplateLayout;
 use Illuminate\Database\Seeder;
 
 /**
  * Seeds the shared (doctor-less) general prescription template, A4. Every
- * doctor is a general physician; specialties on the doctor's profile fill the
- * `specialty` section instead of needing their own template. Sections with no
- * data (e.g. `specialty` for a general physician) print nothing.
+ * doctor is a general physician. No specialties are seeded: doctors and the
+ * admin create them. Sections with no data print nothing.
  *
  * A template that already exists is left alone, so edits made in Settings
- * survive a re-seed. This seeder never deletes: the older `dental_pad` and
- * `gynae_letterhead` templates were retired (deactivated) by a migration.
+ * survive a re-seed.
  */
 class PracticeSeeder extends Seeder
 {
     public function run(): void
     {
-        // The two specialties with built-in pad blocks. Created only when missing; an admin's
-        // renaming or deactivation is kept.
-        foreach ([
-            ['code' => 'gynae', 'name' => 'Gynaecology & Obstetrics', 'block' => SpecialtyBlock::Gynae],
-            ['code' => 'dental', 'name' => 'Dental', 'block' => SpecialtyBlock::Dental],
-        ] as $specialty) {
-            Specialty::query()->firstOrCreate(['code' => $specialty['code']], $specialty);
-        }
-
         foreach ($this->templates() as $definition) {
             $sections = $definition['sections'];
             unset($definition['sections']);

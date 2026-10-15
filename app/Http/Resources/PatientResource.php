@@ -3,13 +3,16 @@
 namespace App\Http\Resources;
 
 use App\Domain\Patient\Models\Patient;
+use App\Http\Resources\Concerns\HasAuthorFields;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin Patient */
 class PatientResource extends JsonResource
 {
-    /** @return array<string, mixed> */
+    use HasAuthorFields;
+
+    /** @return array<int|string, mixed> mergeWhen() entries are unpacked by the resource */
     public function toArray(Request $request): array
     {
         return [
@@ -34,6 +37,7 @@ class PatientResource extends JsonResource
             'notes' => $this->notes,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            $this->authorFields(),
         ];
     }
 }

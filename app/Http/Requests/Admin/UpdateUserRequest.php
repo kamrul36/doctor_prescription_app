@@ -21,7 +21,12 @@ class UpdateUserRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->has('phone')) {
-            $this->merge(['phone' => Phone::normalize($this->input('phone'))]);
+            $this->merge(['phone' => Phone::normalizeLocal($this->input('phone'))]);
+        }
+
+        // Email is optional; a blank one is stored as NULL, never ''.
+        if ($this->has('email') && blank($this->input('email'))) {
+            $this->merge(['email' => null]);
         }
     }
 
@@ -35,8 +40,8 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->targetUser())],
-            'phone' => ['sometimes', 'nullable', 'string', Phone::RULE],
+            'email' => ['sometimes', 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->targetUser())],
+            'phone' => ['sometimes', 'required', 'string', Phone::LOCAL_RULE, Rule::unique('users', 'phone')->ignore($this->targetUser())],
             'password' => ['sometimes', 'nullable', 'string', Password::min(8)],
             'is_active' => ['sometimes', 'boolean'],
             'roles' => ['sometimes', 'array'],
@@ -47,7 +52,11 @@ class UpdateUserRequest extends FormRequest
     /** @return array<string, string> */
     public function messages(): array
     {
-        return ['phone.regex' => __(Phone::MESSAGE), 'email.unique' => __('Another user already has this email.')];
+        return [
+            'phone.regex' => __(Phone::LOCAL_MESSAGE),
+            'phone.unique' => __('Another user already has this phone number.'),
+            'email.unique' => __('Another user already has this email.'),
+        ];
     }
 
     private function targetUser(): ?User

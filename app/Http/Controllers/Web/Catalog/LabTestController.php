@@ -50,7 +50,7 @@ class LabTestController extends Controller
     {
         Gate::authorize('update', $labTest);
 
-        return view('catalog.lab-tests.form', ['item' => $labTest]);
+        return view('catalog.lab-tests.form', ['item' => $labTest->load(LabTest::AUTHORS)]);
     }
 
     public function update(SaveLabTestRequest $request, LabTest $labTest, SaveCatalogItemAction $save): RedirectResponse

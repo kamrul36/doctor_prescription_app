@@ -17,6 +17,17 @@ final class Phone
 
     public const MESSAGE = 'Enter a phone number of 6 to 15 digits (spaces and dashes are fine).';
 
+    /** A local number without country code: 6 to 15 digits, nothing else. */
+    public const LOCAL_RULE = 'regex:/^\d{6,15}$/';
+
+    public const LOCAL_MESSAGE = 'Enter a phone number of 6 to 15 digits, without country code.';
+
+    /** Keeps digits only; every other character is dropped. */
+    public static function normalizeLocal(mixed $value): mixed
+    {
+        return is_string($value) ? (preg_replace('/\D+/', '', $value) ?: null) : $value;
+    }
+
     public static function normalize(mixed $value): mixed
     {
         return is_string($value) ? (preg_replace('/[\s().-]/', '', $value) ?: null) : $value;

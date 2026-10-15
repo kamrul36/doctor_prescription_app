@@ -8,6 +8,7 @@ use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\Models\PrescriptionTemplate;
 use App\Domain\Practice\Models\Specialty;
 use App\Support\Concerns\HasBilingualFields;
+use App\Support\Concerns\RecordsAuthors;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -29,6 +30,7 @@ class AdviceTemplate extends Model implements CatalogEntry
 {
     use HasBilingualFields;
     use HasSpecialty;
+    use RecordsAuthors;
     use SoftDeletes;
 
     // `doctor_id` is deliberately not fillable: the owner is set by the Action, never by the client.

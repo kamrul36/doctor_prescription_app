@@ -19,9 +19,14 @@
                     @method('DELETE')
                     <button type="submit" class="text-sm text-red-700 hover:underline">{{ __('Delete') }}</button>
                 </form>
+            @elsecan(\App\Domain\Access\Permission::PatientsDelete->value)
+                {{-- Has the permission, but the patient has visits. --}}
+                <span class="text-sm text-gray-500">{{ __('Only an administrator can delete a patient with prescriptions.') }}</span>
             @endcan
         </div>
     </div>
+
+    <x-authors :model="$patient" class="-mt-2 mb-4" />
 
     @php
         $rows = [

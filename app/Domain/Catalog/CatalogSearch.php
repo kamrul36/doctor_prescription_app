@@ -88,7 +88,7 @@ class CatalogSearch
             $this->whereAnyColumn($query, $model, '%'.$this->escape($term).'%');
         }
 
-        return $query->orderBy($model::sortColumn())->orderBy('id')
+        return $query->with(['creator:id,name', 'updater:id,name'])->orderBy($model::sortColumn())->orderBy('id')
             ->paginate(min(max($perPage, 1), 100), ['*'], 'page', max($page, 1));
     }
 

@@ -27,7 +27,7 @@ class ProblemDetailsTest extends TestCase
         $this->postJson('/api/v1/auth/login', [])
             ->assertStatus(422)
             ->assertHeader('Content-Type', 'application/problem+json')
-            ->assertJsonStructure(['type', 'title', 'status', 'detail', 'instance', 'errors' => ['email']]);
+            ->assertJsonStructure(['type', 'title', 'status', 'detail', 'instance', 'errors' => ['login']]);
     }
 
     public function test_web_routes_still_render_html(): void

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Practice;
 
+use App\Domain\Catalog\Models\LabTest;
 use App\Domain\Practice\Models\Chamber;
 use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\Models\PrescriptionTemplate;
@@ -10,7 +11,10 @@ use App\Models\User;
 use Database\Seeders\AccessSeeder;
 use Database\Seeders\PracticeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Tests\Support\Specialties;
 use Tests\TestCase;
 
 class PracticeSetupTest extends TestCase
@@ -54,22 +58,82 @@ class PracticeSetupTest extends TestCase
         $this->assertSame(12, PrescriptionTemplate::where('code', 'general')->firstOrFail()->sections()->count());
     }
 
-    public function test_reseeding_never_recreates_or_removes_retired_specialty_templates(): void
+    public function test_reseeding_does_not_recreate_the_old_specialty_templates(): void
     {
-        // A database migrated from the old seeds still holds the retired, inactive pads.
+        $this->seed(PracticeSeeder::class);
+
+        $this->assertSame(0, PrescriptionTemplate::whereIn('code', ['dental_pad', 'gynae_letterhead'])->count());
+        $this->assertSame(1, PrescriptionTemplate::count());
+    }
+
+    public function test_migration_deletes_retired_templates_and_down_restores_them(): void
+    {
+        $migration = require database_path('migrations/2026_10_16_000000_delete_retired_specialty_templates.php');
         $retired = PrescriptionTemplate::create([
             'code' => 'dental_pad', 'name' => 'Dental pad', 'layout' => 'sidebar_left', 'is_active' => false,
         ]);
+        $retired->sections()->create(['section_key' => 'complaints', 'zone' => 'left', 'label_en' => 'C/C', 'sort_order' => 0]);
+        $doctor = Doctor::create(['user_id' => User::factory()->create()->id, 'name_en' => 'Dr. A', 'default_template_id' => $retired->id]);
 
-        $this->seed(PracticeSeeder::class);
+        $migration->up();
 
-        $this->assertFalse($retired->fresh()->is_active);
-        $this->assertSame(0, PrescriptionTemplate::where('code', 'gynae_letterhead')->count());
-        $this->assertSame(2, PrescriptionTemplate::count());
+        $this->assertSame(1, PrescriptionTemplate::count());
+        $this->assertDatabaseMissing('prescription_templates', ['id' => $retired->id]);
+        $this->assertDatabaseMissing('prescription_template_sections', ['template_id' => $retired->id]);
+        $this->assertNull($doctor->fresh()->default_template_id);
+
+        $migration->down();
+
+        $this->assertSame('dental_pad', PrescriptionTemplate::findOrFail($retired->id)->code);
+        $this->assertSame(1, $retired->sections()->count());
+        $this->assertSame($retired->id, $doctor->fresh()->default_template_id);
+    }
+
+    public function test_migration_removes_the_builtin_specialties_and_down_restores_them(): void
+    {
+        $migration = require database_path('migrations/2026_10_16_000100_remove_builtin_specialties.php');
+        $migration->down(); // back to the old schema (re-adds `specialties.block`, and the specialties the first run removed)
+        DB::table('specialties')->delete();
+
+        $now = now();
+        $gynae = DB::table('specialties')->insertGetId(['code' => 'gynae', 'name' => 'Gynaecology', 'block' => 'gynae', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now]);
+        $dental = DB::table('specialties')->insertGetId(['code' => 'dental', 'name' => 'Dental', 'block' => 'dental', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now]);
+        $typed = DB::table('specialties')->insertGetId(['code' => 'cardiology', 'name' => 'Cardiology', 'block' => null, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now]);
+        $test = LabTest::create(['name' => 'FSH', 'specialty_id' => $gynae]);
+        $doctor = Doctor::create(['user_id' => User::factory()->create()->id, 'name_en' => 'Dr. A']);
+        $doctor->specialties()->attach($dental);
+
+        $migration->up();
+
+        $this->assertDatabaseMissing('specialties', ['id' => $gynae]);
+        $this->assertFalse(Specialty::findOrFail($dental)->is_active, 'a specialty a doctor has is kept, deactivated');
+        $this->assertTrue(Specialty::findOrFail($typed)->is_active);
+        $this->assertNull($test->fresh()->specialty_id);
+        $this->assertFalse(Schema::hasColumn('specialties', 'block'));
+
+        $migration->down();
+
+        $this->assertSame('gynae', DB::table('specialties')->where('id', $gynae)->value('block'));
+        $this->assertSame('dental', DB::table('specialties')->where('id', $dental)->value('block'));
+        $this->assertSame(1, (int) DB::table('specialties')->where('id', $dental)->value('is_active'));
+        $this->assertSame($gynae, $test->fresh()->specialty_id);
+
+        $migration->up(); // leave the schema as the app expects it
+    }
+
+    public function test_migration_refuses_to_delete_an_active_retired_template(): void
+    {
+        $migration = require database_path('migrations/2026_10_16_000000_delete_retired_specialty_templates.php');
+        PrescriptionTemplate::create(['code' => 'gynae_letterhead', 'name' => 'Gynae', 'layout' => 'single_column', 'is_active' => true]);
+
+        $this->expectException(\RuntimeException::class);
+        $migration->up();
     }
 
     public function test_assistant_can_read_but_not_change_setup(): void
     {
+        Specialties::make('gynae');
+        Specialties::make('dental');
         $chamber = Chamber::create(['name_en' => 'City Dental']);
         $assistant = User::factory()->assistant()->create();
         $headers = $this->bearer($assistant);
@@ -364,7 +428,7 @@ class PracticeSetupTest extends TestCase
 
     private function specialtyId(string $code): int
     {
-        return (int) Specialty::where('code', $code)->value('id');
+        return Specialties::make($code)->id;
     }
 
     /** @return list<string> */

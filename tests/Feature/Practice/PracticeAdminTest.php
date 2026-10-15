@@ -11,6 +11,7 @@ use Database\Seeders\AccessSeeder;
 use Database\Seeders\PracticeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Tests\Support\Specialties;
 use Tests\TestCase;
 
 /** Admin-managed setup: the specialty list, chambers, and which chambers each doctor works at. */
@@ -29,15 +30,16 @@ class PracticeAdminTest extends TestCase
 
     public function test_admin_manages_the_specialty_list_on_web(): void
     {
+        Specialties::make('gynae');
+        Specialties::make('dental');
         $this->actingAs(User::factory()->superAdmin()->create());
 
         $this->get('/admin/specialties')->assertOk()->assertSee('Gynaecology &amp; Obstetrics', false)->assertSee('Dental');
         $this->get('/admin/specialties/create')->assertOk();
-        $this->post('/admin/specialties', ['name' => 'Cardiology', 'block' => '', 'is_active' => '1'])->assertRedirect('/admin/specialties');
+        $this->post('/admin/specialties', ['name' => 'Cardiology', 'is_active' => '1'])->assertRedirect('/admin/specialties');
 
         $cardiology = Specialty::where('name', 'Cardiology')->firstOrFail();
         $this->assertSame('cardiology', $cardiology->code);
-        $this->assertNull($cardiology->block);
 
         // Renaming keeps the code; deactivating hides it from profiles but keeps the row.
         $this->put("/admin/specialties/{$cardiology->id}", ['name' => 'Cardiology & Medicine', 'is_active' => '0'])->assertRedirect('/admin/specialties');
@@ -51,8 +53,10 @@ class PracticeAdminTest extends TestCase
 
     public function test_specialty_api_lists_active_for_staff_and_writes_need_practice_manage(): void
     {
+        Specialties::make('gynae');
+        Specialties::make('dental');
         $admin = $this->bearer(User::factory()->superAdmin()->create());
-        $id = $this->postJson('/api/v1/specialties', ['name' => 'Paediatrics', 'block' => null], $admin)
+        $id = $this->postJson('/api/v1/specialties', ['name' => 'Paediatrics'], $admin)
             ->assertCreated()->assertJsonPath('data.code', 'paediatrics')->json('data.id');
         $this->putJson("/api/v1/specialties/{$id}", ['name' => 'Paediatrics', 'is_active' => false], $admin)->assertOk();
         $this->getJson('/api/v1/specialties?include_inactive=1', $admin)->assertJsonCount(3, 'data');
@@ -65,7 +69,6 @@ class PracticeAdminTest extends TestCase
         $this->putJson("/api/v1/specialties/{$id}", ['name' => 'X'], $doctor)->assertForbidden();
 
         $admin = $this->bearer(User::factory()->superAdmin()->create());
-        $this->postJson('/api/v1/specialties', ['name' => 'Y', 'block' => 'astro'], $admin)->assertUnprocessable()->assertJsonValidationErrors('block');
         $this->postJson('/api/v1/specialties', ['name' => 'DENTAL'], $admin)->assertUnprocessable()->assertJsonValidationErrors('name');
     }
 

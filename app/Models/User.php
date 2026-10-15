@@ -16,7 +16,7 @@ use Spatie\Permission\Traits\HasRoles;
 /**
  * @property int $id
  * @property string $name
- * @property string $email
+ * @property string|null $email optional; users log in with the email or the phone
  * @property string|null $phone
  * @property string|null $locale UI language (bn|en); null = app default
  * @property bool $is_active

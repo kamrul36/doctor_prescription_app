@@ -14,7 +14,7 @@ class LoginLockedOut extends ValidationException
 
     public static function after(int $seconds, string $message): self
     {
-        $e = self::withMessages(['email' => $message]);
+        $e = self::withMessages(['login' => $message]);
         $e->status = 429;
         $e->retryAfter = $seconds;
 

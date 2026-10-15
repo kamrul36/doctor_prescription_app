@@ -5,13 +5,13 @@ namespace Tests\Feature\Clinical;
 use App\Domain\Clinical\Models\CaseHistory;
 use App\Domain\Practice\Models\Chamber;
 use App\Domain\Practice\Models\Doctor;
-use App\Domain\Practice\Models\Specialty;
 use App\Models\User;
 use Database\Seeders\AccessSeeder;
 use Database\Seeders\CatalogSeeder;
 use Database\Seeders\PracticeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Tests\Support\Specialties;
 use Tests\TestCase;
 
 /** Pad fields reject a wrong format on the web and the API, and the pad mirrors the rules (spec §10.1). */
@@ -78,9 +78,8 @@ class PrescriptionPadValidationTest extends TestCase
             ->assertSee('inputmode="tel" maxlength="20" data-rule="phone"', false)
             ->assertSee('data-rule="dose-slot"', false)
             ->assertSee('data-rule="money"', false)
-            // From Vitals::FIELDS and the gynae schema, through ClientRules.
-            ->assertSee('name="vitals[bp_sys]" value="" inputmode="decimal" data-rule="integer" data-min="40" data-max="300"', false)
-            ->assertSee('name="specialty_data[gynae][lmp]" value="" placeholder="" data-rule="past-date"', false);
+            // From Vitals::FIELDS, through ClientRules.
+            ->assertSee('name="vitals[bp_sys]" value="" inputmode="decimal" data-rule="integer" data-min="40" data-max="300"', false);
     }
 
     public function test_a_finalize_problem_is_a_warning_toast_and_a_field_error(): void
@@ -104,7 +103,7 @@ class PrescriptionPadValidationTest extends TestCase
         $doctor = Doctor::create(['user_id' => $user->id, 'name_en' => 'Dr. '.$user->id]);
         $chamber = Chamber::create(['name_en' => 'Chamber '.$user->id]);
         $doctor->chambers()->attach($chamber->id);
-        $doctor->specialties()->attach(Specialty::whereIn('code', $specialties)->pluck('id'));
+        $doctor->specialties()->attach(Specialties::ids($specialties));
 
         return [$user, $chamber];
     }

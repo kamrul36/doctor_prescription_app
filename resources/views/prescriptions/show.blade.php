@@ -2,9 +2,7 @@
 
 @section('title', $case->prescription_no ?? __('Prescription'))
 
-@use('App\Domain\Clinical\Specialty\SpecialtySchemas')
 @use('App\Domain\Clinical\Vitals')
-@use('App\Domain\Practice\SpecialtyBlock')
 @use('App\Domain\Document\Support\PrintLocale')
 @use('App\Domain\Patient\Gender')
 @use('App\Domain\Patient\Models\Patient')
@@ -69,24 +67,6 @@
                         </ul>
                     </section>
                 @endif
-
-                @foreach ($case->specialty_data ?? [] as $block => $values)
-                    @php
-                        $enum = SpecialtyBlock::tryFrom($block);
-                        $fields = $enum ? SpecialtySchemas::for($enum)->fields() : [];
-                    @endphp
-                    @if ($enum)
-                        <section>
-                            <h2 class="{{ $h2 }}">{{ $enum->label() }}</h2>
-                            <dl class="grid grid-cols-[auto_1fr] gap-x-3">
-                                @foreach ($values as $key => $value)
-                                    <dt class="text-gray-600">{{ isset($fields[$key]) ? __($fields[$key]['label']) : $key }}</dt>
-                                    <dd>{{ isset($fields[$key]['options'][$value]) ? __($fields[$key]['options'][$value]) : $value }}</dd>
-                                @endforeach
-                            </dl>
-                        </section>
-                    @endif
-                @endforeach
 
                 @if ($case->findings->isNotEmpty())
                     <section>

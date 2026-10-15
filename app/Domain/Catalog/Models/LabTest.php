@@ -5,6 +5,7 @@ namespace App\Domain\Catalog\Models;
 use App\Domain\Catalog\CatalogEntry;
 use App\Domain\Catalog\Concerns\HasSpecialty;
 use App\Domain\Practice\Models\Specialty;
+use App\Support\Concerns\RecordsAuthors;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class LabTest extends Model implements CatalogEntry
 {
     use HasSpecialty;
+    use RecordsAuthors;
     use SoftDeletes;
 
     /** @var list<string> */

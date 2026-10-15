@@ -21,6 +21,10 @@ const RULES = {
         }
         return /^\+?\d{6,15}$/.test(digits) ? '' : t('Enter a phone number of 6 to 15 digits.');
     },
+    // Local number without country code (App\Support\Phone::LOCAL_RULE); non-digits are stripped on input.
+    'local-phone'(value) {
+        return /^\d{6,15}$/.test(value) ? '' : t('Enter a phone number of 6 to 15 digits, without country code.');
+    },
     // Chamber/branch contact numbers: comma-separated, each 5 to 15 digits (App\Support\Phone::contactList).
     'phone-list'(value, el) {
         const numbers = value.split(',').map((n) => n.trim()).filter(Boolean);
@@ -157,6 +161,9 @@ export default function validatedForm(serverErrors = {}) {
         onInput(el) {
             if (!isField(el)) {
                 return;
+            }
+            if (el.dataset.rule === 'local-phone' && /\D/.test(el.value)) {
+                el.value = el.value.replace(/\D+/g, '');
             }
             clearTimeout(this.timers[el.name]);
             this.timers[el.name] = setTimeout(() => this.check(el), 300);

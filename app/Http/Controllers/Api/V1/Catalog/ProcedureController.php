@@ -26,7 +26,7 @@ class ProcedureController extends CatalogApiController
         /** @var User $actor */
         $actor = $request->user();
 
-        return (new ProcedureResource($save->handle($actor, Procedure::class, null, $request->validated())))
+        return (new ProcedureResource($save->handle($actor, Procedure::class, null, $request->validated())->load(Procedure::AUTHORS)))
             ->response()->setStatusCode(201);
     }
 
@@ -34,7 +34,7 @@ class ProcedureController extends CatalogApiController
     {
         Gate::authorize('view', $procedure);
 
-        return new ProcedureResource($procedure);
+        return new ProcedureResource($procedure->load(Procedure::AUTHORS));
     }
 
     public function update(SaveProcedureRequest $request, Procedure $procedure, SaveCatalogItemAction $save): ProcedureResource
@@ -42,7 +42,7 @@ class ProcedureController extends CatalogApiController
         /** @var User $actor */
         $actor = $request->user();
 
-        return new ProcedureResource($save->handle($actor, Procedure::class, $procedure, $request->validated()));
+        return new ProcedureResource($save->handle($actor, Procedure::class, $procedure, $request->validated())->load(Procedure::AUTHORS));
     }
 
     public function destroy(Procedure $procedure, DeleteCatalogItemAction $delete): Response

@@ -14,6 +14,7 @@ use Database\Seeders\AccessSeeder;
 use Database\Seeders\CatalogSeeder;
 use Database\Seeders\PracticeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\Specialties;
 use Tests\TestCase;
 
 /** The prescription pad on the web: pad-first flow, auto-registration, drafts and finalizing. */
@@ -210,28 +211,20 @@ class PrescriptionPadTest extends TestCase
         $this->assertSame(VisitStatus::Draft, $case->fresh()->status);
     }
 
-    public function test_only_the_doctors_own_specialty_blocks_and_chambers_are_accepted(): void
+    public function test_only_the_doctors_own_chambers_are_accepted(): void
     {
-        [$gynaeUser, , $chamber] = $this->doctor(['gynae']);
+        [$user, , $chamber] = $this->doctor(['gynae']);
         $patient = Patient::factory()->create();
 
-        $this->actingAs($gynaeUser)->get('/prescriptions/create')->assertSee('Menstrual &amp; obstetric history', false)->assertDontSee('Dental findings');
-        $this->post('/prescriptions', $this->pad($chamber, [
-            'specialty_data' => ['gynae' => ['parity' => 'P2+1', 'lmp' => now()->subDays(20)->toDateString(), 'cycle_days' => '']],
-        ]) + ['patient_id' => $patient->id])->assertSessionHasNoErrors();
-        $this->assertSame(['gynae' => ['parity' => 'P2+1', 'lmp' => now()->subDays(20)->toDateString()]], CaseHistory::firstOrFail()->specialty_data);
-
-        $this->from('/prescriptions/create')->post('/prescriptions', $this->pad($chamber, ['specialty_data' => ['dental' => ['findings' => 'Calculus']]]) + ['patient_id' => $patient->id])
-            ->assertSessionHasErrors('specialty_data');
-
-        // A general physician has no blocks at all.
-        [$generalUser, , $generalChamber] = $this->doctor();
-        $this->actingAs($generalUser)->from('/prescriptions/create')
-            ->post('/prescriptions', $this->pad($generalChamber, ['specialty_data' => ['gynae' => ['parity' => 'P1']]]) + ['patient_id' => $patient->id])
-            ->assertSessionHasErrors('specialty_data');
+        // The pad has no specialty forms; whatever is sent for them is not stored.
+        $this->actingAs($user)->get('/prescriptions/create')->assertOk()->assertDontSee('specialty_data');
+        $this->post('/prescriptions', $this->pad($chamber, ['specialty_data' => ['gynae' => ['parity' => 'P2+1']]]) + ['patient_id' => $patient->id])
+            ->assertSessionHasNoErrors();
+        $this->assertNull(CaseHistory::firstOrFail()->specialty_data);
 
         // Someone else's chamber is refused.
-        $this->from('/prescriptions/create')->post('/prescriptions', $this->pad($chamber) + ['patient_id' => $patient->id])
+        [$other] = $this->doctor();
+        $this->actingAs($other)->from('/prescriptions/create')->post('/prescriptions', $this->pad($chamber) + ['patient_id' => $patient->id])
             ->assertSessionHasErrors('chamber_id');
     }
 
@@ -266,10 +259,9 @@ class PrescriptionPadTest extends TestCase
         $this->getJson('/lookup/lab-tests?search=f')->assertUnauthorized();
 
         $names = $this->actingAs($user)->getJson('/lookup/lab-tests?search=f&take=10')->assertOk()->json('data.*.name');
-        // Gynae tests (FSH) rank with the general ones, before other specialties' items.
-        $this->assertContains('FSH', $names);
-        $this->getJson('/lookup/procedures?search=sca')->assertOk()->assertJsonPath('data.0.code', 'SCALING');
-        $this->getJson('/lookup/advice-templates?search=ante')->assertOk()->assertJsonPath('data.0.title', 'Antenatal advice');
+        $this->assertContains('Fasting blood sugar (FBS)', $names);
+        $this->getJson('/lookup/procedures?search=dre')->assertOk()->assertJsonPath('data.0.code', 'DRESSING');
+        $this->getJson('/lookup/advice-templates?search=gene')->assertOk()->assertJsonPath('data.0.title', 'General advice');
         $this->getJson('/lookup/patients?q=zzzz')->assertOk()->assertJsonPath('data', []);
     }
 
@@ -285,7 +277,7 @@ class PrescriptionPadTest extends TestCase
         $doctor = Doctor::create(['user_id' => $user->id, 'name_en' => 'Dr. '.$user->id]);
         $chamber = Chamber::create(['name_en' => 'Chamber '.$user->id]);
         $doctor->chambers()->attach($chamber->id);
-        $doctor->specialties()->attach(Specialty::whereIn('code', $specialties)->pluck('id'));
+        $doctor->specialties()->attach(Specialties::ids($specialties));
 
         return [$user, $doctor, $chamber];
     }

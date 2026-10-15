@@ -3,9 +3,7 @@
 namespace App\Http\Requests\Practice;
 
 use App\Domain\Practice\Models\Specialty;
-use App\Domain\Practice\SpecialtyBlock;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /** Create or update a specialty (the route has no {specialty} when creating). */
 class SaveSpecialtyRequest extends FormRequest
@@ -39,8 +37,6 @@ class SaveSpecialtyRequest extends FormRequest
                     $fail(__('This specialty is already in the list.'));
                 }
             }],
-            // Optional built-in prescription block (menstrual history, dental findings).
-            'block' => ['nullable', Rule::enum(SpecialtyBlock::class)],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }

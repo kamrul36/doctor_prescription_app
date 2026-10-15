@@ -7,13 +7,11 @@ use App\Domain\Clinical\DoseUnit;
 use App\Domain\Clinical\DurationUnit;
 use App\Domain\Clinical\Models\CaseHistory;
 use App\Domain\Clinical\PeriodUnit;
-use App\Domain\Clinical\Specialty\SpecialtySchemas;
 use App\Domain\Clinical\TestKind;
 use App\Domain\Clinical\ValueObjects\DosePattern;
 use App\Domain\Clinical\ValueObjects\Duration;
 use App\Domain\Clinical\Vitals;
 use App\Domain\Patient\Gender;
-use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\VisitType;
 use App\Support\Phone;
 use Illuminate\Foundation\Http\FormRequest;
@@ -123,12 +121,10 @@ class SaveVisitRequest extends FormRequest
 
             ...Vitals::rules(),
             'diagnosis' => ['nullable', 'string', 'max:2000'],
-            ...SpecialtySchemas::rules($this->doctor()?->blocks() ?? []),
 
             'plan_items' => ['sometimes', 'array', 'max:30'],
             'plan_items.*.procedure_id' => ['nullable', 'integer', Rule::exists('procedures', 'id')],
             'plan_items.*.description' => ['required', 'string', 'max:500'],
-            'plan_items.*.tooth_no' => ['nullable', 'string', 'max:32'],
             'plan_items.*.status' => ['nullable', Rule::in(['planned', 'done'])],
             'plan_items.*.fee' => ['nullable', 'regex:/^\d{1,7}(\.\d{1,2})?$/'],
             'plan_items.*.is_billable' => ['nullable', 'boolean'],
@@ -211,10 +207,5 @@ class SaveVisitRequest extends FormRequest
             'patient.phone' => __('phone'), 'chamber_id' => __('chamber'), 'medicines.*.name' => __('medicine name'),
             'tests.*.name' => __('test name'), 'complaints.*.text' => __('complaint'),
         ];
-    }
-
-    private function doctor(): ?Doctor
-    {
-        return Doctor::query()->where('user_id', $this->user()?->id)->with('specialties')->first();
     }
 }

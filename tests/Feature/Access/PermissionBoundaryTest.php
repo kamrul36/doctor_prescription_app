@@ -21,9 +21,11 @@ class PermissionBoundaryTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected bool $seed = true;
-
-    protected string $seeder = AccessSeeder::class;
+    /** Seeded for every test: the in-memory database is shared by all test classes, so seeding at migrate time would only reach the first. */
+    protected function afterRefreshingDatabase(): void
+    {
+        $this->seed(AccessSeeder::class);
+    }
 
     protected function setUp(): void
     {
@@ -92,6 +94,8 @@ class PermissionBoundaryTest extends TestCase
         $rows = [
             [Permission::PatientsRead, true, true],
             [Permission::PatientsWrite, true, true],
+            // Deleting is granted by the admin; assistants do not have it by default.
+            [Permission::PatientsDelete, true, false],
             [Permission::CasesRead, true, true],
             [Permission::CasesReadPrivate, true, false],
             [Permission::CasesWrite, true, false],
@@ -107,6 +111,7 @@ class PermissionBoundaryTest extends TestCase
             [Permission::ReportsBasic, true, true],
             [Permission::TemplatesManage, true, false],
             [Permission::CatalogManage, true, false],
+            [Permission::CatalogDelete, true, false],
             // Chambers, the specialty list and chamber assignment: admin only by default.
             [Permission::PracticeManage, false, false],
             [Permission::UsersManage, false, false],

@@ -2,7 +2,6 @@
 
 namespace App\Domain\Practice\Models;
 
-use App\Domain\Practice\SpecialtyBlock;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -19,20 +18,19 @@ use Illuminate\Support\Str;
  * @property int $id
  * @property string $code
  * @property string $name
- * @property SpecialtyBlock|null $block
  * @property bool $is_active
  * @property int|null $created_by
  */
 class Specialty extends Model
 {
-    protected $fillable = ['code', 'name', 'block', 'is_active'];
+    protected $fillable = ['code', 'name', 'is_active'];
 
     /** @var array<string, mixed> */
     protected $attributes = ['is_active' => true];
 
     protected function casts(): array
     {
-        return ['block' => SpecialtyBlock::class, 'is_active' => 'boolean'];
+        return ['is_active' => 'boolean'];
     }
 
     /** @return BelongsToMany<Doctor, $this> */

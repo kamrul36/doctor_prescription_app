@@ -26,7 +26,7 @@ class AdviceTemplateController extends CatalogApiController
         /** @var User $actor */
         $actor = $request->user();
 
-        return (new AdviceTemplateResource($save->handle($actor, AdviceTemplate::class, null, $request->validated())))
+        return (new AdviceTemplateResource($save->handle($actor, AdviceTemplate::class, null, $request->validated())->load(AdviceTemplate::AUTHORS)))
             ->response()->setStatusCode(201);
     }
 
@@ -34,7 +34,7 @@ class AdviceTemplateController extends CatalogApiController
     {
         Gate::authorize('view', $adviceTemplate);
 
-        return new AdviceTemplateResource($adviceTemplate);
+        return new AdviceTemplateResource($adviceTemplate->load(AdviceTemplate::AUTHORS));
     }
 
     public function update(SaveAdviceTemplateRequest $request, AdviceTemplate $adviceTemplate, SaveCatalogItemAction $save): AdviceTemplateResource
@@ -42,7 +42,7 @@ class AdviceTemplateController extends CatalogApiController
         /** @var User $actor */
         $actor = $request->user();
 
-        return new AdviceTemplateResource($save->handle($actor, AdviceTemplate::class, $adviceTemplate, $request->validated()));
+        return new AdviceTemplateResource($save->handle($actor, AdviceTemplate::class, $adviceTemplate, $request->validated())->load(AdviceTemplate::AUTHORS));
     }
 
     public function destroy(AdviceTemplate $adviceTemplate, DeleteCatalogItemAction $delete): Response

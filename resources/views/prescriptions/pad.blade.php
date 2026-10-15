@@ -24,7 +24,6 @@
     }
     $visitType = old('visit_type', $case?->visit_type->value ?? $suggestedVisitType?->value ?? VisitType::New->value);
     $vitals = old('vitals', $case?->vitals ?? []);
-    $specialty = old('specialty_data', $case?->specialty_data ?? []);
     $field = 'w-full rounded px-2 py-1.5 text-sm ring-1 ring-gray-300';
     $label = 'mb-1 block text-sm font-medium text-gray-600';
     $card = 'rounded-xl border border-gray-200 bg-white p-4 shadow-sm';
@@ -32,7 +31,7 @@
     $addBtn = 'ml-auto rounded px-2 py-0.5 text-xs font-medium normal-case tracking-normal text-teal-800 ring-1 ring-teal-700 hover:bg-teal-50';
     $removeBtn = 'inline-flex cursor-pointer h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-red-50 hover:text-red-700 focus:ring-2 focus:ring-red-300 focus:outline-none';
     $error = 'text-sm text-red-700';
-    // Field rules mirror SaveVisitRequest; rules kept in PHP (vitals, specialty blocks) are mapped by ClientRules.
+    // Field rules mirror SaveVisitRequest; rules kept in PHP (vitals) are mapped by ClientRules.
     $rulesOf = fn (array $rules) => \App\Support\ClientRules::attributes($rules);
 @endphp
 
@@ -195,39 +194,6 @@
                     </template>
                 </section>
 
-                @foreach ($schemas as $schema)
-                    @php
-                        $block = $schema->block()->value;
-                    @endphp
-                    <section class="{{ $card }}">
-                        <h2 class="{{ $h2 }}">{{ $schema->block()->label() }}</h2>
-                        <div class="grid gap-3 sm:grid-cols-2">
-                            @foreach ($schema->fields() as $key => $def)
-                                @php
-                                    $value = $specialty[$block][$key] ?? '';
-                                @endphp
-                                <div @class(['sm:col-span-2' => $def['type'] === 'textarea'])>
-                                    <label class="{{ $label }}" for="sp_{{ $block }}_{{ $key }}">{{ __($def['label']) }}</label>
-                                    @if ($def['type'] === 'textarea')
-                                        <textarea id="sp_{{ $block }}_{{ $key }}" name="specialty_data[{{ $block }}][{{ $key }}]" rows="2" placeholder="{{ isset($def['hint']) ? __($def['hint']) : '' }}" {{ $rulesOf($def['rules']) }} class="{{ $field }}">{{ $value }}</textarea>
-                                    @elseif ($def['type'] === 'select')
-                                        <select id="sp_{{ $block }}_{{ $key }}" name="specialty_data[{{ $block }}][{{ $key }}]" class="{{ $field }}">
-                                            <option value="">—</option>
-                                            @foreach ($def['options'] as $optValue => $optLabel)
-                                                <option value="{{ $optValue }}" @selected((string) $value === (string) $optValue)>{{ __($optLabel) }}</option>
-                                            @endforeach
-                                        </select>
-                                    @else
-                                        <input id="sp_{{ $block }}_{{ $key }}" type="{{ $def['type'] === 'number' ? 'text' : $def['type'] }}" @if ($def['type'] === 'number') inputmode="numeric" @endif
-                                               name="specialty_data[{{ $block }}][{{ $key }}]" value="{{ $value }}" placeholder="{{ isset($def['hint']) ? __($def['hint']) : '' }}" {{ $rulesOf($def['rules']) }} class="{{ $field }}">
-                                    @endif
-                                    <p class="{{ $error }}" x-text="err(@js("specialty_data.{$block}.{$key}"))"></p>
-                                </div>
-                            @endforeach
-                        </div>
-                    </section>
-                @endforeach
-
                 <section class="{{ $card }}" x-data="rowList(@js($rows('findings')), { label: '', value: '' })">
                     <h2 class="{{ $h2 }}">{{ __('On examination') }} <button type="button" @click="add()" class="{{ $addBtn }}">{{ __('+ Add') }}</button></h2>
                     <template x-for="(row, i) in rows" :key="row._key">
@@ -263,19 +229,16 @@
                     <p id="diagnosis-error" class="{{ $error }}" x-text="err('diagnosis')"></p>
                 </section>
 
-                <section class="{{ $card }}" x-data="rowList(@js($rows('plan_items')), { procedure_id: '', description: '', tooth_no: '', status: 'planned', fee: '' })">
+                <section class="{{ $card }}" x-data="rowList(@js($rows('plan_items')), { procedure_id: '', description: '', status: 'planned', fee: '' })">
                     <h2 class="{{ $h2 }}">{{ __('Treatment plan') }} <button type="button" @click="add()" class="{{ $addBtn }}">{{ __('+ Add') }}</button></h2>
                     <template x-for="(row, i) in rows" :key="row._key">
-                        <div data-row class="mb-2 grid items-center gap-2 {{ $hasDental ? 'grid-cols-[1fr_4.5rem_6rem_5.5rem_auto]' : 'grid-cols-[1fr_6rem_5.5rem_auto]' }}">
+                        <div data-row class="mb-2 grid grid-cols-[1fr_6rem_5.5rem_auto] items-center gap-2">
                             <input type="hidden" :name="`plan_items[${i}][procedure_id]`" :value="row.procedure_id ?? ''">
                             @include('prescriptions._typeahead', [
                                 'url' => route('lookup.procedures'), 'label' => 'name_en', 'model' => 'row.description',
                                 'name' => '`plan_items[${i}][description]`', 'placeholder' => __('Procedure'), 'maxlength' => 500,
                                 'picked' => "row.procedure_id = item ? item.id : ''; if (item && item.default_fee && !row.fee) row.fee = item.default_fee;",
                             ])
-                            @if ($hasDental)
-                                <input :name="`plan_items[${i}][tooth_no]`" x-model="row.tooth_no" maxlength="32" placeholder="{{ __('Tooth') }}" class="{{ $field }}">
-                            @endif
                             <input :name="`plan_items[${i}][fee]`" x-model="row.fee" inputmode="decimal" data-rule="money" placeholder="{{ __('Fee ৳') }}" class="{{ $field }}">
                             <select :name="`plan_items[${i}][status]`" x-model="row.status" class="{{ $field }}">
                                 <option value="planned">{{ __('Planned') }}</option>

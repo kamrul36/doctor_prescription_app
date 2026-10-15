@@ -10,6 +10,7 @@ use App\Domain\Patient\PatientSearchQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Patient\SavePatientRequest;
 use App\Http\Resources\PatientResource;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -34,12 +35,14 @@ class PatientController extends Controller
             $this->audit->log('patient.searched', null, ['results' => $results->total()]);
         }
 
+        (new EloquentCollection($results->items()))->load(Patient::AUTHORS);
+
         return PatientResource::collection($results);
     }
 
     public function store(SavePatientRequest $request, SavePatientAction $save): JsonResponse
     {
-        return (new PatientResource($save->handle(null, $request->validated())))
+        return (new PatientResource($save->handle(null, $request->validated())->load(Patient::AUTHORS)))
             ->response()->setStatusCode(201);
     }
 
@@ -49,7 +52,7 @@ class PatientController extends Controller
 
         $this->audit->log('patient.viewed', $patient);
 
-        return new PatientResource($patient);
+        return new PatientResource($patient->load(Patient::AUTHORS));
     }
 
     /** The few fields shown at the top of a visit. */
@@ -74,14 +77,14 @@ class PatientController extends Controller
 
     public function update(SavePatientRequest $request, Patient $patient, SavePatientAction $save): PatientResource
     {
-        return new PatientResource($save->handle($patient, $request->validated()));
+        return new PatientResource($save->handle($patient, $request->validated())->load(Patient::AUTHORS));
     }
 
-    public function destroy(Patient $patient, DeletePatientAction $delete): Response
+    public function destroy(Request $request, Patient $patient, DeletePatientAction $delete): Response
     {
         Gate::authorize('delete', $patient);
 
-        $delete->handle($patient);
+        $delete->handle($request->user(), $patient);
 
         return response()->noContent();
     }

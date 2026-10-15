@@ -17,7 +17,6 @@
                 <tr>
                     <th class="px-4 py-2">{{ __('Name') }}</th>
                     <th class="px-4 py-2">{{ __('Code') }}</th>
-                    <th class="px-4 py-2">{{ __('Prescription block') }}</th>
                     <th class="px-4 py-2">{{ __('Doctors') }}</th>
                     <th class="px-4 py-2">{{ __('Status') }}</th>
                     <th class="px-4 py-2"></th>
@@ -28,7 +27,6 @@
                     <tr class="border-b last:border-0">
                         <td class="px-4 py-2 font-medium">{{ $specialty->name }}</td>
                         <td class="px-4 py-2"><code>{{ $specialty->code }}</code></td>
-                        <td class="px-4 py-2">{{ $specialty->block?->label() ?? '—' }}</td>
                         <td class="px-4 py-2">{{ $specialty->doctors_count }}</td>
                         <td class="px-4 py-2">{{ $specialty->is_active ? __('Active') : __('Inactive') }}</td>
                         <td class="px-4 py-2 text-right">
@@ -36,7 +34,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">{{ __('No specialties yet.') }}</td></tr>
+                    <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">{{ __('No specialties yet.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -14,6 +14,7 @@ use Database\Seeders\AccessSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Tests\Support\Specialties;
 use Tests\TestCase;
 
 class CatalogApiTest extends TestCase
@@ -57,7 +58,7 @@ class CatalogApiTest extends TestCase
     /** Id of a seeded specialty (the specialties migration seeds gynae and dental). */
     private function sp(string $code): int
     {
-        return (int) Specialty::where('code', $code)->value('id');
+        return Specialties::make($code)->id;
     }
 
     private function inactiveSpecialty(): int

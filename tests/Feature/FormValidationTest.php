@@ -32,7 +32,8 @@ class FormValidationTest extends TestCase
     {
         return [
             // [who, web url, api url, valid payload, overrides, error key]
-            'user phone with letters' => ['admin', '/admin/users', '/api/v1/users', 'user', ['phone' => '0171abc0000'], 'phone'],
+            'user phone too short' => ['admin', '/admin/users', '/api/v1/users', 'user', ['phone' => '01712'], 'phone'],
+            'user without phone' => ['admin', '/admin/users', '/api/v1/users', 'user', ['phone' => ''], 'phone'],
             'user email' => ['admin', '/admin/users', '/api/v1/users', 'user', ['email' => 'not-an-email'], 'email'],
             'user short password' => ['admin', '/admin/users', '/api/v1/users', 'user', ['password' => 'short'], 'password'],
             'role name with capitals' => ['admin', '/admin/roles', '/api/v1/roles', 'role', ['name' => 'Receptionist'], 'name'],
@@ -118,7 +119,7 @@ class FormValidationTest extends TestCase
     public static function forms(): array
     {
         return [
-            'users' => ['admin', '/admin/users/create', ['data-rule="phone"', 'minlength="8"', 'x-text="err(\'email\')"']],
+            'users' => ['admin', '/admin/users/create', ['data-rule="local-phone"', 'minlength="8"', 'x-text="err(\'email\')"']],
             'roles' => ['admin', '/admin/roles/create', ['data-pattern="[a-z][a-z0-9_]*"', 'id="permissions-error"']],
             'specialties' => ['admin', '/admin/specialties/create', ['minlength="2" maxlength="100"']],
             'chambers' => ['admin', '/admin/chambers/create', ['data-rule="phone-list" data-max-items="4"', 'rowErr(`branches.${i}`)']],
@@ -127,7 +128,7 @@ class FormValidationTest extends TestCase
             'advice' => ['doctor', '/catalog/advice-templates/create', ['x-text="err(\'text_en\')"']],
             'templates' => ['doctor', '/settings/templates/create', ['data-rule="integer" data-min="0" data-max="100"', 'data-max="999"']],
             'my profile' => ['doctor', '/settings/doctor', ['data-rule="list" data-max-items="5"', 'maxlength="32"']],
-            'login' => ['guest', '/login', ['x-text="err(\'email\')"']],
+            'login' => ['guest', '/login', ['x-text="err(\'login\')"']],
         ];
     }
 
@@ -162,7 +163,7 @@ class FormValidationTest extends TestCase
     /** @return array<string, mixed> */
     private function user(): array
     {
-        return ['name' => 'New', 'email' => 'new@example.com', 'password' => 'secret-pass', 'roles' => ['assistant']];
+        return ['name' => 'New', 'email' => 'new@example.com', 'phone' => '01712345000', 'password' => 'secret-pass', 'roles' => ['assistant']];
     }
 
     /** @return array<string, mixed> */

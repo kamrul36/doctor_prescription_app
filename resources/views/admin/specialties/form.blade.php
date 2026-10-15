@@ -23,17 +23,6 @@
                     <p class="mt-1 text-sm text-gray-500">{!! __('Code :code stays the same when you rename.', ['code' => '<code>'.e($specialty->code).'</code>']) !!}</p>
                 @endif
             </div>
-            <div>
-                <label for="block" class="block text-base font-medium">{{ __('Prescription block') }}</label>
-                <select id="block" name="block" class="{{ $input }}">
-                    <option value="">{{ __('None (only catalog suggestions)') }}</option>
-                    @foreach (\App\Domain\Practice\SpecialtyBlock::cases() as $block)
-                        <option value="{{ $block->value }}" @selected(old('block', $specialty->block?->value) === $block->value)>{{ $block->label() }}</option>
-                    @endforeach
-                </select>
-                <x-field-error for="block" />
-                <p class="mt-1 text-sm text-gray-500">{{ __('Extra fields shown on the prescription pad for doctors with this specialty.') }}</p>
-            </div>
         </div>
 
         <label class="mt-4 flex items-center gap-2 text-sm">

@@ -17,7 +17,7 @@ class UpdateUserAction
     /**
      * Fields left out of $data are not changed; an empty password is ignored.
      *
-     * @param  array{name?: string, email?: string, phone?: string|null, password?: string|null, is_active?: bool, roles?: list<string>}  $data
+     * @param  array{name?: string, email?: string|null, phone?: string, password?: string|null, is_active?: bool, roles?: list<string>}  $data
      */
     public function handle(User $actor, User $user, array $data): User
     {

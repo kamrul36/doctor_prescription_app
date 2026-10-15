@@ -16,7 +16,6 @@ class SpecialtyResource extends JsonResource
             'id' => $this->id,
             'code' => $this->code,
             'name' => $this->name,
-            'block' => $this->block?->value,
             'is_active' => $this->is_active,
             'doctors_count' => $this->whenCounted('doctors'),
         ];

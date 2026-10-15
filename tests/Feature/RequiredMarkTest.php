@@ -23,7 +23,7 @@ class RequiredMarkTest extends TestCase
     public function test_required_labels_carry_a_red_asterisk_and_optional_ones_do_not(): void
     {
         $this->get('/login')->assertOk()
-            ->assertSee('Email '.self::MARK.'</label>', false)
+            ->assertSee('Email or phone '.self::MARK.'</label>', false)
             ->assertSee('Password '.self::MARK.'</label>', false);
 
         $this->actingAs(User::factory()->doctor()->create())->get('/patients/create')->assertOk()

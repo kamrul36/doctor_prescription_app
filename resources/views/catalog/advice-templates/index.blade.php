@@ -31,6 +31,7 @@
                     <th class="px-4 py-2">{{ __('Owner') }}</th>
                     <th class="px-4 py-2">{{ __('Default') }}</th>
                     <th class="px-4 py-2">{{ __('Status') }}</th>
+                    <th class="px-4 py-2">{{ __('Updated by') }}</th>
                     <th class="px-4 py-2"></th>
                 </tr>
             </thead>
@@ -42,6 +43,7 @@
                         <td class="px-4 py-2">{{ $item->doctor_id === null ? "Shared" : "Private" }}</td>
                         <td class="px-4 py-2">{{ $item->defaultForTemplate?->name ?? "—" }}</td>
                         <td class="px-4 py-2">{{ $item->is_active ? __('Active') : __('Inactive') }}</td>
+                        <td class="px-4 py-2 text-gray-600">{{ $item->updater?->name ?? '—' }}</td>
                         <td class="px-4 py-2 text-right">
                             @can('update', $item)
                                 <a href="{{ route('catalog.advice-templates.edit', $item) }}" class="hover:underline">{{ __('Edit') }}</a>

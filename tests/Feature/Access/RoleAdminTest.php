@@ -15,9 +15,11 @@ class RoleAdminTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected bool $seed = true;
-
-    protected string $seeder = AccessSeeder::class;
+    /** Seeded for every test: the in-memory database is shared by all test classes, so seeding at migrate time would only reach the first. */
+    protected function afterRefreshingDatabase(): void
+    {
+        $this->seed(AccessSeeder::class);
+    }
 
     public function test_super_admin_creates_a_role_and_it_takes_effect(): void
     {

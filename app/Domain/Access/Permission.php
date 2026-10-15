@@ -11,6 +11,7 @@ enum Permission: string
 {
     case PatientsRead = 'patients.read';
     case PatientsWrite = 'patients.write';
+    case PatientsDelete = 'patients.delete';
 
     case CasesRead = 'cases.read';
     case CasesReadPrivate = 'cases.read_private';
@@ -29,6 +30,7 @@ enum Permission: string
 
     case TemplatesManage = 'templates.manage';
     case CatalogManage = 'catalog.manage';
+    case CatalogDelete = 'catalog.delete';
     case PracticeManage = 'practice.manage';
 
     case UsersManage = 'users.manage';
@@ -46,6 +48,7 @@ enum Permission: string
         return match ($this) {
             self::PatientsRead => 'View patients',
             self::PatientsWrite => 'Register and edit patients',
+            self::PatientsDelete => 'Delete patients',
             self::CasesRead => 'View visits and prescriptions',
             self::CasesReadPrivate => 'View private visit notes',
             self::CasesWrite => 'Write visits and prescriptions',
@@ -61,6 +64,7 @@ enum Permission: string
             self::ReportsBasic => 'View daily collection and dues reports',
             self::TemplatesManage => 'Manage prescription templates',
             self::CatalogManage => 'Manage catalogs',
+            self::CatalogDelete => 'Delete catalog items',
             self::PracticeManage => 'Manage chambers, specialties and doctor chamber assignments',
             self::UsersManage => 'Manage users',
             self::RolesManage => 'Manage roles and permissions',
@@ -71,12 +75,12 @@ enum Permission: string
     public function group(): string
     {
         return match ($this) {
-            self::PatientsRead, self::PatientsWrite => 'Patients',
+            self::PatientsRead, self::PatientsWrite, self::PatientsDelete => 'Patients',
             self::CasesRead, self::CasesReadPrivate, self::CasesWrite,
             self::CasesFinalize, self::CasesAmend, self::PrescriptionsPrint => 'Clinical',
             self::PaymentsRecord, self::FinanceRead, self::FinanceDiscount, self::FinanceVoid,
             self::ExpensesWrite, self::ReportsRead, self::ReportsBasic => 'Finance',
-            self::TemplatesManage, self::CatalogManage, self::PracticeManage => 'Setup',
+            self::TemplatesManage, self::CatalogManage, self::CatalogDelete, self::PracticeManage => 'Setup',
             self::UsersManage, self::RolesManage, self::AuditRead => 'Administration',
         };
     }

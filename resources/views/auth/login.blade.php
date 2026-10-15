@@ -26,10 +26,10 @@
                 <x-form-errors />
 
                 <div>
-                    <label for="email" class="block text-base font-medium">{{ __('Email') }} <x-required-mark /></label>
-                    <input id="email" name="email" type="email" value="{{ old('email') }}" required maxlength="255" autofocus autocomplete="username"
+                    <label for="login" class="block text-base font-medium">{{ __('Email or phone') }} <x-required-mark /></label>
+                    <input id="login" name="login" type="text" value="{{ old('login') }}" required maxlength="255" autofocus autocomplete="username"
                            class="mt-2 w-full px-3 py-2 ring-1 ring-gray-300">
-                    <x-field-error for="email"/>
+                    <x-field-error for="login"/>
                 </div>
 
                 <div>

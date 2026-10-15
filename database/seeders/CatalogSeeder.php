@@ -33,33 +33,23 @@ class CatalogSeeder extends Seeder
         ],
         'Imaging' => [
             ['X-ray chest P/A view', null], ['USG of lower abdomen', null], ['USG of whole abdomen', null],
-            ['OPG (orthopantomogram)', null, 'dental'], ['IOPA X-ray', null, 'dental'], ['ECG', null],
-        ],
-        'Gynae' => [
-            ['Pregnancy test (urine)', null, 'gynae'], ['Serum beta-hCG', null, 'gynae'], ['FSH', 'D2', 'gynae'],
-            ['LH', 'D2', 'gynae'], ['Prolactin', 'D2', 'gynae'], ['Pap smear', null, 'gynae'],
-            ['Transvaginal USG', null, 'gynae'],
+            ['ECG', null],
         ],
     ];
 
     /** @var list<array{string, string, string|null}> code, name, specialty (null = general) */
     private const PROCEDURES = [
-        ['SCALING', 'Scaling', 'dental'], ['POLISHING', 'Polishing', 'dental'], ['EXTRACTION', 'Extraction', 'dental'],
-        ['FILLING', 'Filling', 'dental'], ['RCT', 'Root canal treatment', 'dental'], ['CROWN', 'Crown', 'dental'],
-        ['DRESSING', 'Dressing', null], ['INJECTION', 'Injection', null], ['IUCD', 'IUCD insertion', 'gynae'],
+        ['DRESSING', 'Dressing', null], ['INJECTION', 'Injection', null],
     ];
 
     /** @var list<array{string|null, string, string}> specialty (null = general), title, text */
     private const ADVICE = [
         [null, 'General advice', "Drink plenty of water.\nTake rest and a balanced diet.\nTake the medicines regularly as advised.\nReturn at once if the problem gets worse."],
-        ['dental', 'After extraction', "Bite on the gauze for 30 minutes.\nDo not rinse the mouth or spit for 24 hours.\nAvoid hot food and drinks today.\nDo not touch the area with the tongue or fingers."],
-        ['dental', 'After scaling', "Mild gum soreness or bleeding for a day or two is normal.\nBrush gently twice a day.\nAvoid very hot, cold or spicy food for 24 hours."],
-        ['gynae', 'Antenatal advice', "Take the prescribed iron, calcium and folic acid regularly.\nEat a balanced diet and drink plenty of water.\nReport bleeding, severe headache, swelling of the face or reduced baby movement at once."],
     ];
 
     public function run(): void
     {
-        // Seeded specialties are looked up by code (PracticeSeeder and the specialties migration create them).
+        // Starter items are general; an entry may name a specialty by code (none are seeded, users create them).
         $specialty = fn (?string $code) => $code === null ? null : Specialty::query()->where('code', $code)->value('id');
 
         foreach (self::LAB_TESTS as $category => $tests) {

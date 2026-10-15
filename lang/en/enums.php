@@ -64,10 +64,6 @@ return [
         'single_column' => 'Single column',
         'two_column' => 'Two columns',
     ],
-    'specialty_block' => [
-        'gynae' => 'Menstrual & obstetric history',
-        'dental' => 'Dental findings',
-    ],
     'print_locale' => [
         'en' => 'English',
         'bn' => 'বাংলা',

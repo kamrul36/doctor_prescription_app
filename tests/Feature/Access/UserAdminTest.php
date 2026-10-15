@@ -15,9 +15,11 @@ class UserAdminTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected bool $seed = true;
-
-    protected string $seeder = AccessSeeder::class;
+    /** Seeded for every test: the in-memory database is shared by all test classes, so seeding at migrate time would only reach the first. */
+    protected function afterRefreshingDatabase(): void
+    {
+        $this->seed(AccessSeeder::class);
+    }
 
     public function test_super_admin_creates_a_user_via_api(): void
     {
@@ -47,12 +49,33 @@ class UserAdminTest extends TestCase
         $this->actingAs($admin)->post('/admin/users', [
             'name' => 'Karim',
             'email' => 'karim@example.com',
+            'phone' => '01711000111',
             'password' => 'secret-pass',
             'roles' => [Role::DOCTOR],
             'is_active' => '1',
         ])->assertRedirect(route('admin.users.index'));
 
         $this->assertTrue(User::where('email', 'karim@example.com')->firstOrFail()->hasRole(Role::DOCTOR));
+    }
+
+    public function test_phone_keeps_digits_only_and_rejects_bad_lengths(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+        $payload = ['name' => 'Phone Test', 'password' => 'secret-pass', 'roles' => [Role::ASSISTANT]];
+
+        $this->postJson('/api/v1/users', $payload + ['phone' => '+(017) 12-345.678'], $this->bearer($admin))
+            ->assertCreated()
+            ->assertJsonPath('data.phone', '01712345678');
+
+        foreach (['12345', '1234567890123456', 'abc'] as $bad) {
+            $this->postJson('/api/v1/users', $payload + ['phone' => $bad], $this->bearer($admin))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('phone');
+        }
+
+        $this->postJson('/api/v1/users', $payload + ['phone' => '017-1234 5678'], $this->bearer($admin))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('phone');
     }
 
     public function test_user_admin_pages_render(): void

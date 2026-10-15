@@ -15,7 +15,7 @@ class CreateUserAction
     ) {}
 
     /**
-     * @param  array{name: string, email: string, phone?: string|null, password: string, is_active?: bool, roles?: list<string>}  $data
+     * @param  array{name: string, email?: string|null, phone: string, password: string, is_active?: bool, roles?: list<string>}  $data
      */
     public function handle(User $actor, array $data): User
     {
@@ -25,8 +25,8 @@ class CreateUserAction
         return DB::transaction(function () use ($data, $roles) {
             $user = User::create([
                 'name' => $data['name'],
-                'email' => $data['email'],
-                'phone' => $data['phone'] ?? null,
+                'email' => $data['email'] ?? null,
+                'phone' => $data['phone'],
                 'password' => $data['password'],
                 'is_active' => $data['is_active'] ?? true,
             ]);

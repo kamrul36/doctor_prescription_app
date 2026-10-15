@@ -50,7 +50,7 @@ class ProcedureController extends Controller
     {
         Gate::authorize('update', $procedure);
 
-        return view('catalog.procedures.form', ['item' => $procedure]);
+        return view('catalog.procedures.form', ['item' => $procedure->load(Procedure::AUTHORS)]);
     }
 
     public function update(SaveProcedureRequest $request, Procedure $procedure, SaveCatalogItemAction $save): RedirectResponse

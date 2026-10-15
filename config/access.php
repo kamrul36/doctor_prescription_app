@@ -15,6 +15,7 @@ return [
     'seed_admin' => [
         'email' => env('SEED_ADMIN_EMAIL'),
         'password' => env('SEED_ADMIN_PASSWORD'),
+        'phone' => env('SEED_ADMIN_PHONE'),
     ],
 
     /*

@@ -3,9 +3,7 @@
 namespace Tests\Support;
 
 use App\Domain\Access\Permission;
-use App\Domain\Clinical\Specialty\SpecialtySchemas;
 use App\Domain\Clinical\Vitals;
-use App\Domain\Practice\SpecialtyBlock;
 use App\Support\Phone;
 use Symfony\Component\Finder\Finder;
 
@@ -33,17 +31,6 @@ final class TranslationKeys
 
         foreach (Vitals::FIELDS as $field) {
             $keys[] = $field['label'];
-        }
-        foreach (SpecialtyBlock::cases() as $block) {
-            foreach (SpecialtySchemas::for($block)->fields() as $field) {
-                $keys[] = $field['label'];
-                if (isset($field['hint'])) {
-                    $keys[] = $field['hint'];
-                }
-                foreach ($field['options'] ?? [] as $option) {
-                    $keys[] = $option;
-                }
-            }
         }
         foreach (Permission::cases() as $permission) {
             $keys[] = $permission->label('en');

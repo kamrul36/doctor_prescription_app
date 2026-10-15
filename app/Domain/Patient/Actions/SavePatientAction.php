@@ -5,7 +5,6 @@ namespace App\Domain\Patient\Actions;
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Finance\NumberGenerator;
 use App\Domain\Patient\Models\Patient;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -33,7 +32,6 @@ class SavePatientAction
 
             if ($creating) {
                 $patient->code = $this->numbers->next(NumberGenerator::PATIENT);
-                $patient->created_by = Auth::id();
             }
 
             $patient->save();

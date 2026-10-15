@@ -64,10 +64,6 @@ return [
         'single_column' => 'এক কলাম',
         'two_column' => 'দুই কলাম',
     ],
-    'specialty_block' => [
-        'gynae' => 'মাসিক ও প্রসূতি ইতিহাস',
-        'dental' => 'দাঁতের পরীক্ষা',
-    ],
     'print_locale' => [
         'en' => 'English',
         'bn' => 'বাংলা',

@@ -53,6 +53,8 @@ class PatientController extends Controller
 
         $this->audit->log('patient.viewed', $patient);
 
+        $patient->load(Patient::AUTHORS);
+
         return view('patients.show', compact('patient'));
     }
 
@@ -70,11 +72,11 @@ class PatientController extends Controller
         return redirect()->route('patients.show', $patient)->with('success', __('Patient saved.'));
     }
 
-    public function destroy(Patient $patient, DeletePatientAction $delete): RedirectResponse
+    public function destroy(Request $request, Patient $patient, DeletePatientAction $delete): RedirectResponse
     {
         Gate::authorize('delete', $patient);
 
-        $delete->handle($patient);
+        $delete->handle($request->user(), $patient);
 
         return redirect()->route('patients.index')->with('success', __('Patient deleted.'));
     }

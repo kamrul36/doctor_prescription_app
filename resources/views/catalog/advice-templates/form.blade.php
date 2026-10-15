@@ -6,6 +6,9 @@
     @include('catalog._tabs')
 
     <h1 class="mb-4 text-2xl font-semibold">{{ $item->exists ? __('Edit advice template') : __('New advice template') }}</h1>
+    @if ($item->exists)
+        <x-authors :model="$item" class="-mt-2 mb-4" />
+    @endif
 
     <form method="POST" action="{{ $item->exists ? route('catalog.advice-templates.update', $item) : route('catalog.advice-templates.store') }}"
           x-data="validatedForm(@js($errors->toArray()))" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">

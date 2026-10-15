@@ -5,11 +5,11 @@ namespace Tests\Feature\Catalog;
 use App\Domain\Catalog\Models\AdviceTemplate;
 use App\Domain\Catalog\Models\LabTest;
 use App\Domain\Catalog\Models\Procedure;
-use App\Domain\Practice\Models\Specialty;
 use App\Models\User;
 use Database\Seeders\AccessSeeder;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\Specialties;
 use Tests\TestCase;
 
 class CatalogWebTest extends TestCase
@@ -35,8 +35,8 @@ class CatalogWebTest extends TestCase
 
         $this->actingAs($doctor)->get('/catalog/lab-tests')->assertOk()->assertSee('CBC')->assertSee('New lab test');
         $this->actingAs($doctor)->get('/catalog/lab-tests?q=hba')->assertOk()->assertSee('HbA1c')->assertDontSee('CBC');
-        $this->actingAs($doctor)->get('/catalog/procedures')->assertOk()->assertSee('SCALING')->assertSee('New procedure');
-        $this->actingAs($doctor)->get('/catalog/advice-templates')->assertOk()->assertSee('After extraction');
+        $this->actingAs($doctor)->get('/catalog/procedures')->assertOk()->assertSee('DRESSING')->assertSee('New procedure');
+        $this->actingAs($doctor)->get('/catalog/advice-templates')->assertOk()->assertSee('General advice');
         $this->actingAs($doctor)->get('/')->assertOk()->assertSee('Catalogs');
     }
 
@@ -119,6 +119,8 @@ class CatalogWebTest extends TestCase
     {
         $doctor = User::factory()->doctor()->create();
         $this->actingAs($doctor);
+        $this->sp('gynae');
+        $this->sp('dental');
 
         $this->get('/catalog/lab-tests/create')->assertOk()->assertSee('General (all doctors)')->assertSee('Gynaecology &amp; Obstetrics', false);
         $this->post('/catalog/lab-tests', ['name' => 'FSH', 'specialty_id' => $this->sp('gynae'), 'is_active' => '1'])->assertRedirect('/catalog/lab-tests');
@@ -141,6 +143,6 @@ class CatalogWebTest extends TestCase
 
     private function sp(string $code): int
     {
-        return (int) Specialty::where('code', $code)->value('id');
+        return Specialties::make($code)->id;
     }
 }

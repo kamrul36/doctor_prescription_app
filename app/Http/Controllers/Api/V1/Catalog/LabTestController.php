@@ -26,7 +26,7 @@ class LabTestController extends CatalogApiController
         /** @var User $actor */
         $actor = $request->user();
 
-        return (new LabTestResource($save->handle($actor, LabTest::class, null, $request->validated())))
+        return (new LabTestResource($save->handle($actor, LabTest::class, null, $request->validated())->load(LabTest::AUTHORS)))
             ->response()->setStatusCode(201);
     }
 
@@ -34,7 +34,7 @@ class LabTestController extends CatalogApiController
     {
         Gate::authorize('view', $labTest);
 
-        return new LabTestResource($labTest);
+        return new LabTestResource($labTest->load(LabTest::AUTHORS));
     }
 
     public function update(SaveLabTestRequest $request, LabTest $labTest, SaveCatalogItemAction $save): LabTestResource
@@ -42,7 +42,7 @@ class LabTestController extends CatalogApiController
         /** @var User $actor */
         $actor = $request->user();
 
-        return new LabTestResource($save->handle($actor, LabTest::class, $labTest, $request->validated()));
+        return new LabTestResource($save->handle($actor, LabTest::class, $labTest, $request->validated())->load(LabTest::AUTHORS));
     }
 
     public function destroy(LabTest $labTest, DeleteCatalogItemAction $delete): Response

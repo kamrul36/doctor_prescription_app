@@ -6,6 +6,7 @@ use App\Domain\Clinical\Models\CaseHistory;
 use App\Domain\Patient\Gender;
 use App\Domain\Patient\PatientType;
 use App\Support\Bilingual;
+use App\Support\Concerns\RecordsAuthors;
 use Database\Factories\PatientFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -36,12 +37,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $conditions
  * @property string|null $notes
  * @property int|null $created_by
+ * @property int|null $updated_by
  * @property-read string|null $age_text
  */
 class Patient extends Model
 {
     /** @use HasFactory<PatientFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, RecordsAuthors, SoftDeletes;
 
     /** @var list<string> */
     protected $fillable = [
@@ -73,6 +75,12 @@ class Patient extends Model
     public function visits(): HasMany
     {
         return $this->hasMany(CaseHistory::class)->orderByDesc('visit_date')->orderByDesc('id');
+    }
+
+    /** Any visit (draft, finalized or cancelled): such a patient can be deleted only by a super admin. */
+    public function hasVisits(): bool
+    {
+        return CaseHistory::query()->where('patient_id', $this->id)->exists();
     }
 
     protected static function newFactory(): PatientFactory
