@@ -6,19 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
+        // Users sign in with phone or email. The phone is required by the user
+        // forms and unique; the email is optional (many NULLs are fine under a unique index).
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')->nullable()->unique();
+            $table->string('phone', 32)->nullable()->unique();
+            // UI language (bn | en); NULL means the app default.
+            $table->string('locale', 5)->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->boolean('is_active')->default(true);
+            // Bumped on deactivation: JWTs and sessions carrying an older value are rejected.
+            $table->unsignedInteger('token_version')->default(0);
             $table->rememberToken();
-            $table->timestamps();
+            $table->trackedTimestamps();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -37,13 +42,10 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
     }
 };

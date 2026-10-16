@@ -26,6 +26,7 @@ php artisan jwt:secret          # required for the API login
 
 # configure DB credentials in .env, and set SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD
 php artisan migrate --seed      # roles, permissions, super admin (+ demo users in local)
+# after pulling a schema change on a dev database: php artisan migrate:fresh --seed
 
 npm install
 npm run dev   # or: composer run dev

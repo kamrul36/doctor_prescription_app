@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('key', 50);
             $table->unsignedSmallInteger('year');
             $table->unsignedBigInteger('last_value')->default(0);
-            $table->timestamps();
+            $table->trackedTimestamps();
 
             $table->unique(['key', 'year']);
         });

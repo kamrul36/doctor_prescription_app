@@ -44,7 +44,7 @@ return new class extends Migration
             $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('cancel_reason', 500)->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamps();
+            $table->trackedTimestamps();
 
             $table->index(['patient_id', 'visit_date']);
             $table->index(['doctor_id', 'chamber_id', 'visit_date']);
@@ -59,7 +59,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('duration_value')->nullable();
             $table->string('duration_unit', 16)->nullable();
             $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->timestamps();
+            $table->trackedTimestamps();
         });
 
         Schema::create('case_findings', function (Blueprint $table) {
@@ -68,7 +68,7 @@ return new class extends Migration
             $table->string('label', 255)->nullable();
             $table->string('value', 500);
             $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->timestamps();
+            $table->trackedTimestamps();
         });
 
         Schema::create('treatment_plan_items', function (Blueprint $table) {
@@ -81,7 +81,7 @@ return new class extends Migration
             $table->decimal('fee', 12, 2)->nullable();
             $table->boolean('is_billable')->default(true);
             $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->timestamps();
+            $table->trackedTimestamps();
         });
 
         Schema::create('ordered_tests', function (Blueprint $table) {
@@ -95,7 +95,7 @@ return new class extends Migration
             $table->date('result_date')->nullable();
             $table->string('notes', 500)->nullable();
             $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->timestamps();
+            $table->trackedTimestamps();
         });
 
         Schema::create('prescribed_medicines', function (Blueprint $table) {
@@ -114,7 +114,7 @@ return new class extends Migration
             $table->string('instruction_en', 500)->nullable();
             $table->string('instruction_bn', 500)->nullable();
             $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->timestamps();
+            $table->trackedTimestamps();
         });
 
         Schema::create('case_advice', function (Blueprint $table) {
@@ -124,7 +124,7 @@ return new class extends Migration
             $table->text('text_bn')->nullable();
             $table->foreignId('source_template_id')->nullable()->constrained('advice_templates')->nullOnDelete();
             $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->timestamps();
+            $table->trackedTimestamps();
         });
     }
 

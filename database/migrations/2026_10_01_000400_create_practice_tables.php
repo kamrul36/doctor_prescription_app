@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('logo_path')->nullable();
             $table->string('letterhead_path')->nullable();
-            $table->timestamps();
+            $table->boolean('is_active')->default(true);
+            $table->trackedTimestamps();
         });
 
         Schema::create('chamber_branches', function (Blueprint $table) {
@@ -28,7 +29,7 @@ return new class extends Migration
             $table->string('name_bn')->nullable();
             $table->json('phones')->nullable();
             $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->timestamps();
+            $table->trackedTimestamps();
         });
 
         Schema::create('doctors', function (Blueprint $table) {
@@ -40,11 +41,10 @@ return new class extends Migration
             $table->string('designation_bn')->nullable();
             $table->string('reg_label', 32)->default('BMDC');
             $table->string('reg_no', 64)->nullable();
-            $table->string('specialty_code', 32)->default('general');
             $table->string('signature_path')->nullable();
             // FK added after prescription_templates exists (they reference each other).
             $table->unsignedBigInteger('default_template_id')->nullable();
-            $table->timestamps();
+            $table->trackedTimestamps();
         });
 
         Schema::create('doctor_credentials', function (Blueprint $table) {
@@ -53,7 +53,16 @@ return new class extends Migration
             $table->string('text_en');
             $table->string('text_bn')->nullable();
             $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->timestamps();
+            $table->trackedTimestamps();
+        });
+
+        Schema::create('doctor_specialties', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('doctor_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('specialty_id')->constrained()->restrictOnDelete();
+            $table->trackedTimestamps();
+
+            $table->unique(['doctor_id', 'specialty_id']);
         });
 
         Schema::create('doctor_chambers', function (Blueprint $table) {
@@ -62,7 +71,7 @@ return new class extends Migration
             $table->foreignId('chamber_id')->constrained()->cascadeOnDelete();
             $table->text('visiting_hours_en')->nullable();
             $table->text('visiting_hours_bn')->nullable();
-            $table->timestamps();
+            $table->trackedTimestamps();
 
             $table->unique(['doctor_id', 'chamber_id']);
         });
@@ -73,7 +82,7 @@ return new class extends Migration
             $table->foreignId('chamber_id')->constrained()->cascadeOnDelete();
             $table->string('visit_type', 32);
             $table->decimal('amount', 12, 2);
-            $table->timestamps();
+            $table->trackedTimestamps();
 
             $table->unique(['doctor_id', 'chamber_id', 'visit_type'], 'doctor_chamber_fees_unique');
         });
@@ -95,7 +104,7 @@ return new class extends Migration
             $table->boolean('show_signature')->default(true);
             $table->boolean('is_default')->default(false);
             $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            $table->trackedTimestamps();
 
             // A code is unique per owner; global templates have doctor_id NULL
             // (uniqueness for those is enforced in SaveTemplateAction).
@@ -111,7 +120,7 @@ return new class extends Migration
             $table->string('label_bn')->nullable();
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->boolean('is_visible')->default(true);
-            $table->timestamps();
+            $table->trackedTimestamps();
 
             $table->unique(['template_id', 'section_key']);
         });
@@ -127,7 +136,8 @@ return new class extends Migration
 
         foreach ([
             'prescription_template_sections', 'prescription_templates', 'doctor_chamber_fees',
-            'doctor_chambers', 'doctor_credentials', 'doctors', 'chamber_branches', 'chambers',
+            'doctor_chambers', 'doctor_specialties', 'doctor_credentials', 'doctors',
+            'chamber_branches', 'chambers',
         ] as $name) {
             Schema::dropIfExists($name);
         }

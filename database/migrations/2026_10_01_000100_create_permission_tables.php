@@ -27,7 +27,7 @@ return new class extends Migration
             $table->id(); // permission id
             $table->string('name');
             $table->string('guard_name');
-            $table->timestamps();
+            $table->trackedTimestamps();
 
             $table->unique(['name', 'guard_name']);
         });
@@ -43,7 +43,7 @@ return new class extends Migration
             }
             $table->string('name');
             $table->string('guard_name');
-            $table->timestamps();
+            $table->trackedTimestamps();
             if ($teams || config('permission.testing')) {
                 $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
             } else {
@@ -56,6 +56,7 @@ return new class extends Migration
 
             $table->string('model_type');
             $table->unsignedBigInteger($columnNames['model_morph_key']);
+            $table->trackedTimestamps();
             $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_permissions_model_id_model_type_index');
 
             $table->foreign($pivotPermission)
@@ -79,6 +80,7 @@ return new class extends Migration
 
             $table->string('model_type');
             $table->unsignedBigInteger($columnNames['model_morph_key']);
+            $table->trackedTimestamps();
             $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_roles_model_id_model_type_index');
 
             $table->foreign($pivotRole)
@@ -100,6 +102,7 @@ return new class extends Migration
         Schema::create($tableNames['role_has_permissions'], static function (Blueprint $table) use ($tableNames, $pivotRole, $pivotPermission) {
             $table->unsignedBigInteger($pivotPermission);
             $table->unsignedBigInteger($pivotRole);
+            $table->trackedTimestamps();
 
             $table->foreign($pivotPermission)
                 ->references('id') // permission id

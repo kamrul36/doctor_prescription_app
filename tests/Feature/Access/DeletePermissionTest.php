@@ -14,7 +14,6 @@ use Database\Seeders\AccessSeeder;
 use Database\Seeders\PracticeSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use Spatie\Permission\Models\Role as RoleModel;
 use Spatie\Permission\PermissionRegistrar;
@@ -127,7 +126,7 @@ class DeletePermissionTest extends TestCase
         app(DeletePatientAction::class)->handle($doctor, $patient);
     }
 
-    public function test_migration_grants_delete_to_the_existing_doctor_role_only(): void
+    public function test_seeded_defaults_grant_delete_to_the_doctor_role_only(): void
     {
         $doctorRole = RoleModel::findByName(Role::DOCTOR, Role::GUARD);
         $assistantRole = RoleModel::findByName(Role::ASSISTANT, Role::GUARD);
@@ -135,16 +134,7 @@ class DeletePermissionTest extends TestCase
         $this->assertTrue($doctorRole->hasPermissionTo(Permission::PatientsDelete->value));
         $this->assertTrue($doctorRole->hasPermissionTo(Permission::CatalogDelete->value));
         $this->assertFalse($assistantRole->hasPermissionTo(Permission::PatientsDelete->value));
-
-        // Re-running the migration's up() on a database that has the roles grants only the doctor.
-        $migration = require database_path('migrations/2026_10_15_000200_add_delete_permissions.php');
-        $migration->down();
-        $this->assertSame(0, DB::table('permissions')->whereIn('name', ['patients.delete', 'catalog.delete'])->count());
-        $migration->up();
-
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-        $this->assertTrue($doctorRole->fresh()->hasPermissionTo(Permission::PatientsDelete->value));
-        $this->assertFalse($assistantRole->fresh()->hasPermissionTo(Permission::PatientsDelete->value));
+        $this->assertFalse($assistantRole->hasPermissionTo(Permission::CatalogDelete->value));
     }
 
     private function grant(string $role, Permission $permission): void

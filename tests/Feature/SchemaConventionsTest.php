@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
- * Every application table has `created_at` and `updated_at` filled by the
- * database (DEFAULT CURRENT_TIMESTAMP). New tables write
- *   $table->timestamp('created_at')->useCurrent();
- *   $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
- * instead of `$table->timestamps()`.
+ * Every application table has `created_at` and `updated_at`, defined where
+ * the table is created. Migrations write
+ *   $table->trackedTimestamps();   // see AppServiceProvider
+ * (`useCurrent()` on both: the database fills them on insert, Eloquent keeps
+ * `updated_at` current on update).
  */
 class SchemaConventionsTest extends TestCase
 {
@@ -20,6 +20,9 @@ class SchemaConventionsTest extends TestCase
 
     /** Framework-owned tables, not business data. */
     private const EXCLUDED = ['migrations', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs', 'sessions', 'password_reset_tokens'];
+
+    /** Append-only tables: rows are never updated, so they have `created_at` only. */
+    private const APPEND_ONLY = ['audit_logs'];
 
     public function test_every_table_has_database_filled_timestamps(): void
     {
@@ -29,16 +32,21 @@ class SchemaConventionsTest extends TestCase
         $wrong = [];
         foreach ($tables as $table) {
             $columns = collect(Schema::getColumns($table))->keyBy('name');
+            $expected = in_array($table, self::APPEND_ONLY, true) ? ['created_at'] : ['created_at', 'updated_at'];
 
-            foreach (['created_at', 'updated_at'] as $column) {
+            foreach ($expected as $column) {
                 $default = strtolower((string) ($columns[$column]['default'] ?? ''));
                 if (! $columns->has($column) || $columns[$column]['nullable'] || ! str_contains($default, 'current_timestamp')) {
                     $wrong[] = "{$table}.{$column}";
                 }
             }
+
+            if (in_array($table, self::APPEND_ONLY, true) && $columns->has('updated_at')) {
+                $wrong[] = "{$table}.updated_at (append-only table)";
+            }
         }
 
-        $this->assertSame([], $wrong, "Use useCurrent() / useCurrentOnUpdate() timestamps on:\n".implode("\n", $wrong));
+        $this->assertSame([], $wrong, "Use \$table->trackedTimestamps() on:\n".implode("\n", $wrong));
     }
 
     public function test_a_raw_insert_gets_both_timestamps(): void

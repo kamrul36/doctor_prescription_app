@@ -23,6 +23,7 @@ use App\Models\User;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role as RoleModel;
@@ -42,6 +43,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Every application table carries these two columns: the database fills
+        // them on insert; Eloquent keeps `updated_at` current on update.
+        Blueprint::macro('trackedTimestamps', function () {
+            /** @var Blueprint $this */
+            $this->timestamp('created_at')->useCurrent();
+            $this->timestamp('updated_at')->useCurrent();
+        });
+
         // Super admin passes every check. Business rules that must hold even
         // for them (e.g. the super_admin role is immutable) live in Actions.
         Gate::before(fn ($user) => $user instanceof User && $user->isSuperAdmin() ? true : null);

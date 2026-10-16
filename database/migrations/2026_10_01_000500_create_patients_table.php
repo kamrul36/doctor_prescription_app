@@ -17,9 +17,13 @@ return new class extends Migration
             $table->unsignedSmallInteger('age_years')->nullable();
             $table->date('age_recorded_on')->nullable();
             $table->string('gender', 16);
-            $table->string('phone', 32)->index();
+            // Phone and address are optional (the pad can register a patient without them).
+            $table->string('phone', 32)->nullable()->index();
+            // Whose phone it is: the patient's own, or a relative's ("Father", "Wife"...).
+            $table->boolean('phone_is_personal')->default(true);
+            $table->string('phone_relation', 60)->nullable();
             $table->string('alt_phone', 32)->nullable()->index();
-            $table->text('address');
+            $table->text('address')->nullable();
             $table->string('occupation')->nullable();
             $table->string('blood_group', 4)->nullable();
             $table->string('patient_type', 16)->default('general');
@@ -28,7 +32,8 @@ return new class extends Migration
             $table->text('conditions')->nullable();
             $table->text('notes')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamps();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->trackedTimestamps();
             $table->softDeletes();
 
             $table->index('name');

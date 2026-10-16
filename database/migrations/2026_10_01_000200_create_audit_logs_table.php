@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Append-only: rows are never updated, so there is no `updated_at`.
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();

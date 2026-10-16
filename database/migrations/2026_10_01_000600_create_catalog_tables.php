@@ -10,11 +10,14 @@ return new class extends Migration
     {
         Schema::create('lab_tests', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('specialty_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('name');
             $table->string('category', 100)->nullable();
             $table->string('default_timing_note', 100)->nullable();
             $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->trackedTimestamps();
             $table->softDeletes();
 
             $table->index('name');
@@ -22,13 +25,16 @@ return new class extends Migration
 
         Schema::create('procedures', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('specialty_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('code', 32)->unique();
             $table->string('name_en');
             $table->string('name_bn')->nullable();
             $table->decimal('default_fee', 12, 2)->nullable();
             $table->boolean('is_billable')->default(true);
             $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->trackedTimestamps();
             $table->softDeletes();
 
             $table->index('name_en');
@@ -38,18 +44,20 @@ return new class extends Migration
             $table->id();
             // Null = shared with every doctor. Never cascades to shared: a private text must not become public.
             $table->foreignId('doctor_id')->nullable()->constrained('doctors');
-            $table->string('specialty_code', 32);
+            $table->foreignId('specialty_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('title');
             $table->text('text_en');
             $table->text('text_bn')->nullable();
             $table->foreignId('is_default_for_template_id')->nullable()
                 ->constrained('prescription_templates')->nullOnDelete();
             $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->trackedTimestamps();
             $table->softDeletes();
 
             $table->index('title');
-            $table->index(['doctor_id', 'specialty_code']);
+            $table->index(['doctor_id', 'specialty_id']);
         });
     }
 
