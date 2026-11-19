@@ -14,13 +14,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property string $name_en
  * @property bool $is_active
+ * @property list<string>|null $phones
  */
 class Chamber extends Model
 {
     use HasBilingualFields;
 
     protected $fillable = [
-        'name_en', 'name_bn', 'address_en', 'address_bn', 'phone', 'email', 'logo_path', 'letterhead_path', 'is_active',
+        'name_en', 'name_bn', 'address_en', 'address_bn', 'phones', 'email', 'logo_path', 'letterhead_path', 'is_active',
     ];
 
     /** @var array<string, mixed> */
@@ -28,7 +29,7 @@ class Chamber extends Model
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'phones' => 'array'];
     }
 
     /** @return BelongsToMany<Doctor, $this> */

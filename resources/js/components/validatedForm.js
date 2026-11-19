@@ -5,7 +5,7 @@ import { t } from '../i18n';
 // The server's FormRequest stays the authority; these checks mirror it so the
 // user sees a wrong format at once. Rules come from the field's attributes:
 //   required, maxlength                       HTML attributes
-//   data-rule="phone|phone-list|list|integer|decimal|money|dose-slot|past-date|future-date"
+//   data-rule="phone|contact-phone|phone-list|list|integer|decimal|money|dose-slot|past-date|future-date"
 //   data-min / data-max                       range for integer and decimal
 //   data-max-items, data-item-min/-max        for phone-list and list
 //   data-pattern + data-pattern-message       a regular expression the whole value must match
@@ -24,6 +24,10 @@ const RULES = {
     // Local number without country code (App\Support\Phone::LOCAL_RULE); non-digits are stripped on input.
     'local-phone'(value) {
         return /^\d{6,15}$/.test(value) ? '' : t('Enter a phone number of 6 to 15 digits, without country code.');
+    },
+    // One contact number in its own field (chamber phones): 5 to 15 digits (App\Support\Phone::contactList).
+    'contact-phone'(value) {
+        return /^\+?\d{5,15}$/.test(value.replace(/[\s().-]/g, '')) ? '' : t('Enter a phone number of 5 to 15 digits.');
     },
     // Chamber/branch contact numbers: comma-separated, each 5 to 15 digits (App\Support\Phone::contactList).
     'phone-list'(value, el) {

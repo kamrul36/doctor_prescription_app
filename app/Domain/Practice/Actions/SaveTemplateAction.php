@@ -6,6 +6,7 @@ use App\Domain\Audit\AuditLogger;
 use App\Domain\Practice\Models\Doctor;
 use App\Domain\Practice\Models\PrescriptionTemplate;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -34,6 +35,19 @@ class SaveTemplateAction
 
         $this->ensureCodeIsFree($ownerId, $data['code'], $template);
 
+        try {
+            return $this->save($template, $creating, $ownerId, $data);
+        } catch (UniqueConstraintViolationException) {
+            // Two saves with the same code at the same moment: the database caught the second.
+            throw ValidationException::withMessages(['code' => __('This template code is already in use.')]);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function save(?PrescriptionTemplate $template, bool $creating, ?int $ownerId, array $data): PrescriptionTemplate
+    {
         return DB::transaction(function () use ($template, $creating, $ownerId, $data) {
             $template ??= new PrescriptionTemplate(['doctor_id' => $ownerId]);
 

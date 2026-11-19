@@ -130,7 +130,7 @@ class FinalizeVisitAction
             'specialties' => $doctor->specialties->pluck('name')->all(),
             'chamber' => [
                 'name_en' => $chamber->name_en, 'name_bn' => $chamber->name_bn,
-                'address_en' => $chamber->address_en, 'address_bn' => $chamber->address_bn, 'phone' => $chamber->phone,
+                'address_en' => $chamber->address_en, 'address_bn' => $chamber->address_bn, 'phones' => $chamber->phones ?? [],
                 'visiting_hours_en' => $hours?->getAttribute('visiting_hours_en'),
                 'visiting_hours_bn' => $hours?->getAttribute('visiting_hours_bn'),
             ],

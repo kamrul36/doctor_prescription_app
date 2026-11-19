@@ -11,6 +11,11 @@
             'name_en' => $b['name_en'] ?? '', 'name_bn' => $b['name_bn'] ?? '',
             'phones' => is_array($b['phones'] ?? null) ? implode(', ', $b['phones']) : ($b['phones'] ?? ''),
         ], array_values($branches));
+        $rawPhones = old('phones', $chamber->phones ?? []);
+        $phones = array_map(fn ($p) => ['value' => (string) $p], array_values(array_filter(
+            is_array($rawPhones) ? $rawPhones : explode(',', (string) $rawPhones),
+            fn ($p) => is_string($p) ? trim($p) !== '' : $p !== null,
+        )));
         $input = 'mt-2 w-full rounded px-3 py-2 ring-1 ring-gray-300';
     @endphp
 
@@ -46,10 +51,25 @@
                 <textarea id="address_bn" name="address_bn" rows="2" maxlength="1000" class="{{ $input }}">{{ old('address_bn', $chamber->address_bn) }}</textarea>
                 <x-field-error for="address_bn" />
             </div>
-            <div>
-                <label for="phone" class="block text-base font-medium">{{ __('Phone') }}</label>
-                <input id="phone" name="phone" value="{{ old('phone', $chamber->phone) }}" maxlength="64" data-rule="phone-list" data-max-items="4" placeholder="e.g. 01711-000000, 10666" class="{{ $input }}">
-                <x-field-error for="phone" />
+            <div x-data="rowList(@js($phones), { value: '' })">
+                <div class="flex items-center gap-3">
+                    <label for="phone-0" class="block text-base font-medium">{{ __('Phone') }}</label>
+                    <button type="button" x-show="rows.length < 4" @click="add()" class="rounded px-2 py-1 text-sm text-teal-800 ring-1 ring-teal-700 hover:bg-teal-50">{{ __('+ Add phone') }}</button>
+                </div>
+                {{-- Always send the key, so removing every number clears the list. --}}
+                <input type="hidden" name="phones" value="" x-bind:disabled="rows.length > 0">
+                <x-field-error for="phones" />
+                <div class="mt-2 space-y-2">
+                    <template x-for="(row, i) in rows" :key="row._key">
+                        <div data-row>
+                            <div class="flex gap-2">
+                                <input :id="`phone-${i}`" :name="`phones[${i}]`" x-model="row.value" type="tel" maxlength="32" data-rule="contact-phone" placeholder="e.g. 01711-000000" class="w-full rounded px-3 py-2 ring-1 ring-gray-300">
+                                <button type="button" @click="remove(i)" class="px-2 text-sm text-red-700 hover:underline" aria-label="{{ __('Remove phone') }}">{{ __('Remove') }}</button>
+                            </div>
+                            <p x-show="err(`phones.${i}`)" class="mt-1 text-sm text-red-700" x-text="err(`phones.${i}`)"></p>
+                        </div>
+                    </template>
+                </div>
             </div>
             <div>
                 <label for="email" class="block text-base font-medium">{{ __('Email') }}</label>

@@ -29,7 +29,7 @@
                     <tr class="border-b last:border-0">
                         <td class="px-4 py-2 font-medium">{{ $chamber->name_en }}</td>
                         <td class="px-4 py-2">{{ $chamber->address_en }}</td>
-                        <td class="px-4 py-2">{{ $chamber->phone }}</td>
+                        <td class="px-4 py-2">{{ implode(', ', $chamber->phones ?? []) }}</td>
                         <td class="px-4 py-2">{{ $chamber->branches->count() }}</td>
                         <td class="px-4 py-2">{{ $chamber->doctors_count }}</td>
                         <td class="px-4 py-2">{{ $chamber->is_active ? __('Active') : __('Inactive') }}</td>

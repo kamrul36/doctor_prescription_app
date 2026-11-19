@@ -18,7 +18,7 @@ class ChamberResource extends JsonResource
             'name_bn' => $this->name_bn,
             'address_en' => $this->address_en,
             'address_bn' => $this->address_bn,
-            'phone' => $this->phone,
+            'phones' => $this->phones ?? [],
             'email' => $this->email,
             'is_active' => $this->is_active,
             'doctors_count' => $this->whenCounted('doctors'),

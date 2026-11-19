@@ -102,9 +102,12 @@ class PracticeAdminTest extends TestCase
     {
         $admin = $this->bearer(User::factory()->superAdmin()->create());
         $id = $this->postJson('/api/v1/chambers', [
-            'name_en' => 'City Dental',
+            'name_en' => 'City Dental', 'phones' => ['01711000000', '10666'],
             'branches' => [['name_en' => 'Dhanmondi', 'phones' => ['01711000000']], ['name_en' => 'Uttara']],
-        ], $admin)->assertCreated()->assertJsonPath('data.branches.0.phones', ['01711000000'])->json('data.id');
+        ], $admin)->assertCreated()->assertJsonPath('data.phones', ['01711000000', '10666'])
+            ->assertJsonPath('data.branches.0.phones', ['01711000000'])->json('data.id');
+        $this->postJson('/api/v1/chambers', ['name_en' => 'Too many', 'phones' => ['01711', '01712', '01713', '01714', '01715']], $admin)
+            ->assertUnprocessable()->assertJsonValidationErrors('phones');
         $this->putJson("/api/v1/chambers/{$id}", ['name_en' => 'City Dental', 'branches' => [['name_en' => 'Mirpur']]], $admin)
             ->assertOk()->assertJsonCount(1, 'data.branches');
         $this->postJson('/api/v1/chambers', ['name_en' => 'Closed', 'is_active' => false], $admin)->assertCreated();

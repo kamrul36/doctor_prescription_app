@@ -16,6 +16,11 @@ class SaveChamberRequest extends FormRequest
     /** The Blade form always sends spare rows; rows left empty are dropped. */
     protected function prepareForValidation(): void
     {
+        // Spare phone fields left empty are dropped too.
+        if (is_array($this->input('phones'))) {
+            $this->merge(['phones' => array_values(array_filter($this->input('phones'), fn ($p) => is_string($p) ? trim($p) !== '' : $p !== null))]);
+        }
+
         if (is_array($this->input('branches'))) {
             $this->merge(['branches' => array_values(array_filter(
                 $this->input('branches'),
@@ -34,8 +39,9 @@ class SaveChamberRequest extends FormRequest
             'name_bn' => ['nullable', 'string', 'max:255'],
             'address_en' => ['nullable', 'string', 'max:1000'],
             'address_bn' => ['nullable', 'string', 'max:1000'],
-            // One or more numbers, comma-separated, stored as typed.
-            'phone' => ['nullable', 'string', 'max:64', Phone::contactList(4)],
+            // A list from the API, or one comma-separated string from the Blade form.
+            'phones' => ['nullable', Phone::contactList(4)],
+            'phones.*' => ['string', 'max:32'],
             'email' => ['nullable', 'email', 'max:255'],
             'is_active' => ['sometimes', 'boolean'],
             'branches' => ['sometimes', 'nullable', 'array', 'max:20'],

@@ -9,7 +9,9 @@ use App\Domain\Practice\Models\Specialty;
 use App\Models\User;
 use Database\Seeders\AccessSeeder;
 use Database\Seeders\PracticeSeeder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use Tests\Support\Specialties;
 use Tests\TestCase;
@@ -250,6 +252,46 @@ class PracticeSetupTest extends TestCase
         $this->postJson('/api/v1/prescription-templates', $bad, $headers)
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['code', 'layout', 'sections.0.section_key']);
+    }
+
+    public function test_shared_template_code_must_be_unique_on_create_and_update(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+        $headers = $this->bearer($admin);
+        $payload = fn (string $code) => [
+            'code' => $code, 'name' => 'Shared', 'paper_size' => 'A4',
+            'default_print_mode' => 'pad_only', 'layout' => 'single_column',
+            'barcode_source' => 'patient_code',
+            'sections' => [['section_key' => 'advice', 'zone' => 'right']],
+        ];
+
+        // The seeded shared `general` template already holds that code.
+        $this->postJson('/api/v1/prescription-templates', $payload('general'), $headers)
+            ->assertUnprocessable()->assertJsonValidationErrors('code');
+
+        $id = $this->postJson('/api/v1/prescription-templates', $payload('shared_two'), $headers)
+            ->assertCreated()->json('data.id');
+
+        $this->putJson("/api/v1/prescription-templates/{$id}", $payload('general'), $headers)
+            ->assertUnprocessable()->assertJsonValidationErrors('code');
+
+        $this->assertArrayNotHasKey('owner_key', $this->getJson("/api/v1/prescription-templates/{$id}", $headers)->json('data'));
+    }
+
+    public function test_database_rejects_a_second_shared_template_with_the_same_code(): void
+    {
+        $row = fn (?int $doctorId) => [
+            'doctor_id' => $doctorId, 'code' => 'general', 'name' => 'Dup',
+        ];
+        $doctor = Doctor::create(['user_id' => User::factory()->doctor()->create()->id, 'name_en' => 'Dr. A']);
+
+        // A doctor's own template may reuse a shared code.
+        DB::table('prescription_templates')->insert($row($doctor->id));
+
+        // The seeded shared `general` exists, so a second shared one must be refused by the database itself.
+        $this->expectException(UniqueConstraintViolationException::class);
+        DB::table('prescription_templates')->insert($row(null));
     }
 
     public function test_new_default_replaces_previous_default_for_same_owner(): void

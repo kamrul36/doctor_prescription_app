@@ -38,7 +38,7 @@ class FormValidationTest extends TestCase
             'user short password' => ['admin', '/admin/users', '/api/v1/users', 'user', ['password' => 'short'], 'password'],
             'role name with capitals' => ['admin', '/admin/roles', '/api/v1/roles', 'role', ['name' => 'Receptionist'], 'name'],
             'specialty name too short' => ['admin', '/admin/specialties', '/api/v1/specialties', 'specialty', ['name' => 'X'], 'name'],
-            'chamber phone with letters' => ['admin', '/admin/chambers', '/api/v1/chambers', 'chamber', ['phone' => '01711 abc'], 'phone'],
+            'chamber phone with letters' => ['admin', '/admin/chambers', '/api/v1/chambers', 'chamber', ['phones' => '01711 abc'], 'phones'],
             'chamber email' => ['admin', '/admin/chambers', '/api/v1/chambers', 'chamber', ['email' => 'x@'], 'email'],
             'branch phone too short' => ['admin', '/admin/chambers', '/api/v1/chambers', 'chamber', ['branches' => [['name_en' => 'Mirpur', 'phones' => '0171']]], 'branches.0.phones'],
             'branch without a name' => ['admin', '/admin/chambers', '/api/v1/chambers', 'chamber', ['branches' => [['name_en' => '', 'phones' => '01711000000']]], 'branches.0.name_en'],
@@ -87,10 +87,10 @@ class FormValidationTest extends TestCase
     {
         $this->actingAs(User::factory()->superAdmin()->create());
 
-        $this->post('/admin/chambers', [...$this->chamber(), 'phone' => '01711-000000, 10666', 'branches' => [['name_en' => 'Mirpur', 'phones' => '01711, 02-9000000']]])
+        $this->post('/admin/chambers', [...$this->chamber(), 'phones' => ['01711-000000', '', '10666'], 'branches' => [['name_en' => 'Mirpur', 'phones' => '01711, 02-9000000']]])
             ->assertRedirect('/admin/chambers')->assertSessionHas('success');
         $chamber = Chamber::with('branches')->where('name_en', 'City Clinic')->firstOrFail();
-        $this->assertSame('01711-000000, 10666', $chamber->phone);
+        $this->assertSame(['01711-000000', '10666'], $chamber->phones);
         $this->assertSame(['01711', '02-9000000'], $chamber->branches[0]->phones);
 
         $this->post('/admin/users', [...$this->user(), 'phone' => '0171 234-5678'])->assertRedirect('/admin/users');
@@ -122,7 +122,7 @@ class FormValidationTest extends TestCase
             'users' => ['admin', '/admin/users/create', ['data-rule="local-phone"', 'minlength="8"', 'x-text="err(\'email\')"']],
             'roles' => ['admin', '/admin/roles/create', ['data-pattern="[a-z][a-z0-9_]*"', 'id="permissions-error"']],
             'specialties' => ['admin', '/admin/specialties/create', ['minlength="2" maxlength="100"']],
-            'chambers' => ['admin', '/admin/chambers/create', ['data-rule="phone-list" data-max-items="4"', 'rowErr(`branches.${i}`)']],
+            'chambers' => ['admin', '/admin/chambers/create', ['data-rule="contact-phone"', 'name="phones"', '+ Add phone', 'rowErr(`branches.${i}`)']],
             'procedures' => ['doctor', '/catalog/procedures/create', ['data-pattern-message="Use 2 to 32 letters', 'data-rule="money"', 'x-text="err(\'specialty_id\')"']],
             'lab tests' => ['doctor', '/catalog/lab-tests/create', ['x-text="err(\'default_timing_note\')"']],
             'advice' => ['doctor', '/catalog/advice-templates/create', ['x-text="err(\'text_en\')"']],

@@ -23,7 +23,12 @@ class SaveChamberAction
             $creating = $chamber === null;
             $chamber ??= new Chamber;
 
-            $chamber->fill(collect($data)->except('branches')->all())->save();
+            $fields = collect($data)->except('branches')->all();
+            if (array_key_exists('phones', $fields)) {
+                $fields['phones'] = $this->phones($fields['phones'] ?? []);
+            }
+
+            $chamber->fill($fields)->save();
 
             if (array_key_exists('branches', $data)) {
                 $chamber->branches()->delete();

@@ -260,7 +260,8 @@ final class PrescriptionDocumentBuilder
         return [
             'name' => $this->t->text($chamber['name_en'] ?? null, $chamber['name_bn'] ?? null),
             'address' => $this->t->text($chamber['address_en'] ?? null, $chamber['address_bn'] ?? null),
-            'phone' => $chamber['phone'] ?? null,
+            // Snapshots hold a `phones` list; ones finalized earlier hold a single `phone` string.
+            'phone' => filled($chamber['phones'] ?? null) ? implode(', ', $chamber['phones']) : ($chamber['phone'] ?? null),
             'hours' => $this->t->text($chamber['visiting_hours_en'] ?? null, $chamber['visiting_hours_bn'] ?? null),
             'branches' => $branches,
         ];

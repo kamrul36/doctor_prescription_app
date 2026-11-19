@@ -21,6 +21,9 @@ class PrescriptionTemplate extends Model
         'show_signature', 'is_default', 'is_active',
     ];
 
+    /** `owner_key` is a database-generated column used only for the unique index. */
+    protected $hidden = ['owner_key'];
+
     protected function casts(): array
     {
         return [
