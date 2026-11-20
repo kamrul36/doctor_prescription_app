@@ -69,4 +69,23 @@ return [
         'bn' => 'বাংলা',
         'bilingual' => 'দ্বিভাষিক',
     ],
+    'invoice_status' => [
+        'issued' => 'বকেয়া',
+        'partially_paid' => 'আংশিক পরিশোধিত',
+        'paid' => 'পরিশোধিত',
+        'voided' => 'বাতিল',
+    ],
+    'invoice_line_kind' => [
+        'consultation' => 'পরামর্শ ফি',
+        'procedure' => 'প্রসিডিউর',
+        'test' => 'পরীক্ষা',
+        'other' => 'অন্যান্য',
+    ],
+    'payment_method' => [
+        'cash' => 'নগদ',
+        'bkash' => 'বিকাশ',
+        'nagad' => 'নগদ (মোবাইল)',
+        'card' => 'কার্ড',
+        'bank' => 'ব্যাংক',
+    ],
 ];

@@ -8,8 +8,10 @@ use App\Domain\Clinical\Actions\SaveVisitAction;
 use App\Domain\Clinical\Exceptions\PossibleDuplicatePatients;
 use App\Domain\Clinical\Models\CaseHistory;
 use App\Domain\Clinical\VisitStatus;
+use App\Domain\Finance\Actions\SyncVisitInvoiceAction;
 use App\Domain\Patient\Models\Patient;
 use App\Domain\Practice\Models\Doctor;
+use App\Domain\Practice\VisitType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Clinical\CancelVisitRequest;
 use App\Http\Requests\Clinical\SaveVisitRequest;
@@ -76,7 +78,7 @@ class PrescriptionController extends Controller
     {
         Gate::authorize('view', $case);
 
-        $case->load(['patient', 'chamber', 'doctor.specialties'])->loadMissing(['complaints', 'findings', 'planItems', 'tests', 'medicines', 'advice']);
+        $case->load(['patient', 'chamber', 'doctor.specialties', 'invoice'])->loadMissing(['complaints', 'findings', 'planItems', 'tests', 'medicines', 'advice']);
 
         return view('prescriptions.show', ['case' => $case]);
     }
@@ -128,7 +130,8 @@ class PrescriptionController extends Controller
         $registered = $created && $case->patient->wasRecentlyCreated ? ' '.__('Patient registered as :code.', ['code' => $case->patient->code]) : '';
 
         if ($request->input('action') !== 'finalize') {
-            return redirect()->route('prescriptions.edit', $case)->with('success', __('Draft saved.').$registered);
+            return redirect()->route('prescriptions.edit', $case)->with('success', __('Draft saved.').$registered)
+                ->with('warning', $this->feeWarning($case));
         }
 
         if ($this->actor($request)->cannot('finalize', $case)) {
@@ -143,7 +146,18 @@ class PrescriptionController extends Controller
                 ->with('warning', __('Draft saved, but it cannot be finalized yet.').$registered);
         }
 
-        return redirect()->route('prescriptions.show', $case)->with('success', __('Prescription :no finalized.', ['no' => $case->prescription_no]).$registered);
+        return redirect()->route('prescriptions.show', $case)->with('success', __('Prescription :no finalized.', ['no' => $case->prescription_no]).$registered)
+            ->with('warning', $this->feeWarning($case));
+    }
+
+    /** The consultation was billed at 0 because the doctor has no fee for this chamber and visit type (spec §8.2). */
+    private function feeWarning(CaseHistory $case): ?string
+    {
+        if ($case->visit_type === VisitType::Free || SyncVisitInvoiceAction::feeFor($case) !== null) {
+            return null;
+        }
+
+        return __('No fee is set for this visit type, so the invoice shows ৳0. Set your fees in My profile, or enter the price on the invoice.');
     }
 
     /** The pad needs a doctor profile with at least one open chamber. */

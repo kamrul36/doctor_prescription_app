@@ -4,18 +4,24 @@ namespace App\Domain\Document;
 
 use App\Domain\Clinical\Models\CaseHistory;
 use App\Domain\Document\Builders\PrescriptionDocumentBuilder;
+use App\Domain\Document\Builders\ReceiptDocumentBuilder;
 use App\Domain\Document\Support\PrintOptions;
+use App\Domain\Finance\Models\Payment;
 use App\Domain\Practice\Models\PrescriptionTemplate;
 use App\Domain\Practice\PrintMode;
 
 /**
- * Renders a prescription for printing (spec §11). Today: A4 HTML for the browser's
- * Print / Save as PDF. The server PDF exporter (P1.6 engine step) will take the same
- * PrescriptionDocument; print logs and "Copy" marks arrive with it.
+ * Renders documents for printing (spec §11): the A4 prescription and the A5
+ * money receipt, as HTML for the browser's Print / Save as PDF. A server-side
+ * PDF engine is deferred past Phase 1 (decided 2026-11-20); it would take the
+ * same document objects.
  */
 final class ExportService
 {
-    public function __construct(private readonly PrescriptionDocumentBuilder $builder) {}
+    public function __construct(
+        private readonly PrescriptionDocumentBuilder $builder,
+        private readonly ReceiptDocumentBuilder $receipts,
+    ) {}
 
     /** The template's print mode, used when the request names none. */
     public function defaultMode(CaseHistory $case): PrintMode
@@ -32,6 +38,16 @@ final class ExportService
         return view('print.prescription', [
             'doc' => $this->builder->build($case, $options, $template),
             'case' => $case,
+            'toolbar' => $toolbar,
+        ])->render();
+    }
+
+    /** @param  bool  $toolbar  the on-screen language switch (web); off for API exports */
+    public function receiptHtml(Payment $payment, PrintOptions $options, bool $toolbar = false): string
+    {
+        return view('print.receipt', [
+            'doc' => $this->receipts->build($payment, $options),
+            'payment' => $payment,
             'toolbar' => $toolbar,
         ])->render();
     }

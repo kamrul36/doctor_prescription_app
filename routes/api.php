@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\V1\Catalog\LabTestController;
 use App\Http\Controllers\Api\V1\Catalog\ProcedureController;
 use App\Http\Controllers\Api\V1\Clinical\CaseHistoryController;
 use App\Http\Controllers\Api\V1\Clinical\CaseHistoryExportController;
+use App\Http\Controllers\Api\V1\Finance\InvoiceController;
+use App\Http\Controllers\Api\V1\Finance\PaymentController;
 use App\Http\Controllers\Api\V1\Patient\PatientController;
 use App\Http\Controllers\Api\V1\Practice\ChamberController;
 use App\Http\Controllers\Api\V1\Practice\DoctorController;
@@ -55,6 +57,18 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::apiResource('lab-tests', LabTestController::class);
             Route::apiResource('procedures', ProcedureController::class);
             Route::apiResource('advice-templates', AdviceTemplateController::class);
+        });
+        // Finance (P1.7): invoices open with the visit; payments carry an Idempotency-Key header.
+        Route::middleware('throttle:120,1')->group(function () {
+            Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+            Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+            Route::patch('invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
+            Route::post('invoices/{invoice}/payments', [InvoiceController::class, 'storePayment'])->name('invoices.payments.store');
+            Route::post('invoices/{invoice}/discount', [InvoiceController::class, 'discount'])->name('invoices.discount');
+            Route::put('invoices/{invoice}/lines/{line}', [InvoiceController::class, 'updateLine'])->whereNumber('line')->name('invoices.lines.update');
+            Route::post('invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
+            Route::post('payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
+            Route::get('payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');
         });
         Route::get('permissions', [PermissionController::class, 'index'])->name('permissions.index');
     });

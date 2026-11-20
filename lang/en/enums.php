@@ -69,4 +69,23 @@ return [
         'bn' => 'বাংলা',
         'bilingual' => 'Bilingual',
     ],
+    'invoice_status' => [
+        'issued' => 'Due',
+        'partially_paid' => 'Partly paid',
+        'paid' => 'Paid',
+        'voided' => 'Voided',
+    ],
+    'invoice_line_kind' => [
+        'consultation' => 'Consultation',
+        'procedure' => 'Procedure',
+        'test' => 'Test',
+        'other' => 'Other',
+    ],
+    'payment_method' => [
+        'cash' => 'Cash',
+        'bkash' => 'bKash',
+        'nagad' => 'Nagad',
+        'card' => 'Card',
+        'bank' => 'Bank',
+    ],
 ];

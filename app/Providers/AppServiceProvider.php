@@ -11,6 +11,10 @@ use App\Domain\Catalog\Models\Procedure;
 use App\Domain\Catalog\Policies\CatalogPolicy;
 use App\Domain\Clinical\Models\CaseHistory;
 use App\Domain\Clinical\Policies\CaseHistoryPolicy;
+use App\Domain\Finance\Models\Invoice;
+use App\Domain\Finance\Models\Payment;
+use App\Domain\Finance\Policies\InvoicePolicy;
+use App\Domain\Finance\Policies\PaymentPolicy;
 use App\Domain\Patient\Models\Patient;
 use App\Domain\Patient\Policies\PatientPolicy;
 use App\Domain\Practice\Models\Chamber;
@@ -68,6 +72,8 @@ class AppServiceProvider extends ServiceProvider
             Gate::policy($model, PracticeAdminPolicy::class);
         }
         Gate::policy(CaseHistory::class, CaseHistoryPolicy::class);
+        Gate::policy(Invoice::class, InvoicePolicy::class);
+        Gate::policy(Payment::class, PaymentPolicy::class);
 
         // OpenAPI docs at /docs/api: Scramble opens them in `local`; elsewhere
         // only for a super admin (session login).

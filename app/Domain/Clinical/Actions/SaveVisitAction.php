@@ -7,6 +7,7 @@ use App\Domain\Clinical\Models\CaseHistory;
 use App\Domain\Clinical\TestKind;
 use App\Domain\Clinical\VisitStatus;
 use App\Domain\Clinical\Vitals;
+use App\Domain\Finance\Actions\SyncVisitInvoiceAction;
 use App\Domain\Finance\Money;
 use App\Domain\Patient\Models\Patient;
 use App\Domain\Practice\Models\Doctor;
@@ -31,6 +32,7 @@ class SaveVisitAction
     public function __construct(
         private readonly ResolvePatientAction $patients,
         private readonly AuditLogger $audit,
+        private readonly SyncVisitInvoiceAction $invoices,
     ) {}
 
     /**
@@ -93,6 +95,9 @@ class SaveVisitAction
             $case->save();
 
             $this->replaceBlocks($case, $data);
+
+            // The invoice opens with the visit (spec §3 item 8); its consultation line follows the visit type and chamber.
+            $this->invoices->handle($case, reprice: $creating || $case->wasChanged(['visit_type', 'chamber_id']));
 
             $this->audit->log($creating ? 'case.created' : 'case.updated', $case, [
                 'patient_id' => $patient->id,

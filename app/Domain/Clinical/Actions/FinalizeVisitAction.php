@@ -8,6 +8,7 @@ use App\Domain\Clinical\Models\PrescribedMedicine;
 use App\Domain\Clinical\ValueObjects\DosePattern;
 use App\Domain\Clinical\ValueObjects\Duration;
 use App\Domain\Clinical\VisitStatus;
+use App\Domain\Finance\Actions\SyncProcedureLinesAction;
 use App\Domain\Finance\NumberGenerator;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -25,6 +26,7 @@ class FinalizeVisitAction
     public function __construct(
         private readonly NumberGenerator $numbers,
         private readonly AuditLogger $audit,
+        private readonly SyncProcedureLinesAction $procedureLines,
     ) {}
 
     public function handle(User $actor, CaseHistory $case): CaseHistory
@@ -55,6 +57,9 @@ class FinalizeVisitAction
             $case->finalized_by = $actor->id;
             $case->row_version++;
             $case->save();
+
+            // Same transaction (spec §7.3): billable procedures join the invoice (§8.3).
+            $this->procedureLines->handle($case);
 
             $this->audit->log('case.finalized', $case, ['prescription_no' => $case->prescription_no]);
 

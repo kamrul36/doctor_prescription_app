@@ -15,6 +15,8 @@ use App\Http\Controllers\Web\Catalog\LabTestController;
 use App\Http\Controllers\Web\Catalog\ProcedureController;
 use App\Http\Controllers\Web\Clinical\PrescriptionController;
 use App\Http\Controllers\Web\Clinical\PrescriptionPrintController;
+use App\Http\Controllers\Web\Finance\InvoiceController;
+use App\Http\Controllers\Web\Finance\PaymentController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\LocaleController;
 use App\Http\Controllers\Web\Patient\PatientController;
@@ -55,6 +57,21 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('{case}/cancel', 'cancel')->name('cancel');
         // A4 print view: ?lang=en|bn|bilingual&mode=pad_only|with_letterhead&bn_digits=1 (spec §6).
         Route::get('{case}/print', PrescriptionPrintController::class)->name('print');
+    });
+
+    // Finance (P1.7): one invoice per visit; payments, discounts and voids at the desk; the A5 receipt.
+    Route::middleware('throttle:120,1')->group(function () {
+        Route::prefix('invoices')->name('invoices.')->controller(InvoiceController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('{invoice}', 'show')->name('show');
+            Route::patch('{invoice}', 'update')->name('update');
+            Route::post('{invoice}/payments', 'storePayment')->name('payments.store');
+            Route::post('{invoice}/discount', 'discount')->name('discount');
+            Route::put('{invoice}/lines/{line}', 'updateLine')->whereNumber('line')->name('lines.update');
+            Route::post('{invoice}/void', 'void')->name('void');
+        });
+        Route::post('payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
+        Route::get('payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');
     });
 
     // Typeahead for the Blade pad: the same API controllers (search, ranking, cache), on the session.

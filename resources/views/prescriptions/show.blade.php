@@ -28,6 +28,13 @@
                 <a href="{{ route('prescriptions.edit', $case) }}" class="rounded bg-teal-700 px-3 py-1.5 text-sm text-white shadow-sm hover:bg-teal-800">{{ __('Continue editing') }}</a>
             @endcan
             <a href="{{ route('patients.show', $case->patient_id) }}" class="rounded px-3 py-1.5 text-sm ring-1 ring-gray-300 hover:bg-gray-50">{{ __('Patient history') }}</a>
+            @if ($case->invoice)
+                @can('view', $case->invoice)
+                    <a href="{{ route('invoices.show', $case->invoice) }}" class="rounded px-3 py-1.5 text-sm ring-1 ring-gray-300 hover:bg-gray-50">
+                        {{ __('Invoice') }} · {{ $case->invoice->isVoided() ? $case->invoice->status->label() : __('Due :amount', ['amount' => $case->invoice->due->format()]) }}
+                    </a>
+                @endcan
+            @endif
             @can('print', $case)
                 {{-- Print in the chosen language (spec §6); opens the A4 view, which can still switch. --}}
                 <div class="flex overflow-hidden rounded text-sm ring-1 ring-teal-700" role="group" aria-label="{{ __('Print') }}">

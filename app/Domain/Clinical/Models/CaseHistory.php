@@ -4,6 +4,7 @@ namespace App\Domain\Clinical\Models;
 
 use App\Domain\Clinical\PeriodUnit;
 use App\Domain\Clinical\VisitStatus;
+use App\Domain\Finance\Models\Invoice;
 use App\Domain\Patient\Models\Patient;
 use App\Domain\Practice\Models\Chamber;
 use App\Domain\Practice\Models\Doctor;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -118,6 +120,12 @@ class CaseHistory extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /** @return HasOne<Invoice, $this> */
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class);
     }
 
     /** @return HasMany<CaseComplaint, $this> */

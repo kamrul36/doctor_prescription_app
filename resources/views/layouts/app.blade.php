@@ -18,6 +18,7 @@
             $links = [
                 ['prescriptions.index', 'prescriptions.*', __('Prescriptions'), 'cases.read'],
                 ['patients.index', 'patients.*', __('Patients'), 'patients.read'],
+                ['invoices.index', 'invoices.*', __('Invoices'), 'finance.read'],
                 ['catalog.lab-tests.index', 'catalog.*', __('Catalogs'), 'cases.read'],
                 ['settings.templates.index', 'settings.templates.*', __('Templates'), 'cases.read'],
                 ['settings.doctor.edit', 'settings.doctor.*', __('My profile'), 'templates.manage'],
