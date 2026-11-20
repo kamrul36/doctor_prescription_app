@@ -20,6 +20,7 @@ use App\Http\Controllers\Web\LocaleController;
 use App\Http\Controllers\Web\Patient\PatientController;
 use App\Http\Controllers\Web\Settings\DoctorProfileController;
 use App\Http\Controllers\Web\Settings\TemplateController;
+use App\Http\Controllers\Web\Settings\TemplatePreviewController;
 use Illuminate\Support\Facades\Route;
 
 // Blade UI (session auth). API equivalents live in routes/api.php and share
@@ -73,6 +74,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('doctor', [DoctorProfileController::class, 'edit'])->name('doctor.edit');
         Route::put('doctor', [DoctorProfileController::class, 'update'])->name('doctor.update');
+        // Live A4 preview of the unsaved editor form (writes nothing).
+        Route::post('templates/preview', TemplatePreviewController::class)->middleware('throttle:120,1')->name('templates.preview');
         Route::resource('templates', TemplateController::class)->except(['show', 'destroy']);
     });
 

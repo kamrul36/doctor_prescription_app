@@ -29,7 +29,7 @@
             ];
         @endphp
         <header class="sticky top-0 z-10 border-b border-gray-200 bg-white/90 backdrop-blur">
-            <nav class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-1 gap-y-2 px-4 py-2.5">
+            <nav class="mx-auto flex @yield('main_width', 'max-w-6xl') flex-wrap items-center gap-x-1 gap-y-2 px-4 py-2.5">
                 <a href="{{ route('home') }}" class="mr-4 flex items-center gap-2 font-semibold text-teal-800">
                     @include('partials.logo', ['class' => 'h-7 w-7'])
                     {{ config('app.name') }}
@@ -61,7 +61,8 @@
         </header>
     @endauth
 
-    <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+    {{-- A page can widen the content area: @section('main_width', 'max-w-none') (the template editor, for its live preview). --}}
+    <main class="mx-auto w-full @yield('main_width', 'max-w-6xl') flex-1 px-4 py-8">
         @auth
             @unless (request()->routeIs('home'))
                 {{-- Goes to the page the user came from; the href is the fallback when there is no history. --}}

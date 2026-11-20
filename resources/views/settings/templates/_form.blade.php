@@ -7,7 +7,9 @@
 @csrf
 <x-form-errors />
 
-<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+<div class="grid grid-cols-1 gap-8 xl:grid-cols-2">
+<div class="min-w-0">
+<div class="grid gap-4 sm:grid-cols-2">
     <div>
         <label for="name" class="block text-base font-medium">{{ __('Name') }} <x-required-mark /></label>
         <input id="name" name="name" value="{{ old('name', $template->name) }}" required maxlength="255" class="{{ $input }}">
@@ -28,6 +30,7 @@
             @endforeach
         </select>
         <x-field-error for="paper_size" />
+        <p class="mt-1 text-sm text-gray-500">{{ __('Prints and the preview are A4 for now.') }}</p>
     </div>
     <div>
         <label for="layout" class="block text-base font-medium">{{ __('Layout') }} <x-required-mark /></label>
@@ -37,6 +40,7 @@
             @endforeach
         </select>
         <x-field-error for="layout" />
+        <p class="mt-1 text-sm text-gray-500">{{ __('Sidebar left and Two column print the same: two columns need at least one section in the Left zone.') }}</p>
     </div>
     <div>
         <label for="default_print_mode" class="block text-base font-medium">{{ __('Default print mode') }} <x-required-mark /></label>
@@ -81,11 +85,12 @@
             <option value="patient_code" @selected(old('barcode_source', $template->barcode_source) === 'patient_code')>{{ __('Patient ID') }}</option>
         </select>
         <x-field-error for="barcode_source" />
+        <p class="mt-1 text-xs text-gray-500">{{ __('The barcode is not printed yet.') }}</p>
     </div>
 </div>
 
 <h2 class="mt-8 text-lg font-semibold">{{ __('Sections') }}</h2>
-<p class="text-xs text-gray-500">{!! __('Choose which blocks print, in which zone, and under which label. Lower order prints first within a zone. The :section section prints the blocks of the doctor\'s specialties and stays empty for a general physician.', ['section' => '<code>specialty</code>']) !!}</p>
+<p class="text-xs text-gray-500">{{ __('Choose which blocks print, in which zone, and under which label. Lower order prints first within a zone. A section with no data on a visit prints nothing.') }}</p>
 <x-field-error for="sections" />
 <div class="mt-2 overflow-x-auto">
     <table class="w-full text-left text-sm">
@@ -108,6 +113,9 @@
                     <td class="py-1 pr-3">
                         <input type="hidden" name="sections[{{ $i }}][section_key]" value="{{ $row['section_key'] }}">
                         <code>{{ $row['section_key'] }}</code>
+                        @if ($row['section_key'] === \App\Domain\Practice\SectionKey::Specialty->value)
+                            <span class="block text-xs text-gray-500">{{ __('prints nothing for now') }}</span>
+                        @endif
                     </td>
                     <td class="py-1 pr-3">
                         <input type="hidden" name="sections[{{ $i }}][is_visible]" value="0">
@@ -134,4 +142,8 @@
 <div class="mt-6 flex gap-3">
     <button type="submit" class="rounded bg-teal-700 shadow-sm transition hover:bg-teal-800 focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 focus:outline-none px-4 py-2 text-white">{{ __('Save') }}</button>
     <a href="{{ route('settings.templates.index') }}" class="px-4 py-2 text-gray-700">{{ __('Cancel') }}</a>
+</div>
+</div>
+
+@include('settings.templates._preview')
 </div>

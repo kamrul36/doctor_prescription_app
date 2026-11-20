@@ -33,12 +33,13 @@ final class PrescriptionDocumentBuilder
 {
     private Translator $t;
 
-    public function build(CaseHistory $case, PrintOptions $options): PrescriptionDocument
+    /** @param  PrescriptionTemplate|null  $template  an unsaved template to lay out with (the editor's live preview); default: the visit's */
+    public function build(CaseHistory $case, PrintOptions $options, ?PrescriptionTemplate $template = null): PrescriptionDocument
     {
         $this->t = new Translator($options);
         $case->loadMissing(['patient', 'doctor', 'chamber.branches', 'complaints', 'findings', 'planItems', 'tests', 'medicines', 'advice']);
 
-        $template = self::templateFor($case);
+        $template ??= self::templateFor($case);
 
         $zones = ['header' => [], 'left' => [], 'right' => [], 'footer' => []];
         $showPatient = false;

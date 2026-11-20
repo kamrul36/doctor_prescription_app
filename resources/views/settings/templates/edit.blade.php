@@ -2,6 +2,9 @@
 
 @section('title', __('Edit template'))
 
+{{-- Full window width, so the live preview is large enough to read. --}}
+@section('main_width', 'max-w-none')
+
 @section('content')
     <h1 class="mb-4 text-2xl font-semibold">{{ __('Edit template') }}</h1>
 

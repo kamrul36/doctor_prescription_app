@@ -106,7 +106,7 @@
     "Enter a phone number of 5 to 15 digits.": "৫ থেকে ১৫ অঙ্কের ফোন নম্বর দিন।",
     "+ Add phone": "+ ফোন নম্বর যোগ করুন",
     "Remove phone": "ফোন নম্বর সরান",
-    "Enter phone numbers of 5 to 15 digits, separated by commas.":"৫ থেকে ১৫ অঙ্কের ফোন নম্বর দিন, কমা দিয়ে আলাদা করে।",
+    "Enter phone numbers of 5 to 15 digits, separated by commas.": "৫ থেকে ১৫ অঙ্কের ফোন নম্বর দিন, কমা দিয়ে আলাদা করে।",
     "Edit chamber": "চেম্বার সম্পাদনা",
     "New chamber": "নতুন চেম্বার",
     "Edit :name": ":name সম্পাদনা",
@@ -408,7 +408,6 @@
     "Prescription no.": "প্রেসক্রিপশন নম্বর",
     "Patient ID": "রোগীর আইডি",
     "Sections": "অংশ",
-    "Choose which blocks print, in which zone, and under which label. Lower order prints first within a zone. The :section section prints the blocks of the doctor's specialties and stays empty for a general physician.": "কোন ব্লক কোন জায়গায় কোন শিরোনামে ছাপা হবে তা বেছে নিন। একই জায়গায় ছোট ক্রম আগে ছাপা হয়। :section অংশে ডাক্তারের বিশেষত্বের ব্লক ছাপা হয়; সাধারণ চিকিৎসকের জন্য এটি খালি থাকে।",
     "Order": "ক্রম",
     "Section": "অংশ",
     "Show": "দেখান",
@@ -501,5 +500,14 @@
     "Only an administrator can delete a patient with prescriptions.": "প্রেসক্রিপশন আছে এমন রোগীকে শুধু অ্যাডমিন মুছতে পারেন।",
     "Updated by": "হালনাগাদ করেছেন",
     "Created by :name on :date": ":date তারিখে :name তৈরি করেছেন",
-    "Last updated by :name on :date": "সর্বশেষ হালনাগাদ :date তারিখে :name"
+    "Last updated by :name on :date": "সর্বশেষ হালনাগাদ :date তারিখে :name",
+    "Live preview": "লাইভ প্রিভিউ",
+    "Updating…": "হালনাগাদ হচ্ছে…",
+    "Preview could not be updated.": "প্রিভিউ হালনাগাদ করা যায়নি।",
+    "Sample prescription. Changes show here at once; nothing is saved until you press Save.": "নমুনা প্রেসক্রিপশন। পরিবর্তন এখানে সঙ্গে সঙ্গে দেখা যায়; সংরক্ষণ চাপার আগে কিছুই সংরক্ষিত হয় না।",
+    "Prints and the preview are A4 for now.": "আপাতত প্রিন্ট ও প্রিভিউ A4 আকারে হয়।",
+    "Sidebar left and Two column print the same: two columns need at least one section in the Left zone.": "বাম সাইডবার ও দুই কলাম একইভাবে প্রিন্ট হয়: দুই কলামের জন্য বাম অংশে অন্তত একটি সেকশন থাকতে হবে।",
+    "prints nothing for now": "আপাতত কিছু প্রিন্ট হয় না",
+    "Choose which blocks print, in which zone, and under which label. Lower order prints first within a zone. A section with no data on a visit prints nothing.": "কোন ব্লক প্রিন্ট হবে, কোন অংশে এবং কোন লেবেলে তা বেছে নিন। একই অংশে কম ক্রমের সেকশন আগে প্রিন্ট হয়। কোনো ভিজিটে যে সেকশনে তথ্য নেই সেটি প্রিন্ট হয় না।",
+    "The barcode is not printed yet.": "বারকোড এখনো প্রিন্ট হয় না।"
 }
