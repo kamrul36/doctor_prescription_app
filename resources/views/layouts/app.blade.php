@@ -19,6 +19,8 @@
                 ['prescriptions.index', 'prescriptions.*', __('Prescriptions'), 'cases.read'],
                 ['patients.index', 'patients.*', __('Patients'), 'patients.read'],
                 ['invoices.index', 'invoices.*', __('Invoices'), 'finance.read'],
+                ['expenses.index', 'expenses.*', __('Expenses'), 'expenses.write'],
+                ['reports.index', 'reports.*', __('Reports'), 'reports.basic'],
                 ['catalog.lab-tests.index', 'catalog.*', __('Catalogs'), 'cases.read'],
                 ['settings.templates.index', 'settings.templates.*', __('Templates'), 'cases.read'],
                 ['settings.doctor.edit', 'settings.doctor.*', __('My profile'), 'templates.manage'],
@@ -37,7 +39,7 @@
                 </a>
 
                 @foreach ($links as [$route, $pattern, $label, $permission])
-                    @if (auth()->user()->can($permission) || ($route === 'settings.templates.index' && auth()->user()->can('templates.manage')) || ($route === 'catalog.lab-tests.index' && auth()->user()->can('catalog.manage')))
+                    @if (auth()->user()->can($permission) || ($route === 'reports.index' && auth()->user()->can('reports.read')) || ($route === 'settings.templates.index' && auth()->user()->can('templates.manage')) || ($route === 'catalog.lab-tests.index' && auth()->user()->can('catalog.manage')))
                         <a href="{{ route($route) }}"
                                @class([
                                    'rounded-md px-3 py-1.5 text-sm font-medium transition',

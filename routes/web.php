@@ -15,8 +15,11 @@ use App\Http\Controllers\Web\Catalog\LabTestController;
 use App\Http\Controllers\Web\Catalog\ProcedureController;
 use App\Http\Controllers\Web\Clinical\PrescriptionController;
 use App\Http\Controllers\Web\Clinical\PrescriptionPrintController;
+use App\Http\Controllers\Web\Finance\ExpenseCategoryController;
+use App\Http\Controllers\Web\Finance\ExpenseController;
 use App\Http\Controllers\Web\Finance\InvoiceController;
 use App\Http\Controllers\Web\Finance\PaymentController;
+use App\Http\Controllers\Web\Finance\ReportController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\LocaleController;
 use App\Http\Controllers\Web\Patient\PatientController;
@@ -72,6 +75,14 @@ Route::middleware(['auth', 'active'])->group(function () {
         });
         Route::post('payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
         Route::get('payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');
+
+        // Expenses and the four reports (P1.7 step 2).
+        Route::get('expenses/categories', [ExpenseCategoryController::class, 'index'])->name('expenses.categories.index');
+        Route::post('expenses/categories', [ExpenseCategoryController::class, 'store'])->name('expenses.categories.store');
+        Route::put('expenses/categories/{category}', [ExpenseCategoryController::class, 'update'])->name('expenses.categories.update');
+        Route::resource('expenses', ExpenseController::class)->except(['create', 'show']);
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
     });
 
     // Typeahead for the Blade pad: the same API controllers (search, ranking, cache), on the session.

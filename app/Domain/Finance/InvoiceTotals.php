@@ -5,6 +5,7 @@ namespace App\Domain\Finance;
 use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Models\InvoiceLine;
 use App\Domain\Finance\Models\Payment;
+use App\Domain\Finance\Reports\ReportCache;
 
 /**
  * The one place that recomputes an invoice's money columns and status
@@ -37,6 +38,7 @@ final class InvoiceTotals
         $invoice->due = $invoice->isVoided() ? Money::zero() : $total->subtract($paid);
         $invoice->status = self::status($invoice, $total, $paid);
         $invoice->save();
+        ReportCache::flush();
 
         return $invoice->setRelation('lines', $lines)->setRelation('payments', $payments);
     }

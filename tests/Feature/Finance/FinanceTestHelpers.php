@@ -41,6 +41,8 @@ trait FinanceTestHelpers
             'chamber_id' => $chamber->id,
             'visit_type' => 'new',
             'patient' => ['name' => 'Karim '.uniqid(), 'age_years' => '40', 'gender' => 'male'],
+            // The names look alike; skip the possible-duplicate question so each call is a new patient.
+            'patient_choice' => 'new',
             'diagnosis' => 'Gingivitis',
             'action' => 'draft',
         ])->assertSessionHasNoErrors();
