@@ -58,6 +58,8 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
+            // Session time zone = the app's (Asia/Dhaka, no DST), so DB-filled created_at/updated_at match PHP's times.
+            'timezone' => env('DB_TIMEZONE', '+06:00'),
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
@@ -78,6 +80,8 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
+            // Session time zone = the app's (Asia/Dhaka, no DST), so DB-filled created_at/updated_at match PHP's times.
+            'timezone' => env('DB_TIMEZONE', '+06:00'),
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
