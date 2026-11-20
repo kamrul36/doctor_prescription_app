@@ -6,14 +6,17 @@ use App\Domain\Finance\Models\Expense;
 use App\Domain\Finance\Models\ExpenseCategory;
 use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Models\Payment;
+use App\Domain\Finance\Money;
 use App\Domain\Finance\Reports\CashBookReport;
 use App\Domain\Finance\Reports\MonthlySummaryReport;
+use App\Domain\Practice\VisitType;
 use App\Models\User;
 use Database\Seeders\AccessSeeder;
 use Database\Seeders\ExpenseCategorySeeder;
 use Database\Seeders\PracticeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use Tests\TestCase;
@@ -123,13 +126,42 @@ class ReportTest extends TestCase
 
     public function test_closed_months_are_cached_but_a_late_void_shows_at_once(): void
     {
+        // The real store serializes values (the array store would keep live objects).
+        config(['cache.default' => 'database']);
         $this->books();
+
         $this->assertSame('400.00', MonthlySummaryReport::run(2026, 10)['income']->toDecimal());
+
+        DB::enableQueryLog();
+        $cached = MonthlySummaryReport::run(2026, 10);
+        $hitPayments = collect(DB::getQueryLog())->contains(fn ($q) => str_contains($q['query'], '"payments"') || str_contains($q['query'], '`payments`'));
+        DB::disableQueryLog();
+        $this->assertFalse($hitPayments, 'the second run is served from the cache');
+        $this->assertInstanceOf(Money::class, $cached['income']);
+        $this->assertSame('400.00', $cached['income']->toDecimal());
+        $this->assertInstanceOf(VisitType::class, $cached['income_by_visit_type'][0]['visit_type']);
 
         $october = Payment::query()->where('amount', '400.00')->firstOrFail();
         $this->actingAs($this->doctorUser)->post(route('payments.void', $october), ['reason' => 'Bounced'])->assertSessionHasNoErrors();
 
         $this->assertSame('0.00', MonthlySummaryReport::run(2026, 10)['income']->toDecimal());
+    }
+
+    public function test_a_month_is_read_correctly_on_the_31st(): void
+    {
+        Carbon::setTestNow('2026-03-31 10:00:00');
+        $user = User::factory()->doctor()->create();
+        $other = ExpenseCategory::where('name_en', 'Other')->firstOrFail();
+        Carbon::setTestNow('2026-02-10 10:00:00');
+        $this->actingAs($user)->post('/expenses', ['category_id' => $other->id, 'amount' => '75', 'spent_on' => '2026-02-10', 'method' => 'cash', 'note' => 'February item'])
+            ->assertSessionHasNoErrors();
+        Carbon::setTestNow('2026-03-31 10:00:00');
+
+        $h = ['Authorization' => 'Bearer '.JWTAuth::fromUser($user)];
+        $this->getJson('/api/v1/reports/monthly-summary?month=2026-02', $h)->assertOk()
+            ->assertJsonPath('data.month', '2026-02')->assertJsonCount(28, 'data.daily')->assertJsonPath('data.expenses', '75.00');
+        $this->get('/expenses?month=2026-02')->assertOk()->assertSee('February item');
+        $this->get('/reports/monthly-summary?month=2026-02')->assertOk()->assertSee('February 2026');
     }
 
     public function test_who_sees_which_report(): void

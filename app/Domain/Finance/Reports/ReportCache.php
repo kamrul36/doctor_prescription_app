@@ -4,6 +4,7 @@ namespace App\Domain\Finance\Reports;
 
 use Closure;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -33,9 +34,13 @@ final class ReportCache
         return Cache::remember($key, self::TTL_SECONDS, $compute);
     }
 
+    /**
+     * After the surrounding transaction commits (at once when there is none): flushing
+     * earlier would let a report built from the old rows be cached under the new version.
+     */
     public static function flush(): void
     {
-        Cache::forever(self::VERSION_KEY, (string) Str::uuid());
+        DB::afterCommit(fn () => Cache::forever(self::VERSION_KEY, (string) Str::uuid()));
     }
 
     private static function version(): string

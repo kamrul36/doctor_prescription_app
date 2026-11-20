@@ -28,7 +28,8 @@ final class ExpenseListQuery
     public static function month(?string $value): Carbon
     {
         if (is_string($value) && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $value)) {
-            return Carbon::createFromFormat('Y-m', $value)->startOfMonth()->startOfDay();
+            // `!` resets the missing day; without it the 31st of today's month rolls February into March.
+            return Carbon::createFromFormat('!Y-m', $value)->startOfMonth()->startOfDay();
         }
 
         return now()->startOfMonth();

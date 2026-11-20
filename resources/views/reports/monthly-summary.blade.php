@@ -4,7 +4,7 @@
 
 @section('content')
     @php
-        $month = \Illuminate\Support\Carbon::createFromFormat('Y-m', $data['month'])->startOfMonth();
+        $month = \Illuminate\Support\Carbon::createFromFormat('!Y-m', $data['month'])->startOfMonth();
         // The trend bars are scaled to the busiest day; widths are runtime values (Tailwind cannot express them).
         $peak = max(1, ...array_map(fn ($d) => max($d['income']->minor(), $d['expenses']->minor()), $data['daily']));
     @endphp

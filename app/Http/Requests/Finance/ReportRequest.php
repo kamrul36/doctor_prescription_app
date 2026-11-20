@@ -71,7 +71,7 @@ class ReportRequest extends FormRequest
     /** @return array{int, int} */
     public function month(): array
     {
-        $month = $this->filled('month') ? Carbon::createFromFormat('Y-m', (string) $this->validated('month'))->startOfMonth() : now()->startOfMonth();
+        $month = $this->filled('month') ? Carbon::createFromFormat('!Y-m', (string) $this->validated('month'))->startOfMonth() : now()->startOfMonth();
 
         return [$month->year, $month->month];
     }
