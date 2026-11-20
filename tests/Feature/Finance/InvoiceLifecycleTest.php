@@ -8,6 +8,7 @@ use App\Domain\Finance\InvoiceStatus;
 use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Models\Payment;
 use App\Domain\Patient\Models\Patient;
+use App\Domain\Practice\Models\DoctorChamberFee;
 use App\Models\User;
 use Database\Seeders\AccessSeeder;
 use Database\Seeders\PracticeSeeder;
@@ -64,6 +65,33 @@ class InvoiceLifecycleTest extends TestCase
         $invoice = $this->invoiceOf(CaseHistory::firstOrFail());
         $this->assertSame('0.00', $invoice->total->toDecimal());
         $this->assertSame(InvoiceStatus::Issued, $invoice->status);
+    }
+
+    public function test_a_zero_consultation_picks_up_the_fee_once_it_is_set(): void
+    {
+        [$user, $doctor, $chamber] = $this->doctorWithFees([]);
+        $case = $this->saveVisit($user, $chamber);
+        $this->assertSame('0.00', $this->invoiceOf($case)->total->toDecimal());
+        $this->get(route('invoices.show', $this->invoiceOf($case)))->assertSee('No fee is set for this visit type');
+
+        DoctorChamberFee::create(['doctor_id' => $doctor->id, 'chamber_id' => $chamber->id, 'visit_type' => 'new', 'amount' => '700']);
+        $this->get(route('invoices.show', $this->invoiceOf($case)))->assertDontSee('No fee is set for this visit type');
+
+        // Same visit type, no reprice asked: the next save fills the fee in.
+        $this->put(route('prescriptions.update', $case), ['chamber_id' => $chamber->id, 'visit_type' => 'new', 'diagnosis' => 'Fever', 'action' => 'draft'])
+            ->assertSessionMissing('warning');
+        $this->assertSame('700.00', $this->invoiceOf($case)->total->toDecimal());
+    }
+
+    public function test_finalize_also_fills_in_a_fee_set_after_the_draft(): void
+    {
+        [$user, $doctor, $chamber] = $this->doctorWithFees([]);
+        $case = $this->saveVisit($user, $chamber);
+        DoctorChamberFee::create(['doctor_id' => $doctor->id, 'chamber_id' => $chamber->id, 'visit_type' => 'new', 'amount' => '450']);
+
+        $this->post(route('prescriptions.finalize', $case))->assertSessionHasNoErrors();
+
+        $this->assertSame('450.00', $this->invoiceOf($case)->total->toDecimal());
     }
 
     public function test_a_free_visit_is_a_zero_invoice_without_a_warning(): void

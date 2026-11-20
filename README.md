@@ -82,9 +82,9 @@ Phase 1 milestones (`docs/phase1_prescription_finance_spec.md` §12):
 - [x] **P1.2** Practice & templates
 - [x] **P1.3** Patients — CRUD, YYNNNNNN code, DOB or age, allergies/conditions, typo-tolerant search
 - [x] P1.4 Catalogs — lab tests, procedures, advice templates, cached typeahead (medicine catalog deferred)
-- [ ] P1.5 Visit & prescription
-- [ ] P1.6 Bilingual PDF
-- [ ] P1.7 Finance
+- [ ] P1.5 Visit & prescription — core done (pad, drafts, finalize, cancel, history, API); amend, copy-from-previous, ETag left
+- [ ] P1.6 Bilingual PDF — A4 print in EN / BN / bilingual and the A5 receipt are done (browser Print / Save as PDF; server PDF deferred past Phase 1); print log, barcode, uploads left
+- [ ] P1.7 Finance — step 1 done (invoices, payments, voids, discounts, receipts); step 2 left (expenses, reports)
 - [ ] P1.8 History search
 - [ ] P1.9 Hardening & go-live
 

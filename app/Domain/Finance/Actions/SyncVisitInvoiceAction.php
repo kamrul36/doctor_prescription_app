@@ -20,9 +20,11 @@ use Illuminate\Support\Facades\DB;
  * has been paid.
  *
  * Idempotent: visits saved before P1.7 get their invoice the next time they
- * are saved, finalized or cancelled. The consultation price is a snapshot of
- * the doctor's fee for that chamber and visit type; with no fee set it is
- * 0 (the pad warns), and a `free` visit is always 0.
+ * are saved or finalized. The consultation price is a snapshot of the
+ * doctor's fee for that chamber and visit type; with no fee set it is 0 (the
+ * pad warns) and is filled in on the next save or finalize once the fee
+ * exists. A `free` visit is always 0. A deliberate 0 for a paying visit type
+ * is a discount, not a 0 price.
  *
  * Called inside the visit's transaction with the visit row already locked
  * (lock order: visit, then invoice).
@@ -44,8 +46,15 @@ class SyncVisitInvoiceAction
                 return $this->open($case);
             }
 
-            if ($reprice && ! $invoice->isVoided() && ! $invoice->payments()->whereNull('voided_at')->exists()) {
-                $line = $invoice->lines()->where('kind', InvoiceLineKind::Consultation)->first();
+            if ($invoice->isVoided() || $invoice->payments()->whereNull('voided_at')->exists()) {
+                return $invoice;
+            }
+
+            $line = $invoice->lines()->where('kind', InvoiceLineKind::Consultation)->first();
+            // A consultation billed at 0 because no fee was set picks the fee up once the doctor sets it.
+            $feeArrived = $line !== null && $line->unit_price->isZero() && $case->visit_type !== VisitType::Free && self::feeFor($case) !== null;
+
+            if ($reprice || $feeArrived) {
                 $before = $line?->unit_price->toDecimal();
                 $line = $this->consultationLine($invoice, $case, $line);
                 InvoiceTotals::apply($invoice);

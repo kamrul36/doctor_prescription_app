@@ -62,19 +62,19 @@ class CaseHistoryController extends Controller
             return $this->duplicates($request, $e);
         }
 
-        return (new CaseHistoryResource($case->loadMissing('patient')))->response()->setStatusCode(201);
+        return (new CaseHistoryResource($case->loadMissing(['patient', 'invoice'])))->response()->setStatusCode(201);
     }
 
     public function show(CaseHistory $case): CaseHistoryResource
     {
         Gate::authorize('view', $case);
 
-        return new CaseHistoryResource($case->load('patient')->loadMissing(['complaints', 'findings', 'planItems', 'tests', 'medicines', 'advice']));
+        return new CaseHistoryResource($case->load(['patient', 'invoice'])->loadMissing(['complaints', 'findings', 'planItems', 'tests', 'medicines', 'advice']));
     }
 
     public function update(SaveVisitRequest $request, CaseHistory $case, SaveVisitAction $save): CaseHistoryResource
     {
-        return new CaseHistoryResource($save->handle($this->actor($request), $case, $request->validated()));
+        return new CaseHistoryResource($save->handle($this->actor($request), $case, $request->validated())->load('invoice'));
     }
 
     public function finalize(Request $request, CaseHistory $case, FinalizeVisitAction $finalize): CaseHistoryResource
@@ -84,7 +84,7 @@ class CaseHistoryController extends Controller
 
         $case = $finalize->handle($this->actor($request), $case);
 
-        return new CaseHistoryResource($case->load('patient')->loadMissing(['complaints', 'findings', 'planItems', 'tests', 'medicines', 'advice']));
+        return new CaseHistoryResource($case->load(['patient', 'invoice'])->loadMissing(['complaints', 'findings', 'planItems', 'tests', 'medicines', 'advice']));
     }
 
     public function cancel(CancelVisitRequest $request, CaseHistory $case, CancelVisitAction $cancel): CaseHistoryResource

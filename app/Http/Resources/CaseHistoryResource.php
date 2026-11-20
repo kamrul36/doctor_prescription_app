@@ -68,6 +68,11 @@ class CaseHistoryResource extends JsonResource
             'finalized_at' => $this->finalized_at,
             'cancelled_at' => $this->cancelled_at,
             'cancel_reason' => $this->cancel_reason,
+            /** The visit's bill (P1.7): opened when the visit is first saved. */
+            'invoice' => $this->whenLoaded('invoice', fn () => $this->invoice === null ? null : [
+                'id' => $this->invoice->id, 'invoice_no' => $this->invoice->invoice_no,
+                'status' => $this->invoice->status->value, 'total' => $this->invoice->total->toDecimal(), 'due' => $this->invoice->due->toDecimal(),
+            ]),
             'row_version' => $this->row_version,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

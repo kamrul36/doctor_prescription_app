@@ -2,7 +2,9 @@
 
 @section('title', $invoice->invoice_no)
 
+@use('App\Domain\Finance\Actions\SyncVisitInvoiceAction')
 @use('App\Domain\Finance\InvoiceLineKind')
+@use('Illuminate\Support\Arr')
 @use('App\Domain\Finance\PaymentMethod')
 @use('App\Domain\Document\Support\PrintLocale')
 
@@ -54,7 +56,7 @@
                                 <td class="py-2 pr-2 font-mono text-xs text-gray-500">{{ $line->item_code }}</td>
                                 <td class="py-2 pr-2">
                                     {{ $line->localized('description') }}
-                                    @if ($line->kind === InvoiceLineKind::Consultation && $line->unit_price->isZero() && $case?->visit_type->value !== 'free' && ! $invoice->isVoided())
+                                    @if ($line->kind === InvoiceLineKind::Consultation && $line->unit_price->isZero() && $case && $case->visit_type->value !== 'free' && SyncVisitInvoiceAction::feeFor($case) === null && ! $invoice->isVoided())
                                         <span class="mt-1 block text-xs text-amber-700">{{ __('No fee is set for this visit type. Set it in My profile, or enter the price here.') }}</span>
                                     @endif
                                 </td>
@@ -146,8 +148,9 @@
         <div class="space-y-6">
             @can('recordPayment', $invoice)
                 @if ($invoice->due->greaterThan(\App\Domain\Finance\Money::zero()))
-                    <form method="POST" action="{{ route('invoices.payments.store', $invoice) }}" x-data="validatedForm(@js($errors->toArray()))"
-                          class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" x-on:submit="$el.querySelector('[type=submit]').disabled = true">
+                    {{-- Each card gets only its own errors; a double click is safe because of the idempotency key. --}}
+                    <form method="POST" action="{{ route('invoices.payments.store', $invoice) }}" x-data="validatedForm(@js(Arr::only($errors->toArray(), ['amount', 'method', 'reference', 'idempotency_key'])))"
+                          class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                         @csrf
                         <h2 class="mb-3 text-lg font-semibold">{{ __('Take payment') }}</h2>
                         <x-form-errors />
@@ -178,7 +181,7 @@
             @endcan
 
             @can('update', $invoice)
-                <form method="POST" action="{{ route('invoices.update', $invoice) }}" x-data="validatedForm(@js($errors->toArray()))" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <form method="POST" action="{{ route('invoices.update', $invoice) }}" x-data="validatedForm(@js(Arr::only($errors->toArray(), ['referred_by', 'under_doctor_id', 'note'])))" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                     @csrf
                     @method('PATCH')
                     <h2 class="mb-3 text-lg font-semibold">{{ __('Receipt details') }}</h2>
@@ -207,7 +210,7 @@
             @endcan
 
             @can('discount', $invoice)
-                <form method="POST" action="{{ route('invoices.discount', $invoice) }}" x-data="validatedForm(@js($errors->toArray()))" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <form method="POST" action="{{ route('invoices.discount', $invoice) }}" x-data="validatedForm(@js(Arr::only($errors->toArray(), ['discount', 'discount_reason'])))" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                     @csrf
                     <h2 class="mb-3 text-lg font-semibold">{{ __('Discount') }}</h2>
                     <div>
@@ -227,7 +230,7 @@
 
             @can('void', $invoice)
                 @unless ($hasPayments)
-                    <form method="POST" action="{{ route('invoices.void', $invoice) }}" x-data="validatedForm(@js($errors->toArray()))" class="rounded-xl border border-red-200 bg-white p-6 shadow-sm"
+                    <form method="POST" action="{{ route('invoices.void', $invoice) }}" x-data="validatedForm(@js(Arr::only($errors->toArray(), ['reason', 'status'])))" class="rounded-xl border border-red-200 bg-white p-6 shadow-sm"
                           onsubmit="return confirm(@js(__('Void this invoice? It cannot take payments afterwards.')))">
                         @csrf
                         <h2 class="mb-3 text-lg font-semibold text-red-800">{{ __('Void invoice') }}</h2>

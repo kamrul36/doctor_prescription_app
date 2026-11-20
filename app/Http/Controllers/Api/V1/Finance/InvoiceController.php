@@ -29,12 +29,12 @@ use Illuminate\Support\Facades\Gate;
  */
 class InvoiceController extends Controller
 {
-    /** Filters: `from`, `to` (issue date), `status`, `patient_id`, `unpaid=1`, `q` (invoice no., patient name, code or phone). */
+    /** Filters: `from`, `to` (issue date), `status`, `patient_id`, `case_history_id`, `unpaid=1`, `q` (invoice no., patient name, code or phone). */
     public function index(Request $request): AnonymousResourceCollection
     {
         Gate::authorize('viewAny', Invoice::class);
 
-        $invoices = InvoiceListQuery::build($request->only(['from', 'to', 'status', 'patient_id', 'unpaid', 'q']))
+        $invoices = InvoiceListQuery::build($request->only(['from', 'to', 'status', 'patient_id', 'case_history_id', 'unpaid', 'q']))
             ->paginate(min(max($request->integer('per_page', 25), 1), 100));
 
         return InvoiceResource::collection($invoices);

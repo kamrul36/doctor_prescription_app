@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
 final class InvoiceListQuery
 {
     /**
-     * @param  array{from?: string|null, to?: string|null, status?: string|null, patient_id?: int|string|null, unpaid?: mixed, q?: string|null}  $filters
+     * @param  array{from?: string|null, to?: string|null, status?: string|null, patient_id?: int|string|null, case_history_id?: int|string|null, unpaid?: mixed, q?: string|null}  $filters
      * @return Builder<Invoice>
      */
     public static function build(array $filters): Builder
@@ -32,6 +32,9 @@ final class InvoiceListQuery
         }
         if (filled($filters['patient_id'] ?? null)) {
             $query->where('patient_id', (int) $filters['patient_id']);
+        }
+        if (filled($filters['case_history_id'] ?? null)) {
+            $query->where('case_history_id', (int) $filters['case_history_id']);
         }
         if (filter_var($filters['unpaid'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             $query->whereIn('status', [InvoiceStatus::Issued->value, InvoiceStatus::PartiallyPaid->value])->where('due', '>', 0);

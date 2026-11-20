@@ -152,6 +152,17 @@ class PaymentTest extends TestCase
         $this->assertNull($this->invoice->fresh()->discount_reason);
     }
 
+    public function test_a_failed_form_shows_its_error_only_on_its_own_card(): void
+    {
+        $this->actingAs($this->doctorUser)->from(route('invoices.show', $this->invoice))
+            ->post(route('invoices.discount', $this->invoice), ['discount' => '600', 'discount_reason' => 'Too much']);
+
+        $html = $this->get(route('invoices.show', $this->invoice))->assertOk()->getContent();
+        $message = 'The discount cannot be more than the bill';
+        // Once in the discount card's errors, once in the error toast; not in the payment, details or void cards.
+        $this->assertSame(2, substr_count($html, $message));
+    }
+
     public function test_a_line_price_can_change_only_before_payment(): void
     {
         $line = $this->invoice->lines->first();

@@ -45,6 +45,13 @@ class InvoiceApiTest extends TestCase
             ->assertJsonPath('data.lines.0.unit_price', '500.00')
             ->assertJsonPath('data.payments', []);
 
+        // A client that just wrote a visit finds its bill from the visit, or by filter.
+        $this->getJson("/api/v1/case-histories/{$this->invoice->case_history_id}", $this->bearer($this->doctorUser))->assertOk()
+            ->assertJsonPath('data.invoice.id', $this->invoice->id)->assertJsonPath('data.invoice.due', '500.00');
+        $this->getJson("/api/v1/invoices?case_history_id={$this->invoice->case_history_id}", $h)->assertOk()
+            ->assertJsonPath('meta.total', 1);
+        $this->getJson('/api/v1/invoices?case_history_id=999999', $h)->assertJsonPath('meta.total', 0);
+
         $this->getJson('/api/v1/invoices', $this->bearer(User::factory()->create()))->assertForbidden()
             ->assertHeader('Content-Type', 'application/problem+json');
     }
